@@ -14,6 +14,7 @@ public class GameController {
     private String gameID;
     private List<Player> players;
     private List<Player> turnOrder;
+    private List<Player> nextTurnOrder;
     private MainBoard mainBoard;
     private CardController cardController;
     private RoomController roomController;
@@ -27,10 +28,21 @@ public class GameController {
         this.roomController = roomController;
         this.currentRound = 1;
 
-        this.turnOrder = new ArrayList<>(players); // 매 라운드별 프론트에 턴 넘기기
+        this.turnOrder = new ArrayList<>(players);
+        // TODO 매 라운드별 프론트에 턴 넘기기
         Collections.shuffle(this.turnOrder);
 
         initializeFirstFoods();
+    }
+
+    // 다음 라운드의 턴 오더 설정
+    public void setNextTurnOrder(List<Player> nextTurnOrder) {
+        this.nextTurnOrder = nextTurnOrder;
+    }
+
+    // 기존 턴 오더 반환
+    public List<Player> getTurnOrder() {
+        return turnOrder;
     }
 
     private void initializeFirstFoods() {
@@ -92,6 +104,9 @@ public class GameController {
             List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
             // 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
             // WebSocketService.sendMessageToClient(player.getId(), "exchangeableCards", exchangeableCards);
+        }
+        if (nextTurnOrder != null && !nextTurnOrder.isEmpty()) {
+            turnOrder = new ArrayList<>(nextTurnOrder);
         }
     }
 
@@ -190,7 +205,7 @@ public class GameController {
         for (Player player : players) {
             List<Animal> newAnimals = player.getPlayerBoard().breedAnimals();
             for (Animal animal : newAnimals) {
-                if (!player.addNewAnimal(animal)) {
+                if (!player.addAnimal(animal)) {
                     System.out.println(animal.getType() + " 방생됨.");
                 }
             }
@@ -198,6 +213,7 @@ public class GameController {
         }
         notifyPlayers("가축 번식 단계 완료. 수확 단계 종료.");
     }
+
 
     private Map<String, Integer> countAnimals(Player player) {
         Map<String, Integer> animalCounts = new HashMap<>();

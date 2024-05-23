@@ -81,8 +81,8 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
     }
 
     @Override
-    public void purchaseMajorImprovementCard(Player player, MainBoard mainBoard, int cardID) {
-        decoratedCard.purchaseMajorImprovementCard(player, mainBoard, cardID);
+    public void purchaseMajorImprovementCard(Player player) {
+        decoratedCard.purchaseMajorImprovementCard(player);
     }
 
     @Override
@@ -91,23 +91,27 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
     }
 
     @Override
-    public void buildHouse(Player player, int x, int y, RoomType type) {
-        decoratedCard.buildHouse(player, x, y, type);
+    public void buildHouse(Player player) {
+        decoratedCard.buildHouse(player);
     }
 
     @Override
-    public void buildBarn(Player player, int x, int y) {
-        decoratedCard.buildBarn(player, x, y);
+    public void plowField(Player player) {
+        decoratedCard.plowField(player);
+    }
+    @Override
+    public void buildBarn(Player player) {
+        decoratedCard.buildBarn(player);
     }
 
     @Override
-    public void buildFence(Player player, int x, int y) {
-        decoratedCard.buildFence(player, x, y);
+    public void buildFence(Player player) {
+        decoratedCard.buildFence(player);
     }
 
     @Override
-    public void plantField(Player player, int x, int y, int initialCrops) {
-        decoratedCard.plantField(player, x, y, 3);
+    public void plantField(Player player) {
+        decoratedCard.plantField(player);
     }
 
 

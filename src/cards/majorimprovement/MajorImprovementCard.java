@@ -88,9 +88,18 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
     @Override
     public void triggerBreadBaking(Player player) {
         if (breadBakingExchangeRate == null) return;
-        int amount = player.getResource("grain");
-        int exchangeAmount = breadBakingExchangeRate.get("food") * amount / breadBakingExchangeRate.get("grain");
-        player.addResource("grain", -amount);
-        player.addResource("food", exchangeAmount);
+
+        int availableGrain = player.getResource("grain");
+        if (availableGrain > 0) {
+            // 플레이어가 교환할 곡식의 양을 선택
+            int amount = player.selectGrainForBaking(availableGrain);
+
+            if (amount > 0) {
+                int exchangeAmount = breadBakingExchangeRate.get("food") * amount / breadBakingExchangeRate.get("grain");
+                player.addResource("grain", -amount);
+                player.addResource("food", exchangeAmount);
+            }
+        }
     }
 }
+

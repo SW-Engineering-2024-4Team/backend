@@ -58,6 +58,7 @@ public class MainBoard {
         List<CommonCard> allCards = new ArrayList<>();
         allCards.addAll(actionCards);
         allCards.addAll(roundCards);
+        allCards.add((CommonCard) majorImprovementCards);
         return allCards;
     }
 

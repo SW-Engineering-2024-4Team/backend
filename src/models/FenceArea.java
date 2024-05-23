@@ -21,12 +21,9 @@ public class FenceArea {
     }
 
     public int calculateCapacity() {
-        int capacity = 0;
-        for (int[] pos : tiles) {
-            capacity += 2; // 울타리 내부 타일당 2마리
-        }
+        int capacity = (int) Math.pow(2, tiles.size()); // 기본 수용량: 타일 한 칸당 2배
         for (Barn barn : barns) {
-            capacity *= 2; // 외양간이 있으면 수용량 2배
+            capacity *= 2; // 외양간이 있으면 타일당 수용량 2배
         }
         return capacity;
     }
@@ -54,6 +51,11 @@ public class FenceArea {
         return newAnimals;
     }
 
+    public List<Animal> getAnimals() {
+        return animals;
+    }
+
+
     // 특정 위치가 이 울타리 영역에 포함되는지 확인하는 메서드
     public boolean containsTile(int x, int y) {
         for (int[] pos : tiles) {
@@ -63,6 +65,8 @@ public class FenceArea {
         }
         return false;
     }
+
+    public Set<int[]> getTiles() {
+        return tiles;
+    }
 }
-
-
