@@ -24,6 +24,7 @@ public class Player {
     private List<Animal> newAnimals; // 새로 추가된 동물 리스트
     private boolean firstFenceBuilt = false; // 최초 울타리 여부를 저장하는 변수
     private List<int[]> fenceCoordinates = new ArrayList<>(); // 울타리 설치할 좌표 리스트
+    private FamilyMember[][] familyMembers;
 
     public Player(String id, String name, GameController gameController) {
         this.id = id;
@@ -93,10 +94,67 @@ public class Player {
         this.score = score;
     }
 
+//    public void placeFamilyMember(ActionRoundCard card) {
+//        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+//        // TODO 가족 선택 로직
+//        for (int i = 0; i < familyMembers.length; i++) {
+//            for (int j = 0; j < familyMembers[i].length; j++) {
+//                if (familyMembers[i][j] != null && familyMembers[i][j].isAdult() && !familyMembers[i][j].isUsed()) {
+//                    FamilyMember selectedMember = familyMembers[i][j];
+//                    System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
+//                    card.execute(this);  // 카드 실행 로직 확인 필요
+//                    selectedMember.setUsed(true); // 가족 구성원을 사용 상태로 설정
+//                    gameController.getMainBoard().setOccupyingFamilyMember(card, selectedMember);
+//                    gameController.getMainBoard().placeFamilyMember(card, selectedMember);
+//                    System.out.println("Player " + this.id + " placed a family member on card: " + card.getName());
+//                    System.out.println("Family member used status: " + selectedMember.isUsed());
+//                    return;
+//                }
+//            }
+//        }
+//        System.out.println("No available family member found for player " + this.id);
+//    }
+
+    public void placeFamilyMember(ActionRoundCard card) {
+        if (!gameController.getMainBoard().canPlaceFamilyMember(card)) {
+            System.out.println("Card " + card.getName() + " is already occupied.");
+            return;
+        }
+
+        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+        for (int i = 0; i < familyMembers.length; i++) {
+            for (int j = 0; j < familyMembers[i].length; j++) {
+                if (familyMembers[i][j] != null && familyMembers[i][j].isAdult() && !familyMembers[i][j].isUsed()) {
+                    FamilyMember selectedMember = familyMembers[i][j];
+                    System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
+                    card.execute(this);
+                    selectedMember.setUsed(true);
+                    gameController.getMainBoard().placeFamilyMember(card);
+                    System.out.println("Player " + this.id + " placed a family member on card: " + card.getName());
+                    System.out.println("Family member used status: " + selectedMember.isUsed());
+                    return;
+                }
+            }
+        }
+        System.out.println("No available family member found for player " + this.id);
+    }
+
+    public void resetFamilyMembers() {
+        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+        for (FamilyMember[] row : familyMembers) {
+            for (FamilyMember familyMember : row) {
+                if (familyMember != null) {
+                    familyMember.setUsed(false);
+                    familyMember.resetPosition();
+                    System.out.println("Reset family member at (" + familyMember.getOriginalX() + ", " + familyMember.getOriginalY() + ") for player " + this.id);
+                }
+            }
+        }
+    }
     public boolean hasAvailableFamilyMembers() {
         for (FamilyMember[] row : playerBoard.getFamilyMembers()) {
             for (FamilyMember member : row) {
-                if (member != null && member.isAdult()) {
+                if (member != null && member.isAdult() && !member.isUsed()) {
                     return true;
                 }
             }
@@ -104,16 +162,24 @@ public class Player {
         return false;
     }
 
-    public void resetFamilyMembers() {
-        playerBoard.resetFamilyMembers();
-    }
+//    public void resetFamilyMembers() {
+//        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+//        for (FamilyMember[] row : familyMembers) {
+//            for (FamilyMember familyMember : row) {
+//                if (familyMember != null) {
+//                    familyMember.setUsed(false);
+//                    familyMember.resetPosition();
+//                    System.out.println("Reset family member at (" + familyMember.getOriginalX() + ", " + familyMember.getOriginalY() + ") for player " + this.id);
+//                }
+//            }
+//        }
+//        gameController.getMainBoard().resetFamilyMembersOnCards();
+//        System.out.println("All family members have returned home for player " + this.id);
+//    }
 
-    public void placeFamilyMember(int x, int y, ActionRoundCard card) {
-        if (playerBoard.getFamilyMembers()[x][y] != null) {
-            card.execute(this);
-            playerBoard.removeFamilyMember(x, y);
-        }
-    }
+
+
+
 
     public void addResource(String resource, int amount) {
         resources.put(resource, resources.getOrDefault(resource, 0) + amount);
@@ -282,6 +348,7 @@ public class Player {
             System.out.println("해당 방은 이미 사용 중입니다.");
         }
     }
+
 
     // 새로 추가된 가족 구성원 중 하나를 반환하는 메서드
     public FamilyMember getNewFamilyMember() {
@@ -454,4 +521,9 @@ public class Player {
         // 예시로는 랜덤 선택
         return new Random().nextBoolean();
     }
+
+    public void setGameController(GameController gameController) {
+        this.gameController = gameController;
+    }
+
 }

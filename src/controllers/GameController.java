@@ -68,17 +68,22 @@ public class GameController {
         cardController.shuffleDeck(occupationDeck);
         cardController.shuffleDeck(minorImprovementDeck);
 
-        for (Player player : players) {
-            for (int j = 0; j < 7; j++) {
-                player.addCard(occupationDeck.get(j), "occupation");
-                player.addCard(minorImprovementDeck.get(j), "minorImprovement");
-            }
+        int numPlayers = players.size();
+
+        // 직업 카드 분배
+        for (int i = 0; i < 8; i++) {
+            players.get(i % numPlayers).addCard(occupationDeck.get(i), "occupation");
+        }
+
+        // 보조 설비 카드 분배
+        for (int i = 0; i < 8; i++) {
+            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
         }
     }
 
     private void setupMainBoard() {
-        List<CommonCard> actionCards = cardController.getDeck("actionCards");
-        List<List<CommonCard>> roundCycles = cardController.getShuffledRoundCardsByCycle();
+        List<ActionRoundCard> actionCards = cardController.getActionRoundCards();
+        List<List<ActionRoundCard>> roundCycles = cardController.getShuffledRoundCardsByCycle();
         List<CommonCard> majorImprovementCards = cardController.getDeck("majorImprovementCards");
 
         mainBoard.initializeBoard(actionCards, roundCycles, majorImprovementCards);
@@ -86,56 +91,109 @@ public class GameController {
 
     public void startGame() {
         while (currentRound <= 14) {
+            System.out.println("-------------------------------------------------------------------------------");
+            System.out.println("Round " + currentRound + " starts.");
             prepareRound();
             playRound();
+            System.out.println("isHarvestRound(currentRound) = " + isHarvestRound(currentRound));
             if (isHarvestRound(currentRound)) {
+                System.out.println("Harvest phase triggered at round " + currentRound);
                 harvestPhase();
             }
             endRound();
+            System.out.println("Round " + currentRound + " ends.");
+            System.out.println("-------------------------------------------------------------------------------");
             currentRound++;
         }
         endGame();
     }
 
-    private void prepareRound() {
+    public void testGame() {
+        while (currentRound <= 4) {
+            System.out.println("-------------------------------------------------------------------------------");
+            System.out.println("Round " + currentRound + " starts.");
+            prepareRound();
+            playRound();
+            System.out.println("isHarvestRound(currentRound) = " + isHarvestRound(currentRound));
+            if (isHarvestRound(currentRound)) {
+                System.out.println("Harvest phase triggered at round " + currentRound);
+                harvestPhase();
+            }
+            endRound();
+            System.out.println("Round " + currentRound + " ends.");
+            System.out.println("-------------------------------------------------------------------------------");
+            currentRound++;
+        }
+        endGame();
+    }
+
+    public void prepareRound() {
+        System.out.println("Preparing round " + currentRound);
         mainBoard.revealRoundCard(currentRound);
         mainBoard.accumulateResources();
         for (Player player : players) {
             List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
-            // 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
-            // WebSocketService.sendMessageToClient(player.getId(), "exchangeableCards", exchangeableCards);
+            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
         }
         if (nextTurnOrder != null && !nextTurnOrder.isEmpty()) {
             turnOrder = new ArrayList<>(nextTurnOrder);
         }
     }
 
-    private void playRound() {
+    public void playRound() {
+        System.out.println("Playing round " + currentRound);
         boolean roundFinished = false;
         while (!roundFinished) {
+            roundFinished = true;
             for (Player player : turnOrder) {
                 if (player.hasAvailableFamilyMembers()) {
-                    playerTurn(player.getId());
+                    List<ActionRoundCard> availableCards = new ArrayList<>();
+                    availableCards.addAll(mainBoard.getActionCards());
+                    availableCards.addAll(mainBoard.getRevealedRoundCards());
+                    availableCards.removeIf(card -> mainBoard.isCardOccupied(card));
+
+                    if (!availableCards.isEmpty()) {
+                        roundFinished = false;
+                        System.out.println("Player " + player.getId() + "'s turn.");
+                        playerTurn(player.getId());
+
+                        printFamilyMembersOnBoard();
+                    } else {
+                        System.out.println("No available cards for player " + player.getId());
+                    }
                 }
             }
-            roundFinished = checkIfRoundFinished();
         }
         resetFamilyMembers();
     }
 
     private void playerTurn(String playerID) {
         Player player = getPlayerByID(playerID);
+
         if (player != null) {
-            // 현재 턴인 플레이어 정보를 프론트엔드에 전달
-            // WebSocketService.sendMessageToClient(playerID, "Your turn to place a family member.");
+            List<ActionRoundCard> availableCards = new ArrayList<>();
+            availableCards.addAll(mainBoard.getActionCards());
+            availableCards.addAll(mainBoard.getRevealedRoundCards());
+            availableCards.removeIf(card -> mainBoard.isCardOccupied(card));
 
-            // 플레이어의 가족 구성원 배치와 카드 실행 로직
-            // 좌표와 카드 정보는 프론트엔드에서 제공
-            // int x = ...; // 프론트엔드에서 받은 x 좌표
-            // int y = ...; // 프론트엔드에서 받은 y 좌표
-            // CommonCard card = ...; // 프론트엔드에서 받은 카드 객체
+            System.out.println("Available cards before selection:");
+            for (ActionRoundCard card : availableCards) {
+                System.out.println("  Card: " + card.getName() + " (Occupied: " + mainBoard.isCardOccupied(card) + ")");
+            }
 
-            // player.placeFamilyMember(x, y, card);
+            if (!availableCards.isEmpty()) {
+                Random rand = new Random();
+                ActionRoundCard selectedCard = availableCards.get(rand.nextInt(availableCards.size()));
+                player.placeFamilyMember(selectedCard);
+
+                System.out.println("Available cards after selection:");
+                for (ActionRoundCard card : availableCards) {
+                    System.out.println("  Card: " + card.getName() + " (Occupied: " + mainBoard.isCardOccupied(card) + ")");
+                }
+
+            } else {
+                System.out.println("No available cards for player " + playerID);
+            }
         }
     }
 
@@ -148,10 +206,19 @@ public class GameController {
         return true;
     }
 
-    private void harvestPhase() {
+    public void resetFamilyMembers() {
+        for (Player player : turnOrder) {
+            player.resetFamilyMembers();
+        }
+        mainBoard.resetFamilyMembersOnCards();
+    }
+
+    public void harvestPhase() {
+        System.out.println("Starting harvest phase.");
         farmPhase();
         feedFamilyPhase();
         breedAnimalsPhase();
+        System.out.println("Harvest phase completed.");
     }
 
     private void farmPhase() {
@@ -169,9 +236,9 @@ public class GameController {
                 }
             }
         }
-        notifyPlayers("농장 단계 완료. 가족 먹여살리기 단계로 진행하세요.");
+//        notifyPlayers("농장 단계 완료. 가족 먹여살리기 단계로 진행하세요.");
+        System.out.println("Farm phase completed.");
     }
-
 
     private void feedFamilyPhase() {
         for (Player player : players) {
@@ -185,7 +252,11 @@ public class GameController {
             }
             List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.HARVEST);
         }
-        notifyPlayers("가족 먹여살리기 단계 완료. 가축 번식 단계로 진행하세요.");
+//        notifyPlayers("가족 먹여살리기 단계 완료. 가축 번식 단계로 진행하세요.");
+        System.out.println("Feed family phase completed.");
+
+
+
     }
 
     private int calculateFoodNeeded(Player player) {
@@ -211,9 +282,10 @@ public class GameController {
             }
             List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.HARVEST);
         }
-        notifyPlayers("가축 번식 단계 완료. 수확 단계 종료.");
-    }
+//        notifyPlayers("가축 번식 단계 완료. 수확 단계 종료.");
+        System.out.println("Breed animals phase completed.");
 
+    }
 
     private Map<String, Integer> countAnimals(Player player) {
         Map<String, Integer> animalCounts = new HashMap<>();
@@ -232,16 +304,11 @@ public class GameController {
     }
 
     private void endRound() {
+        System.out.println("Ending round " + currentRound);
         for (Player player : players) {
             player.convertBabiesToAdults();
         }
         calculateAndRecordScores();
-    }
-
-    private void resetFamilyMembers() {
-        for (Player player : players) {
-            player.resetFamilyMembers();
-        }
     }
 
     private void calculateAndRecordScores() {
@@ -329,7 +396,6 @@ public class GameController {
         }
     }
 
-
     public void executeExchange(String playerId, int cardId, String fromResource, String toResource, int amount) {
         Player player = getPlayerByID(playerId);
         List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
@@ -347,5 +413,36 @@ public class GameController {
         } else {
             notifyPlayers("교환 기능을 사용할 수 없습니다.");
         }
+    }
+
+//    private void printAvailableCards() {
+//        System.out.println("Available cards:");
+//        List<ActionRoundCard> availableCards = new ArrayList<>();
+//        availableCards.addAll(mainBoard.getActionCards());
+//        availableCards.addAll(mainBoard.getRevealedRoundCards());
+//        availableCards.removeIf(card -> mainBoard.canPlaceFamilyMember(card));
+//
+//        for (ActionRoundCard card : availableCards) {
+//            System.out.println("  Card: " + card.getName());
+//        }
+//    }
+
+    private void printFamilyMembersOnBoard() {
+        System.out.println("Family members on board:");
+        for (Player player : players) {
+            FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
+            for (int i = 0; i < familyMembers.length; i++) {
+                for (int j = 0; j < familyMembers[i].length; j++) {
+                    if (familyMembers[i][j] != null && familyMembers[i][j].isUsed()) {
+                        FamilyMember member = familyMembers[i][j];
+                        System.out.println("  Player " + player.getId() + " - Family Member at (" + i + ", " + j + ") - Adult: " + member.isAdult());
+                    }
+                }
+            }
+        }
+    }
+
+    public void setMainBoard(MainBoard mainBoard) {
+        this.mainBoard = mainBoard;
     }
 }

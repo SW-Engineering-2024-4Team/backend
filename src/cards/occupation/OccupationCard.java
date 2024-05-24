@@ -28,9 +28,7 @@ public abstract class OccupationCard implements UnifiedCard, ExchangeableCard {
 
     @Override
     public void execute(Player player) {
-        // 직업 카드 실행 로직
-        applyEffect(player);
-        gainResource(player);
+
     }
 
     @Override

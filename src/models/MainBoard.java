@@ -4,20 +4,27 @@ import cards.common.AccumulativeCard;
 import cards.common.ActionRoundCard;
 import cards.common.CommonCard;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+// MainBoard.java
+
+import java.util.*;
 
 public class MainBoard {
-    private List<CommonCard> actionCards;
+    private List<ActionRoundCard> actionCards;
     private List<ActionRoundCard> roundCards;
     private List<CommonCard> majorImprovementCards;
 
-    public void initializeBoard(List<CommonCard> actionCards, List<List<CommonCard>> roundCycles, List<CommonCard> majorImprovementCards) {
+    public MainBoard() {
+        this.actionCards = new ArrayList<>();
+        this.roundCards = new ArrayList<>();
+        this.majorImprovementCards = new ArrayList<>();
+    }
+
+
+    public void initializeBoard(List<ActionRoundCard> actionCards, List<List<ActionRoundCard>> roundCycles, List<CommonCard> majorImprovementCards) {
         this.actionCards = actionCards;
         this.roundCards = new ArrayList<>();
-        for (List<CommonCard> cycle : roundCycles) {
-            this.roundCards.addAll((Collection<? extends ActionRoundCard>) cycle);
+        for (List<ActionRoundCard> cycle : roundCycles) {
+            this.roundCards.addAll(cycle);
         }
         this.majorImprovementCards = majorImprovementCards;
     }
@@ -29,8 +36,18 @@ public class MainBoard {
         // WebSocketService.sendMessageToClient("roundCardRevealed", roundCard);
     }
 
+    public List<ActionRoundCard> getRevealedRoundCards() {
+        List<ActionRoundCard> revealedRoundCards = new ArrayList<>();
+        for (ActionRoundCard card : roundCards) {
+            if (card.isRevealed()) {
+                revealedRoundCards.add(card);
+            }
+        }
+        return revealedRoundCards;
+    }
+
     public void accumulateResources() {
-        for (CommonCard card : actionCards) {
+        for (ActionRoundCard card : actionCards) {
             if (card instanceof AccumulativeCard) {
                 ((AccumulativeCard) card).accumulateResources();
             }
@@ -42,7 +59,7 @@ public class MainBoard {
         }
     }
 
-    public List<CommonCard> getActionCards() {
+    public List<ActionRoundCard> getActionCards() {
         return actionCards;
     }
 
@@ -58,7 +75,7 @@ public class MainBoard {
         List<CommonCard> allCards = new ArrayList<>();
         allCards.addAll(actionCards);
         allCards.addAll(roundCards);
-        allCards.add((CommonCard) majorImprovementCards);
+        allCards.addAll(majorImprovementCards);
         return allCards;
     }
 
@@ -66,4 +83,39 @@ public class MainBoard {
         majorImprovementCards.remove(card);
     }
 
+//    public void placeFamilyMember(ActionRoundCard card, FamilyMember familyMember) {
+//        if (canPlaceFamilyMember(card)) {
+//            occupyingFamilyMembers.put(card, familyMember);
+//        } else {
+//            throw new IllegalStateException("Card is already occupied.");
+//        }
+//    }
+
+    public boolean canPlaceFamilyMember(ActionRoundCard card) {
+        return !card.isOccupied();
+    }
+    public void placeFamilyMember(ActionRoundCard card) {
+        if (canPlaceFamilyMember(card)) {
+            card.setOccupied(true);
+        } else {
+            throw new IllegalStateException("Card is already occupied.");
+        }
+    }
+
+    public boolean isCardOccupied(ActionRoundCard card) {
+        return card.isOccupied();
+    }
+
+    public void resetFamilyMembersOnCards() {
+        for (ActionRoundCard card : actionCards) {
+            card.setOccupied(false);
+        }
+        for (ActionRoundCard card : roundCards) {
+            card.setOccupied(false);
+        }
+    }
+
+
+
 }
+

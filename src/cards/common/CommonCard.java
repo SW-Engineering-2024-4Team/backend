@@ -1,5 +1,6 @@
 package cards.common;
 
+import models.FamilyMember;
 import models.Player;
 
 import java.util.Map;

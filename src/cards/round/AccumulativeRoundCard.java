@@ -1,10 +1,12 @@
 package cards.round;
 
+import cards.action.AccumulativeActionCard;
 import cards.common.AccumulativeCard;
 import models.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AccumulativeRoundCard implements AccumulativeCard {
     private int id;
@@ -12,6 +14,7 @@ public class AccumulativeRoundCard implements AccumulativeCard {
     private String description;
     private int cycle;
     private boolean revealed;
+    private boolean occupied;
     private Map<String, Integer> accumulatedResources;
 
     public AccumulativeRoundCard(int id, String name, String description, int cycle) {
@@ -20,12 +23,14 @@ public class AccumulativeRoundCard implements AccumulativeCard {
         this.description = description;
         this.cycle = cycle;
         this.revealed = false;
+        this.occupied = true;
         this.accumulatedResources = new HashMap<>();
     }
 
     @Override
     public void execute(Player player) {
         // 라운드 카드 실행 로직
+        System.out.println("executed");
     }
 
     @Override
@@ -71,4 +76,28 @@ public class AccumulativeRoundCard implements AccumulativeCard {
     public void clearAccumulatedResources() {
         accumulatedResources.clear();
     }
+
+    @Override
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    @Override
+    public void setOccupied(boolean occupied) {
+        this.occupied = occupied;
+    }
+
+
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) return true;
+//        if (o == null || getClass() != o.getClass()) return false;
+//        AccumulativeActionCard that = (AccumulativeActionCard) o;
+//        return Objects.equals(name, that.name);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(name);
+//    }
 }

@@ -12,6 +12,10 @@ public class RoomController {
         gameController.initializeGame();
     }
 
+    public GameController getGameController() {
+        return gameController;
+    }
+
     public void handleGameEnd() {
         // 게임 종료 처리 로직
         System.out.println("Game has ended.");

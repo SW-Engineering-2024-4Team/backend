@@ -314,9 +314,17 @@ public class PlayerBoard {
     }
 
     public void resetFamilyMembers() {
-        // 가족 구성원을 초기 위치로 리셋하는 로직
-        initializeBoard();
+        for (int i = 0; i < familyMembers.length; i++) {
+            for (int j = 0; j < familyMembers[i].length; j++) {
+                if (familyMembers[i][j] != null) {
+                    familyMembers[i][j].resetPosition();
+                    Room room = (Room) tiles[familyMembers[i][j].getX()][familyMembers[i][j].getY()];
+                    room.setFamilyMember(familyMembers[i][j]);
+                }
+            }
+        }
     }
+
 
     public Tile[][] getTiles() {
         return tiles;

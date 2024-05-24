@@ -9,9 +9,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public interface ActionRoundCard extends CommonCard {
+
     boolean isRevealed(); // RoundCard와 ActionCard 구분을 위해 추가
     void reveal(); // 라운드 카드를 공개하는 메서드
     boolean isAccumulative(); // 누적 가능한지 여부 확인 메서드
+    boolean isOccupied(); // 카드가 점유되었는지 확인
+    void setOccupied(boolean occupied); // 카드의 점유 상태 설정
 
     default void gainResources(Player player, Map<String, Integer> resources) {
         for (Map.Entry<String, Integer> entry : resources.entrySet()) {

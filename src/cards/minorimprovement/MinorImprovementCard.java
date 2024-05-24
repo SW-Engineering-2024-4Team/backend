@@ -14,7 +14,7 @@ public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableC
     private String description;
     private Map<String, Integer> exchangeRate;
     private Map<String, Integer> gainResources;
-    private Map<String, Integer> cost; // 비용 필드 추가
+    private Map<String, Integer> cost;
     private Predicate<Player> condition;
 
     public MinorImprovementCard(int id, String name, String description, Map<String, Integer> exchangeRate, Map<String, Integer> gainResources, Map<String, Integer> cost, Predicate<Player> condition) {
