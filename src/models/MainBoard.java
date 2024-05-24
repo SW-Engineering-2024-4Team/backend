@@ -3,6 +3,7 @@ package models;
 import cards.common.AccumulativeCard;
 import cards.common.ActionRoundCard;
 import cards.common.CommonCard;
+import cards.majorimprovement.MajorImprovementCard;
 
 // MainBoard.java
 
@@ -71,6 +72,16 @@ public class MainBoard {
         return majorImprovementCards;
     }
 
+    public List<CommonCard> getAvailableMajorImprovementCards() {
+        List<CommonCard> availableCards = new ArrayList<>();
+        for (CommonCard card : majorImprovementCards) {
+            if (card instanceof MajorImprovementCard && !((MajorImprovementCard) card).isPurchased()) {
+                availableCards.add(card);
+            }
+        }
+        return availableCards;
+    }
+
     public List<CommonCard> getAllCards() {
         List<CommonCard> allCards = new ArrayList<>();
         allCards.addAll(actionCards);
@@ -80,6 +91,7 @@ public class MainBoard {
     }
 
     public void removeMajorImprovementCard(CommonCard card) {
+        System.out.println("Removing card: " + card.getName());
         majorImprovementCards.remove(card);
     }
 

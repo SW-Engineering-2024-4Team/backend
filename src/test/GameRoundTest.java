@@ -1,3 +1,5 @@
+package test;
+
 import cards.common.ActionRoundCard;
 import cards.common.CommonCard;
 import controllers.GameController;

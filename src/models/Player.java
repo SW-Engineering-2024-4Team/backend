@@ -282,7 +282,7 @@ public class Player {
 
     // 주요 설비 카드 선택 로직
     public BakingCard selectBakingCard(List<BakingCard> bakingCards) {
-        // TODO 플레이어가 선택하는 로직 구현
+        // TODO 플레이어가 카드를 선택하는 로직 구현
         // 플레이어가 선택하는 로직 (여기서는 예시로 랜덤 선택)
         Random random = new Random();
         return bakingCards.get(random.nextInt(bakingCards.size()));
@@ -524,6 +524,12 @@ public class Player {
 
     public void setGameController(GameController gameController) {
         this.gameController = gameController;
+    }
+
+    public void resetResources() {
+        for (String resource : resources.keySet()) {
+            resources.put(resource, 0);
+        }
     }
 
 }

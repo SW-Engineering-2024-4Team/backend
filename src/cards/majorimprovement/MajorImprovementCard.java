@@ -7,6 +7,7 @@ import enums.ExchangeTiming;
 import models.Player;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MajorImprovementCard implements CommonCard, ExchangeableCard, BakingCard {
     private int id;
@@ -18,6 +19,7 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
     private Map<String, Integer> purchaseCost;
     private int additionalPoints;
     private boolean immediateBakingAction;
+    private boolean purchased;
 
     public MajorImprovementCard(int id, String name, String description,
                                 Map<String, Integer> purchaseCost,
@@ -33,11 +35,26 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
         this.breadBakingExchangeRate = breadBakingExchangeRate;
         this.additionalPoints = additionalPoints;
         this.immediateBakingAction = immediateBakingAction;
+        this.purchased = false;
     }
 
     @Override
     public void execute(Player player) {
-        // 기본 실행 로직
+        if (checkResources(player, purchaseCost)) {
+            payResources(player, purchaseCost);
+            player.addMajorImprovementCard(this);
+            this.purchased = true; // 카드가 구매되었음을 표시
+        } else {
+            System.out.println("Not enough resources to purchase " + name);
+        }
+    }
+
+    public boolean isPurchased() {
+        return  purchased;
+    }
+
+    public void setPurchased(boolean purchased) {
+        this.purchased = purchased;
     }
 
     @Override
@@ -91,7 +108,6 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
 
         int availableGrain = player.getResource("grain");
         if (availableGrain > 0) {
-            // 플레이어가 교환할 곡식의 양을 선택
             int amount = player.selectGrainForBaking(availableGrain);
 
             if (amount > 0) {
@@ -102,4 +118,3 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
         }
     }
 }
-

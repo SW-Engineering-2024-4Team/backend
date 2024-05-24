@@ -43,12 +43,15 @@ public class CardFactory {
         roundCards.add(new AccumulativeRoundCard(roundId++, "Accumulative Round Card F" + (13), "Description of Accumulative Round Card F" + (13), 6));
 
         for (int i = 0; i < 8; i++) {
-            minorImprovementCards.add(new TestMinorImprovementCard(i, "Minor Improvement Card " + (i + 1), "Description of Minor Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>(), player -> true));
+            minorImprovementCards.add(new TestMinorImprovementCard(i, "Minor Improvement Card " + (i + 1), "Description of Minor Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>()));
             occupationCards.add(new TestOccupationCard(i, "Occupation Card " + (i + 1), "Description of Occupation Card " + (i + 1), new HashMap<>(), new HashMap<>(), 1, 4));
         }
 
 
-        for (int i = 0; i < 6; i++) {
+//        for (int i = 0; i < 6; i++) {
+//            majorImprovementCards.add(new MajorImprovementCard(i, "Major Improvement Card " + (i + 1), "Description of Major Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>(), 1, false));
+//        }
+        for (int i = 0; i < 5; i++) {
             majorImprovementCards.add(new MajorImprovementCard(i, "Major Improvement Card " + (i + 1), "Description of Major Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>(), 1, false));
         }
     }

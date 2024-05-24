@@ -65,34 +65,23 @@ public interface ActionRoundCard extends CommonCard {
     default void purchaseMajorImprovementCard(Player player) {
         GameController gameController = player.getGameController();
         MainBoard mainBoard = gameController.getMainBoard();
-        List<CommonCard> majorImprovementCards = mainBoard.getMajorImprovementCards();
+        List<CommonCard> majorImprovementCards = mainBoard.getAvailableMajorImprovementCards();
 
-        // TODO 플레이어가 카드를 선택하는 로직 (예시로 첫 번째 카드를 선택했다고 가정)
+        // TODO 플레이어가 카드를 선택하는 로직 (예시로 랜덤 선택)
         MajorImprovementCard selectedCard = null;
-        for (CommonCard card : majorImprovementCards) {
-            if (card instanceof MajorImprovementCard) {
-                selectedCard = (MajorImprovementCard) card;
-                break;
-            }
-        }
-        String cardName = selectedCard.getName();
-
-        MajorImprovementCard cardToPurchase = null;
-        for (CommonCard card : majorImprovementCards) {
-            if (card.getName().equals(cardName) && card instanceof MajorImprovementCard) {
-                cardToPurchase = (MajorImprovementCard) card;
-                break;
-            }
+        if (!majorImprovementCards.isEmpty()) {
+            selectedCard = (MajorImprovementCard) majorImprovementCards.get(new Random().nextInt(majorImprovementCards.size()));
         }
 
-        if (cardToPurchase != null && player.checkResources(cardToPurchase.getPurchaseCost())) {
-            player.payResources(cardToPurchase.getPurchaseCost());
-            player.addMajorImprovementCard(cardToPurchase);
-            mainBoard.removeMajorImprovementCard(cardToPurchase);
-            System.out.println(cardName + " 카드가 성공적으로 구매되었습니다.");
+        if (selectedCard != null && player.checkResources(selectedCard.getPurchaseCost())) {
+            player.payResources(selectedCard.getPurchaseCost());
+            player.addMajorImprovementCard(selectedCard);
+            selectedCard.setPurchased(true); // 카드가 구매되었음을 표시
+            System.out.println(selectedCard.getName() + " 카드가 성공적으로 구매되었습니다.");
         } else {
             System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
         }
+
     }
     default void triggerBreadBaking(Player player) {
         List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
@@ -102,6 +91,7 @@ public interface ActionRoundCard extends CommonCard {
                 .collect(Collectors.toList());
 
         if (!bakingCards.isEmpty()) {
+            // TODO 플레이어가 카드를 선택하는 로직
             BakingCard selectedCard = player.selectBakingCard(bakingCards);
             selectedCard.triggerBreadBaking(player);
         } else {
