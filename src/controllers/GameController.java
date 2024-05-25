@@ -137,6 +137,7 @@ public class GameController {
         }
         if (nextTurnOrder != null && !nextTurnOrder.isEmpty()) {
             turnOrder = new ArrayList<>(nextTurnOrder);
+            nextTurnOrder.clear(); // 다음 라운드를 위해 nextTurnOrder 초기화
         }
     }
 

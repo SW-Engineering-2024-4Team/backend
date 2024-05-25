@@ -40,9 +40,13 @@ public class GameRoundTest {
         System.out.println("Main Board Round Cards: " + getCardNames(gameController.getMainBoard().getRoundCards()));
         System.out.println("Main Board Major Improvement Cards: " + getCardNames(gameController.getMainBoard().getMajorImprovementCards()));
 
-
-        // 1라운드 진행
         gameController.testGame();
+
+//        testBecomeFirstPlayer(gameController);
+
+        // 4라운드 진행
+
+
 
         // 모든 플레이어의 상태를 확인
         for (Player player : gameController.getPlayers()) {
@@ -62,6 +66,9 @@ public class GameRoundTest {
         System.out.println("Main Board Major Improvement Cards: " + getCardNames(gameController.getMainBoard().getMajorImprovementCards()));
     }
 
+    // 선 플레이어 테스트
+
+
     private static List<Player> createMockPlayers() {
         List<Player> players = new ArrayList<>();
         RoomController roomController = new RoomController();
@@ -76,8 +83,8 @@ public class GameRoundTest {
 
     private static void initializeFamilyMembers(Player player) {
         // 기본 가족 구성원 설정
-        player.getPlayerBoard().getFamilyMembers()[0][1] = new FamilyMember(0, 1, true);
-        player.getPlayerBoard().getFamilyMembers()[0][2] = new FamilyMember(0, 2, true);
+        player.getPlayerBoard().getFamilyMembers()[1][0] = new FamilyMember(1, 0, true);
+        player.getPlayerBoard().getFamilyMembers()[2][0] = new FamilyMember(2, 0, true);
     }
 
     private static void printFamilyMembers(Player player) {
@@ -99,4 +106,53 @@ public class GameRoundTest {
         }
         return cardNames;
     }
+
+    private static void testBecomeFirstPlayer(GameController gameController) {
+        List<Player> turnOrder = gameController.getTurnOrder();
+        Player initialFirstPlayer = turnOrder.get(0);
+
+        List<Player> TurnOrder = gameController.getTurnOrder();
+        // 새로운 턴 오더 출력
+        System.out.println("turn order:");
+        for (Player player : TurnOrder) {
+            System.out.println(player.getName());
+        }
+
+        // 첫 번째 플레이어가 아닌 플레이어를 선 플레이어로 설정
+        Player playerToBecomeFirst = null;
+        for (Player player : turnOrder) {
+            if (!player.equals(initialFirstPlayer)) {
+                playerToBecomeFirst = player;
+                break;
+            }
+        }
+
+        if (playerToBecomeFirst == null) {
+            throw new IllegalStateException("No player found to become first player");
+        }
+
+        System.out.println("Initial first player: " + initialFirstPlayer.getName());
+
+        // 선 플레이어 변경
+        ActionRoundCard actionCard = (ActionRoundCard) gameController.getMainBoard().getActionCards().get(0); // 임의의 ActionRoundCard 사용
+        actionCard.becomeFirstPlayer(playerToBecomeFirst);
+
+        // prepareRound 메서드 호출하여 새로운 턴 순서 적용
+        gameController.prepareRound();
+
+        // 새로운 턴 오더 확인
+        List<Player> newTurnOrder = gameController.getTurnOrder();
+        Player newFirstPlayer = newTurnOrder.get(0);
+        System.out.println("New first player: " + newFirstPlayer.getName());
+
+        // 새로운 턴 오더 출력
+        System.out.println("New turn order:");
+        for (Player player : newTurnOrder) {
+            System.out.println(player.getName());
+        }
+
+        // 검증
+        assert playerToBecomeFirst.equals(newFirstPlayer) : "The player should become the first player.";
+    }
+
 }

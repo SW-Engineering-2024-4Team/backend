@@ -172,38 +172,69 @@ public interface ActionRoundCard extends CommonCard {
             int y = selectedPosition[1];
 
             if (playerBoard.canBuildBarn(x, y)) {
-                playerBoard.buildBarn(x, y);
+                player.buildBarn(x, y);
             } else {
                 System.out.println("외양간을 지을 수 없습니다.");
             }
         } else {
             System.out.println("외양간을 지을 수 있는 위치가 없습니다.");
         }
-
     }
 
     // 울타리 짓기
+//    default void buildFence(Player player) {
+//        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
+//        if (!validPositions.isEmpty()) {
+//            boolean fenceBuildingComplete = false;
+//            while (!fenceBuildingComplete) {
+//                // TODO 플레이어 좌표 입력 로직
+//                // 예시로 첫 번째 유효 위치 선택
+//                int[] position = validPositions.iterator().next();
+//                if (player.selectFenceTile(position[0], position[1])) {
+//                    validPositions = player.getPlayerBoard().getValidFencePositions();
+//                    if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
+//                        fenceBuildingComplete = true;
+//                    }
+//                } else {
+//                    fenceBuildingComplete = true;
+//                }
+//            }
+//            player.finalizeFenceBuilding();
+//        } else {
+//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
+//        }
+//    }
     default void buildFence(Player player) {
         Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-        if (!validPositions.isEmpty()) {
-            boolean fenceBuildingComplete = false;
-            while (!fenceBuildingComplete) {
-                // TODO 플레이어 좌표 입력 로직
-                // 예시로 첫 번째 유효 위치 선택
-                int[] position = validPositions.iterator().next();
-                if (player.selectFenceTile(position[0], position[1])) {
-                    validPositions = player.getPlayerBoard().getValidFencePositions();
-                    if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
-                        fenceBuildingComplete = true;
-                    }
-                } else {
-                    fenceBuildingComplete = true;
-                }
-            }
-            player.finalizeFenceBuilding();
-        } else {
-            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-        }
+//        if (!validPositions.isEmpty()) {
+//            boolean fenceBuildingComplete = false;
+//            while (!fenceBuildingComplete) {
+//                // TODO: 플레이어 좌표 입력 로직
+//                // 예시로 첫 번째 유효 위치 선택
+//                int[] position = validPositions.iterator().next();
+//                player.selectFenceTile(position[0], position[1]);
+//                validPositions = player.getPlayerBoard().getValidFencePositions();
+//                if (validPositions.isEmpty() || player.getResources().getOrDefault("wood", 0) <= 0) {
+//                    fenceBuildingComplete = true;
+//                }
+//            }
+//            int[] position = validPositions.iterator().next();
+//            player.selectFenceTile(position[0], position[1]);
+//        } else {
+//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
+//        }
+
+//        if (!validPositions.isEmpty()) {
+//            // 예시로 첫 번째 유효 위치 선택
+//            int[] position = validPositions.iterator().next();
+//            List<int[]> fencePositions = new ArrayList<>();
+//            fencePositions.add(position);
+//            player.getPlayerBoard().buildFences(fencePositions);
+//            player.reduceResource("wood", player.getPlayerBoard().calculateRequiredWoodForFences(fencePositions));
+//            System.out.println("Fence built at: " + Arrays.toString(position));
+//        } else {
+//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
+//        }
     }
 
 
@@ -236,28 +267,35 @@ public interface ActionRoundCard extends CommonCard {
         GameController gameController = player.getGameController();
         List<Player> turnOrder = gameController.getTurnOrder();
 
-        // 기존 선 플레이어를 찾음
-        for (Player p : turnOrder) {
-            if (p.isFirstPlayer()) {
-                p.setFirstPlayer(false);
-                break;
-            }
+        int playerIndex = turnOrder.indexOf(player);
+        if (playerIndex == -1) {
+            throw new IllegalArgumentException("Player not found in the turn order.");
         }
-
-        // 새로운 선 플레이어 설정
-        player.setFirstPlayer(true);
 
         // 새로운 턴 오더 생성
         List<Player> newTurnOrder = new ArrayList<>();
-        newTurnOrder.add(player);
-        for (Player p : turnOrder) {
-            if (!p.equals(player)) {
-                newTurnOrder.add(p);
-            }
+        for (int i = playerIndex; i < turnOrder.size(); i++) {
+            newTurnOrder.add(turnOrder.get(i));
+        }
+        for (int i = 0; i < playerIndex; i++) {
+            newTurnOrder.add(turnOrder.get(i));
         }
 
         // 게임 컨트롤러에 새로운 턴 오더 설정
         gameController.setNextTurnOrder(newTurnOrder);
+    }
+
+
+    // 기물 변경
+
+    // 집 고치기
+    default void renovateRooms(Player player) {
+        RoomType newType = player.chooseRoomTypeForRenovation();
+        if (newType != null) {
+            player.renovateHouse(newType);
+        } else {
+            System.out.println("더 이상 업그레이드할 수 있는 방이 없습니다.");
+        }
     }
 
 
@@ -279,13 +317,6 @@ public interface ActionRoundCard extends CommonCard {
         }
     }
 
-    // 기물 변경
-
-    // 집 고치기
-    default void renovateRooms(Player player) {
-        RoomType newType = player.chooseRoomTypeForRenovation();
-        player.renovateHouse(newType);
-    }
 
     // 추가 효과 확인 및 적용 메서드
     default void applyAdditionalEffects(Player player) {

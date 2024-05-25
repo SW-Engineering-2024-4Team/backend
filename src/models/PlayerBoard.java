@@ -21,11 +21,10 @@ public class PlayerBoard {
     }
 
     private void initializeBoard() {
-        tiles[0][0] = new Room(RoomType.WOOD, 0, 0);
-        tiles[0][1] = new Room(RoomType.WOOD, 0, 1);
-        tiles[0][2] = new Room(RoomType.WOOD, 0, 2);
-        familyMembers[0][1] = new FamilyMember(0, 1, true);
-        familyMembers[0][2] = new FamilyMember(0, 2, true);
+        tiles[1][0] = new Room(RoomType.WOOD, 1, 0);
+        tiles[2][0] = new Room(RoomType.WOOD, 2, 0);
+        familyMembers[1][0] = new FamilyMember(1, 0, true);
+        familyMembers[2][0] = new FamilyMember(2, 0, true);
     }
 
     public boolean canBuildHouse(int x, int y, RoomType type, Map<String, Integer> resources) {
@@ -109,12 +108,13 @@ public class PlayerBoard {
         }
     }
 
-    // 유효한 밭 일구기 위치를 반환하는 메서드
+    // 유효한 밭 위치를 반환하는 메서드
     public Set<int[]> getValidPlowPositions() {
         Set<int[]> validPositions = new HashSet<>();
+        boolean hasExistingField = hasExistingField();
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles[0].length; j++) {
-                if (tiles[i][j] == null) {
+                if (tiles[i][j] == null && (!hasExistingField || isAdjacentToSameTypeTile(i, j, FieldTile.class))) {
                     validPositions.add(new int[]{i, j});
                 }
             }
@@ -122,17 +122,61 @@ public class PlayerBoard {
         return validPositions;
     }
 
-    // 유효한 외양간 짓기 위치를 반환하는 메서드
+    // 유효한 외양간 위치를 반환하는 메서드
     public Set<int[]> getValidBarnPositions() {
         Set<int[]> validPositions = new HashSet<>();
+        boolean hasExistingBarn = hasExistingBarn();
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles[0].length; j++) {
-                if (canBuildBarn(i, j)) {
+                if (tiles[i][j] == null && (!hasExistingBarn || isAdjacentToSameTypeTile(i, j, Barn.class))) {
                     validPositions.add(new int[]{i, j});
                 }
             }
         }
         return validPositions;
+    }
+
+    // 기물이 인접한지 확인하는 메서드
+    private boolean isAdjacentToSameTypeTile(int x, int y, Class<?> type) {
+        if (x > 0 && type.isInstance(tiles[x - 1][y])) return true;
+        if (x < tiles.length - 1 && type.isInstance(tiles[x + 1][y])) return true;
+        if (y > 0 && type.isInstance(tiles[x][y - 1])) return true;
+        if (y < tiles[0].length - 1 && type.isInstance(tiles[x][y + 1])) return true;
+        return false;
+    }
+
+    // 기존 기물이 있는지 확인하는 메서드들
+    private boolean hasExistingField() {
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
+                if (tile instanceof FieldTile) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean hasExistingBarn() {
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
+                if (tile instanceof Barn) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean hasExistingHouse() {
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
+                if (tile instanceof Room) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // 울타리 짓기 메서드
@@ -140,13 +184,19 @@ public class PlayerBoard {
         for (int[] coord : coordinates) {
             int x = coord[0];
             int y = coord[1];
-            if (!hasTopFence(x, y)) fences[x][y - 1] = true;
-            if (!hasBottomFence(x, y)) fences[x + 1][y] = true;
-            if (!hasLeftFence(x, y)) fences[x - 1][y] = true;
-            if (!hasRightFence(x, y)) fences[x][y + 1] = true;
+
+            // 상단 울타리
+            if (x > 0 && !hasTopFence(x, y)) fences[x - 1][y] = true;
+            // 하단 울타리
+            if (x < fences.length - 1 && !hasBottomFence(x, y)) fences[x + 1][y] = true;
+            // 좌측 울타리
+            if (y > 0 && !hasLeftFence(x, y)) fences[x][y - 1] = true;
+            // 우측 울타리
+            if (y < fences[0].length - 1 && !hasRightFence(x, y)) fences[x][y + 1] = true;
         }
         updateFenceAreas();
     }
+
 
     public boolean isValidFencePosition(int x, int y, List<int[]> existingFences) {
         for (int[] coord : existingFences) {
@@ -158,30 +208,23 @@ public class PlayerBoard {
     }
 
     public int calculateRequiredWoodForFences(List<int[]> coordinates) {
-        Set<String> uniqueEdges = new HashSet<>();
+        int requiredWood = 0;
 
         for (int[] coord : coordinates) {
             int x = coord[0];
             int y = coord[1];
 
-            uniqueEdges.add(x + "," + (y - 1)); // 상단 울타리
-            uniqueEdges.add((x + 1) + "," + y); // 하단 울타리
-            uniqueEdges.add(x + "," + (y + 1)); // 좌측 울타리
-            uniqueEdges.add((x - 1) + "," + y); // 우측 울타리
+            // 상단 울타리
+            if (x > 0 && !hasTopFence(x, y)) requiredWood++;
+            // 하단 울타리
+            if (x < getFences().length - 1 && !hasBottomFence(x, y)) requiredWood++;
+            // 좌측 울타리
+            if (y > 0 && !hasLeftFence(x, y)) requiredWood++;
+            // 우측 울타리
+            if (y < getFences()[0].length - 1 && !hasRightFence(x, y)) requiredWood++;
         }
 
-        // 겹치는 울타리 제거
-        for (int[] coord : coordinates) {
-            int x = coord[0];
-            int y = coord[1];
-
-            uniqueEdges.remove(x + "," + (y - 1)); // 이미 추가된 상단 울타리
-            uniqueEdges.remove((x + 1) + "," + y); // 이미 추가된 하단 울타리
-            uniqueEdges.remove(x + "," + (y + 1)); // 이미 추가된 좌측 울타리
-            uniqueEdges.remove((x - 1) + "," + y); // 이미 추가된 우측 울타리
-        }
-
-        return uniqueEdges.size();
+        return requiredWood;
     }
 
     private boolean hasTopFence(int x, int y) {
@@ -227,7 +270,7 @@ public class PlayerBoard {
             for (int[] dir : directions) {
                 int nx = px + dir[0];
                 int ny = py + dir[1];
-                if (nx >= 0 && ny >= 0 && nx < fences.length && ny < fences[0].length && fences[nx][ny] && !visited[nx][ny]) {
+                if (nx >= 0 && ny >= 0 && nx < visited.length && ny < visited[0].length && fences[nx][ny] && !visited[nx][ny]) {
                     queue.add(new int[]{nx, ny});
                     visited[nx][ny] = true;
                 }
@@ -235,40 +278,25 @@ public class PlayerBoard {
         }
     }
 
-    public Set<int[]> getValidFencePositions() {
-        Set<int[]> validPositions = new HashSet<>();
-        if (noFencesBuilt()) {
-            for (int i = 0; i < tiles.length; i++) {
-                for (int j = 0; j < tiles[0].length; j++) {
-                    if (tiles[i][j] == null) validPositions.add(new int[]{i, j});
-                }
-            }
-        } else {
-            for (boolean[] row : fences) {
-                for (int i = 0; i < row.length; i++) {
-                    if (row[i]) addAdjacentPositions(validPositions, i, i);
-                }
-            }
-        }
-        return validPositions;
-    }
 
-    public Set<int[]> getInitialFencePositions() {
+
+    public Set<int[]> getValidFencePositions() {
         Set<int[]> validPositions = new HashSet<>();
         for (int i = 0; i < tiles.length; i++) {
             for (int j = 0; j < tiles[0].length; j++) {
-                if (tiles[i][j] == null || tiles[i][j] instanceof Barn) validPositions.add(new int[]{i, j});
+                if (tiles[i][j] == null || tiles[i][j] instanceof Barn) {
+                    // Check adjacent positions
+                    if ((i > 0 && hasFence(i - 1, j)) || (i < tiles.length - 1 && hasFence(i + 1, j)) ||
+                            (j > 0 && hasFence(i, j - 1)) || (j < tiles[0].length - 1 && hasFence(i, j + 1))) {
+                        validPositions.add(new int[]{i, j});
+                    }
+                }
             }
         }
         return validPositions;
     }
 
-    private void addAdjacentPositions(Set<int[]> positions, int x, int y) {
-        if (x > 0 && !hasFence(x - 1, y) && tiles[x - 1][y] == null) positions.add(new int[]{x - 1, y});
-        if (x < tiles.length - 1 && !hasFence(x + 1, y) && tiles[x + 1][y] == null) positions.add(new int[]{x + 1, y});
-        if (y > 0 && !hasFence(x, y - 1) && tiles[x][y - 1] == null) positions.add(new int[]{x, y - 1});
-        if (y < tiles[0].length - 1 && !hasFence(x, y + 1) && tiles[x][y + 1] == null) positions.add(new int[]{x, y + 1});
-    }
+
 
     private boolean noFencesBuilt() {
         for (boolean[] row : fences) {
@@ -278,6 +306,23 @@ public class PlayerBoard {
         }
         return true;
     }
+
+    private void addAdjacentPositions(Set<int[]> positions, int x, int y) {
+        if (x > 0 && !hasFence(x - 1, y) && (tiles[x - 1][y] == null || tiles[x - 1][y] instanceof Barn)) {
+            positions.add(new int[]{x - 1, y});
+        }
+        if (x < tiles.length - 1 && !hasFence(x + 1, y) && (tiles[x + 1][y] == null || tiles[x + 1][y] instanceof Barn)) {
+            positions.add(new int[]{x + 1, y});
+        }
+        if (y > 0 && !hasFence(x, y - 1) && (tiles[x][y - 1] == null || tiles[x][y - 1] instanceof Barn)) {
+            positions.add(new int[]{x, y - 1});
+        }
+        if (y < tiles[0].length - 1 && !hasFence(x, y + 1) && (tiles[x][y + 1] == null || tiles[x][y + 1] instanceof Barn)) {
+            positions.add(new int[]{x, y + 1});
+        }
+    }
+
+
 
     public int getAnimalCapacity() {
         int totalCapacity = 0;
