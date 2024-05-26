@@ -1,4 +1,4 @@
-package test;
+package test.actionroundcardtest;
 
 import cards.common.AccumulativeCard;
 import cards.common.ActionRoundCard;

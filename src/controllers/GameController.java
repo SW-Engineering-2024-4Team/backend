@@ -222,7 +222,7 @@ public class GameController {
         System.out.println("Harvest phase completed.");
     }
 
-    private void farmPhase() {
+    public void farmPhase() {
         for (Player player : players) {
             PlayerBoard board = player.getPlayerBoard();
             for (Tile[] row : board.getTiles()) {

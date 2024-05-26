@@ -1,4 +1,4 @@
-package test;
+package test.controllertest;
 
 import cards.common.ActionRoundCard;
 import cards.common.CommonCard;

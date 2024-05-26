@@ -329,13 +329,16 @@ public class Player {
     }
 
     // 가족 구성원 추가 메서드
-    public void addFamilyMember() {
-        if (playerBoard.hasEmptyRoom()) {
+    public boolean addFamilyMember() {
+        List<int[]> emptyRooms = playerBoard.getEmptyRoomPositions();
+        if (!emptyRooms.isEmpty()) {
             FamilyMember newMember = new FamilyMember(-1, -1, false); // 보드 외부에 위치한 신생아
             newFamilyMembers.add(newMember);
             System.out.println("새로운 가족 구성원이 추가되었습니다. 빈 방에 배치하세요.");
+            return true;
         } else {
             System.out.println("빈 방이 없습니다.");
+            return false;
         }
     }
 
@@ -344,11 +347,11 @@ public class Player {
         if (playerBoard.isEmptyRoom(x, y)) {
             playerBoard.addFamilyMemberToBoard(familyMember, x, y);
             newFamilyMembers.remove(familyMember);
+            System.out.println("가족 구성원이 방에 배치되었습니다: (" + x + ", " + y + ")");
         } else {
             System.out.println("해당 방은 이미 사용 중입니다.");
         }
     }
-
 
     // 새로 추가된 가족 구성원 중 하나를 반환하는 메서드
     public FamilyMember getNewFamilyMember() {
@@ -360,7 +363,6 @@ public class Player {
 
     // 동물 추가 메서드
     public boolean addAnimal(Animal animal) {
-//        Animal newAnimal = new Animal(-1, -1, type); // 보드 외부에 위치한 동물
         newAnimals.add(animal);
         System.out.println(animal.getType() + " 새끼 동물이 추가되었습니다. 울타리나 방에 배치하세요.");
 
@@ -370,7 +372,7 @@ public class Player {
     // 새 동물을 추가하는 메서드
     public boolean addNewAnimal(Animal animal) {
         newAnimals.add(animal);
-        System.out.println(animal.getType() + " 새끼 동물이 추가되었습니다. 울타리나 방에 배치하세요.");
+        System.out.println(animal.getType() + " 새끼 동물이 추가되었습니다. 빈 공간에 배치하세요.");
         return true;
     }
 
@@ -464,21 +466,6 @@ public class Player {
         return false;
     }
 
-    // 울타리 한 칸을 선택하는 메서드
-//    public boolean selectFenceTile(int x, int y) {
-//        List<int[]> newFenceCoordinates = new ArrayList<>(fenceCoordinates);
-//        newFenceCoordinates.add(new int[]{x, y});
-//
-//        int requiredWood = playerBoard.calculateRequiredWoodForFences(newFenceCoordinates);
-//        if (checkResources(Map.of("wood", requiredWood))) {
-//            fenceCoordinates = newFenceCoordinates;
-//            return true;
-//        } else {
-//            System.out.println("나무 자원이 부족합니다.");
-//            return false;
-//        }
-//
-//    }
     public void selectFenceTile(int x, int y) {
         List<int[]> selectedPositions = new ArrayList<>();
         selectedPositions.add(new int[]{x, y});
@@ -488,47 +475,12 @@ public class Player {
         cost.put("wood", requiredWood);
         if (checkResources(cost)) {
             payResources(cost);
-            playerBoard.buildFences(selectedPositions);
+            playerBoard.buildFences(selectedPositions, this);
             System.out.println("Fence built at: (" + x + ", " + y + ")");
         } else {
             System.out.println("Not enough resources to build fence at: (" + x + ", " + y + ")");
         }
     }
-
-//    public void buildFence() {
-//        Set<int[]> validPositions;
-//        if (firstFenceBuilt) {
-//            validPositions = playerBoard.getValidFencePositions();
-//        } else {
-//            validPositions = playerBoard.getInitialFencePositions();
-//        }
-//
-//        if (!validPositions.isEmpty()) {
-//            // 예시로 유효한 첫 번째 위치를 선택
-//            int[] position = validPositions.iterator().next();
-//            if (selectFenceTile(position[0], position[1])) {
-//                // 플레이어가 울타리를 선택한 이후 모든 울타리가 이어져야 함
-//                boolean fenceBuildingComplete = false;
-//                while (!fenceBuildingComplete) {
-//                    validPositions = playerBoard.getValidFencePositions();
-//                    if (!validPositions.isEmpty()) {
-//                        position = validPositions.iterator().next();
-//                        if (!selectFenceTile(position[0], position[1])) {
-//                            fenceBuildingComplete = true;
-//                        }
-//                    } else {
-//                        fenceBuildingComplete = true;
-//                    }
-//                }
-//                finalizeFenceBuilding();
-//            } else {
-//                System.out.println("울타리를 선택하지 못했습니다.");
-//            }
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
-//    }
-
 
     public boolean canContinueFenceBuilding() {
         // TODO: 실제 게임 로직에 따라 플레이어가 울타리 건설을 계속할지 선택하게 함

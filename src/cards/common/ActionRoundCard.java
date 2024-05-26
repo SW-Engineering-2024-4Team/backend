@@ -182,61 +182,27 @@ public interface ActionRoundCard extends CommonCard {
     }
 
     // 울타리 짓기
-//    default void buildFence(Player player) {
-//        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-//        if (!validPositions.isEmpty()) {
-//            boolean fenceBuildingComplete = false;
-//            while (!fenceBuildingComplete) {
-//                // TODO 플레이어 좌표 입력 로직
-//                // 예시로 첫 번째 유효 위치 선택
-//                int[] position = validPositions.iterator().next();
-//                if (player.selectFenceTile(position[0], position[1])) {
-//                    validPositions = player.getPlayerBoard().getValidFencePositions();
-//                    if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
-//                        fenceBuildingComplete = true;
-//                    }
-//                } else {
-//                    fenceBuildingComplete = true;
-//                }
-//            }
-//            player.finalizeFenceBuilding();
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
-//    }
     default void buildFence(Player player) {
         Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-//        if (!validPositions.isEmpty()) {
-//            boolean fenceBuildingComplete = false;
-//            while (!fenceBuildingComplete) {
-//                // TODO: 플레이어 좌표 입력 로직
-//                // 예시로 첫 번째 유효 위치 선택
-//                int[] position = validPositions.iterator().next();
-//                player.selectFenceTile(position[0], position[1]);
-//                validPositions = player.getPlayerBoard().getValidFencePositions();
-//                if (validPositions.isEmpty() || player.getResources().getOrDefault("wood", 0) <= 0) {
-//                    fenceBuildingComplete = true;
-//                }
-//            }
-//            int[] position = validPositions.iterator().next();
-//            player.selectFenceTile(position[0], position[1]);
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
-
-//        if (!validPositions.isEmpty()) {
-//            // 예시로 첫 번째 유효 위치 선택
-//            int[] position = validPositions.iterator().next();
-//            List<int[]> fencePositions = new ArrayList<>();
-//            fencePositions.add(position);
-//            player.getPlayerBoard().buildFences(fencePositions);
-//            player.reduceResource("wood", player.getPlayerBoard().calculateRequiredWoodForFences(fencePositions));
-//            System.out.println("Fence built at: " + Arrays.toString(position));
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
+        if (!validPositions.isEmpty()) {
+            List<int[]> selectedPositions = new ArrayList<>();
+            boolean fenceBuildingComplete = false;
+            while (!fenceBuildingComplete) {
+                // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
+                int[] position = validPositions.iterator().next();
+                selectedPositions.add(position);
+                validPositions = player.getPlayerBoard().getValidFencePositions();
+                if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
+                    fenceBuildingComplete = true;
+                }
+            }
+            player.getPlayerBoard().buildFences(selectedPositions, player);
+            player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
+            System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
+        } else {
+            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
+        }
     }
-
 
     // 곡식 심기
     default void plantField(Player player) {
@@ -302,19 +268,22 @@ public interface ActionRoundCard extends CommonCard {
     // 객체 추가
 
     // 1. 가족 구성원 추가
-    default void addNewborn(Player player) {
-
-        player.addFamilyMember(); // 가족 구성원을 추가
-        // 플레이어가 빈 방에 가족 구성원을 배치하는 로직 추가
-        List<int[]> emptyRooms = player.getPlayerBoard().getEmptyRoomPositions();
-        if (!emptyRooms.isEmpty()) {
-            // TODO: 플레이어가 빈 방을 선택하는 로직 (예시로 첫 번째 빈 방을 선택했다고 가정)
-            int[] selectedRoom = emptyRooms.get(0);
-            FamilyMember newMember = player.getNewFamilyMember();
-            player.placeFamilyMemberInRoom(newMember, selectedRoom[0], selectedRoom[1]);
+    default boolean addNewborn(Player player) {
+        if (player.addFamilyMember()) {
+            // TODO 플레이어가 빈 방에 가족 구성원을 배치하는 로직 추가
+            List<int[]> emptyRooms = player.getPlayerBoard().getEmptyRoomPositions();
+            if (!emptyRooms.isEmpty()) {
+                int[] selectedRoom = emptyRooms.get(0);
+                FamilyMember newMember = player.getNewFamilyMember();
+                player.placeFamilyMemberInRoom(newMember, selectedRoom[0], selectedRoom[1]);
+                return true;
+            } else {
+                System.out.println("빈 방이 없습니다.");
+            }
         } else {
             System.out.println("빈 방이 없습니다.");
         }
+        return false;
     }
 
 

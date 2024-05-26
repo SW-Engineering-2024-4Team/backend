@@ -30,16 +30,4 @@ public class Barn implements Tile {
     public int getY() {
         return y;
     }
-
-    // 울타리 내부에 있는지 확인하는 메서드
-    public boolean isInsideFence(PlayerBoard board) {
-        for (boolean[] row : board.getFences()) {
-            for (boolean fence : row) {
-                if (fence) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

@@ -1,11 +1,15 @@
-package test;
+package test.actionroundcardtest;
 
 import cards.action.AccumulativeActionCard;
 import cards.action.NonAccumulativeActionCard;
 import cards.common.ActionRoundCard;
 import controllers.GameController;
 import controllers.RoomController;
+import enums.RoomType;
+import models.Animal;
+import models.FamilyMember;
 import models.Player;
+import models.Room;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +57,6 @@ public class ResourceGainTest {
         }
     }
 
-    // TODO 양 자원 추가(가족 구성원 추가와 함께 테스트)
     @Test
     public void testGainResources() {
         printPlayerResources("Resources before testGainResources:");
@@ -105,4 +108,64 @@ public class ResourceGainTest {
 
         assertEquals(3, player.getResource("wood"), "Player should have 3 wood from non-accumulative card.");
     }
+
+    @Test
+    public void testGainResourcesWithAnimals() {
+        printPlayerResources("Resources before testGainResourcesWithAnimals:");
+
+        // 울타리 및 외양간 설정
+        player.addResource("wood", 20);
+        player.addResource("clay", 10);
+
+        List<int[]> fencePositions = new ArrayList<>();
+        fencePositions.add(new int[]{1, 1});
+        fencePositions.add(new int[]{1, 2});
+        fencePositions.add(new int[]{1, 3});
+
+        player.getPlayerBoard().buildFences(fencePositions, player);
+
+        // 외양간을 단독 타일에 배치
+        player.getPlayerBoard().buildBarn(0, 2);
+
+        // 초기 집 배치
+        player.getPlayerBoard().getTiles()[1][0] = new Room(RoomType.WOOD, 1, 0);
+        player.getPlayerBoard().getTiles()[2][0] = new Room(RoomType.WOOD, 2, 0);
+        player.getPlayerBoard().getFamilyMembers()[1][0] = new FamilyMember(1, 0, true);
+        player.getPlayerBoard().getFamilyMembers()[2][0] = new FamilyMember(2, 0, true);
+
+        // 양 자원 추가
+        Map<String, Integer> resources = new HashMap<>();
+        resources.put("sheep", 4);
+
+//        actionCard.gainResources(player, resources);
+
+        // 양을 집, 울타리, 외양간에 각각 배치
+        System.out.println("집에 배치");
+        Animal sheep1 = new Animal(1, 0, "sheep");
+        player.getPlayerBoard().addAnimalToBoard(sheep1, 1, 0);
+
+        System.out.println("울타리에 배치");
+        Animal sheep2 = new Animal(1, 1, "sheep");
+        player.getPlayerBoard().addAnimalToBoard(sheep2, 1, 1);
+
+        System.out.println("외양간에 배치");
+        Animal sheep3 = new Animal(0, 2, "sheep");
+        player.getPlayerBoard().addAnimalToBoard(sheep3, 0, 2);
+
+        System.out.println("집에 배치");
+        Animal sheep4 = new Animal(2, 0, "sheep");
+        player.getPlayerBoard().addAnimalToBoard(sheep4, 2, 0);
+
+        player.addResource("sheep", 4);
+        // 수용 능력 확인
+        int capacity = player.getPlayerBoard().getAnimalCapacity();
+//        System.out.println("Animal capacity after gaining resources: " + capacity);
+
+        // 검증
+        assertEquals(8, capacity, "The capacity should be 8 after gaining resources and adding animals to the board.");
+//        assertEquals(4, player.getResource("sheep"), "There should be 4 sheep resources.");
+        printPlayerResources("Resources after testGainResourcesWithAnimals:");
+    }
+
+
 }

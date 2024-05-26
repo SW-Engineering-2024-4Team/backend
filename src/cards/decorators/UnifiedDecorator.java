@@ -121,8 +121,8 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
     }
 
     @Override
-    public void addNewborn(Player player) {
-        decoratedCard.addNewborn(player);
+    public boolean addNewborn(Player player) {
+        return decoratedCard.addNewborn(player);
     }
 
     @Override
