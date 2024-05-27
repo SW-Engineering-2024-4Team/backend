@@ -71,6 +71,11 @@ public class AccumulativeActionCard implements AccumulativeCard {
     }
 
     @Override
+    public Map<String, Integer> getAccumulatedResourceInfo() {
+        return Map.of();
+    }
+
+    @Override
     public Map<String, Integer> getAccumulatedResources() {
         return accumulatedResources;
     }

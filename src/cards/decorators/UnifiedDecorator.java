@@ -91,8 +91,8 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
     }
 
     @Override
-    public void buildHouse(Player player) {
-        decoratedCard.buildHouse(player);
+    public int buildHouse(Player player) {
+        return decoratedCard.buildHouse(player);
     }
 
     @Override

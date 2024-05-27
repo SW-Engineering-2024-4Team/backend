@@ -67,6 +67,12 @@ public class AccumulativeRoundCard implements AccumulativeCard {
         return true; // 자원 누적 가능
     }
 
+    //임의 추가, 후에 이 클래스 자체 삭제 예정
+    @Override
+    public Map<String, Integer> getAccumulatedResourceInfo() {
+        return new HashMap<>();
+    }
+
     @Override
     public Map<String, Integer> getAccumulatedResources() {
         return accumulatedResources;

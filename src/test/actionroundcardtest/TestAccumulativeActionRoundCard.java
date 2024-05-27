@@ -72,6 +72,12 @@ public class TestAccumulativeActionRoundCard implements ActionRoundCard, Accumul
         this.occupied = occupied;
     }
 
+    //AccumulativeCard interface 메서드추가했으므로 여기도 임의추가
+    @Override
+    public Map<String, Integer> getAccumulatedResourceInfo() {
+        return new HashMap<>();
+    }
+
     @Override
     public Map<String, Integer> getAccumulatedResources() {
         return accumulatedResources;

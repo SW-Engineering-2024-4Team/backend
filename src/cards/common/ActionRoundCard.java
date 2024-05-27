@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public interface ActionRoundCard extends CommonCard {
 
-    boolean isRevealed(); // RoundCard와 ActionCard 구분을 위해 추가
+    boolean isRevealed(); // RoundCard와 ActionCard 구분을 위해 추가, Action카드는 무조건 true
     void reveal(); // 라운드 카드를 공개하는 메서드
     boolean isAccumulative(); // 누적 가능한지 여부 확인 메서드
     boolean isOccupied(); // 카드가 점유되었는지 확인
@@ -101,8 +101,8 @@ public interface ActionRoundCard extends CommonCard {
 
     // 기물 짓기
 
-    // 집 짓기
-    default void buildHouse(Player player) {
+    // 집 짓기, 기능 수정 void -> int
+    default int buildHouse(Player player) {
         PlayerBoard playerBoard = player.getPlayerBoard();
         Map<String, Integer> playerResources = player.getResources(); // 플레이어의 자원을 가져옴
 
@@ -119,7 +119,7 @@ public interface ActionRoundCard extends CommonCard {
 
         if (currentRoomType == null) {
             System.out.println("기존 집 타입을 찾을 수 없습니다.");
-            return;
+            return -1;
         }
 
         if (playerBoard.canBuildHouse(x, y, currentRoomType, playerResources)) {
@@ -127,13 +127,18 @@ public interface ActionRoundCard extends CommonCard {
             if (player.checkResources(cost)) {
                 player.payResources(cost);
                 player.getPlayerBoard().buildHouse(x, y, currentRoomType);
+                return 1;
             } else {
                 // 자원이 부족하다는 메시지 표시
                 System.out.println("자원이 부족합니다.");
+                return -2;
+
             }
         } else {
             // 집을 지을 수 없는 조건이라는 메시지 표시
             System.out.println("집을 지을 수 없습니다.");
+            return -3;
+
         }
     }
 

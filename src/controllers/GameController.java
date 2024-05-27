@@ -45,6 +45,10 @@ public class GameController {
         return turnOrder;
     }
 
+    //turnOrder에 turn을 추가하는함수 테스트위해 작성
+    public void setTurnOrder(Player player) {
+        this.turnOrder.add(player);
+    }
     private void initializeFirstFoods() {
         for (int i = 0; i < turnOrder.size(); i++) {
             Player player = turnOrder.get(i);
