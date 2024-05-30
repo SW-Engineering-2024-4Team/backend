@@ -4,8 +4,11 @@ import cards.common.ActionRoundCard;
 import cards.common.BakingCard;
 import cards.common.CommonCard;
 import cards.common.ExchangeableCard;
+import cards.factory.imp.major.FurnitureWorkshop;
+import cards.factory.imp.major.PotteryWorkshop;
 import cards.majorimprovement.MajorImprovementCard;
 import enums.ExchangeTiming;
+import enums.RoomType;
 import models.*;
 
 import java.util.*;
@@ -33,6 +36,15 @@ public class GameController {
         Collections.shuffle(this.turnOrder);
 
         initializeFirstFoods();
+        // Ensure all players reference the same GameController
+        for (Player player : players) {
+            player.setGameController(this);
+        }
+
+    }
+
+    public void setTurnOrder(List<Player> testTurnOrder) {
+        this.turnOrder = turnOrder;
     }
 
     // 다음 라운드의 턴 오더 설정
@@ -57,6 +69,7 @@ public class GameController {
         }
     }
 
+    // TODO 보드 초기화 정보 보내주기: controllertest.GameRoundTest.java 형식
     public void initializeGame() {
         setupPlayers();
         setupMainBoard();
@@ -89,6 +102,7 @@ public class GameController {
         mainBoard.initializeBoard(actionCards, roundCycles, majorImprovementCards);
     }
 
+    // TODO
     public void startGame() {
         while (currentRound <= 14) {
             System.out.println("-------------------------------------------------------------------------------");
@@ -127,10 +141,17 @@ public class GameController {
         endGame();
     }
 
+    /*
+    * 1. 라운드 정보
+    * // TODO 2. 어떤 카드가 자원이 누적되었는지(얼마나): accumulativeaction(round)card 클래스의 getAcuumulativeResources()
+    * 3. 어떤 플레이어가 아무때나 교환 가능한 카드를 갖고 있는지
+    * 4. 턴 오버 정보: 턴 오더가 바뀔 때
+    * */
     public void prepareRound() {
         System.out.println("Preparing round " + currentRound);
         mainBoard.revealRoundCard(currentRound);
         mainBoard.accumulateResources();
+        // 2. 컨트롤러에서 메인보드한테 누적 자원인 카드들의 자원 정보를 가져오면 해결
         for (Player player : players) {
             List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
             // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
@@ -141,13 +162,25 @@ public class GameController {
         }
     }
 
+    /*
+    1. 어떤 카드가 점유되었는지; 프론트에서 어떤 카드에 가족을 올려놓을 수 있는지 알아야 됨.
+    2. 어떤 플레이어가 가족 구성원 올려놓아야 하는지
+
+    * */
     public void playRound() {
+        for (Player player : players) {
+            List<ExchangeableCard> anytimeCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
+            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
+        }
+
         System.out.println("Playing round " + currentRound);
         boolean roundFinished = false;
         while (!roundFinished) {
             roundFinished = true;
             for (Player player : turnOrder) {
+                // 성인, 신생아 구별해서 사용 가능한 가족 구성원이 있으면 플레이어에게 턴을 줌.
                 if (player.hasAvailableFamilyMembers()) {
+
                     List<ActionRoundCard> availableCards = new ArrayList<>();
                     availableCards.addAll(mainBoard.getActionCards());
                     availableCards.addAll(mainBoard.getRevealedRoundCards());
@@ -168,6 +201,11 @@ public class GameController {
         resetFamilyMembers();
     }
 
+    /*
+    프론트가 카드 명을 줄 텐데
+    카드 명을 selectedCard에 담아서
+    player.placeFamilyMember(selectedCard);
+    * */
     private void playerTurn(String playerID) {
         Player player = getPlayerByID(playerID);
 
@@ -185,6 +223,8 @@ public class GameController {
             if (!availableCards.isEmpty()) {
                 Random rand = new Random();
                 ActionRoundCard selectedCard = availableCards.get(rand.nextInt(availableCards.size()));
+
+                // 여기서 액션카드, 라운드 카드의 효과를 발동
                 player.placeFamilyMember(selectedCard);
 
                 System.out.println("Available cards after selection:");
@@ -243,6 +283,14 @@ public class GameController {
 
     private void feedFamilyPhase() {
         for (Player player : players) {
+            List<ExchangeableCard> exchangeableCards = new ArrayList<>();
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.ANYTIME));
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
+            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
+        }
+
+
+        for (Player player : players) {
             int foodNeeded = calculateFoodNeeded(player);
             if (player.getResource("food") >= foodNeeded) {
                 player.addResource("food", -foodNeeded);
@@ -275,13 +323,19 @@ public class GameController {
     // 동물 번식 단계를 구현
     private void breedAnimalsPhase() {
         for (Player player : players) {
+            List<ExchangeableCard> exchangeableCards = new ArrayList<>();
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.ANYTIME));
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
+            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
+        }
+
+        for (Player player : players) {
             List<Animal> newAnimals = player.getPlayerBoard().breedAnimals();
             for (Animal animal : newAnimals) {
                 if (!player.addAnimal(animal)) {
                     System.out.println(animal.getType() + " 방생됨.");
                 }
             }
-            List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.HARVEST);
         }
 //        notifyPlayers("가축 번식 단계 완료. 수확 단계 종료.");
         System.out.println("Breed animals phase completed.");
@@ -321,6 +375,107 @@ public class GameController {
     }
 
     private int calculateScoreForPlayer(Player player) {
+        int score = 0;
+        int emptyTiles = 0;
+        int woodenRooms = 0;
+        int stoneRooms = 0;
+        int familyMembersCount = 0;
+
+        PlayerBoard playerBoard = player.getPlayerBoard();
+
+        // 빈 타일, 집의 종류, 가족 구성원 수 계산
+        Tile[][] tiles = playerBoard.getTiles();
+        for (int i = 0; i < tiles.length; i++) {
+            for (int j = 0; j < tiles[0].length; j++) {
+                if (tiles[i][j] == null) {
+                    emptyTiles++;
+                } else if (tiles[i][j] instanceof Room) {
+                    Room room = (Room) tiles[i][j];
+                    if (room.getType() == RoomType.WOOD) {
+                        woodenRooms++;
+                    } else if (room.getType() == RoomType.STONE) {
+                        stoneRooms++;
+                    }
+                }
+                FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+                if (familyMembers[i][j] != null) {
+                    familyMembersCount++;
+                }
+            }
+        }
+
+        // 빈 타일 개수에 따른 점수 계산
+        score -= emptyTiles;
+
+        // 울타리 안에 외양간이 있는 경우 칸당 1점
+        Set<FenceArea> managedFenceAreas = playerBoard.getManagedFenceAreas();
+        for (FenceArea area : managedFenceAreas) {
+            if (area.hasBarn()) {
+                score += area.getTileCount();
+            }
+        }
+
+        // 흙집 방 1개당 1점
+        score += woodenRooms;
+
+        // 돌집 방 1개당 2점
+        score += stoneRooms * 2;
+
+        // 가족 1명당 3점
+        score += familyMembersCount * 3;
+
+
+        // 주요 설비 카드에 따른 추가 점수 계산
+        for (CommonCard card : player.getMajorImprovementCards()) {
+            if (card instanceof PotteryWorkshop) {
+                score += ((PotteryWorkshop) card).calculateAdditionalPoints(player);
+            } else if (card instanceof FurnitureWorkshop) {
+                score += ((FurnitureWorkshop) card).calculateAdditionalPoints(player);
+            }
+        }
+
+
+        score += calculateBeggingPoints(player);
+        score += calculateGrainPoints(player);
+        score += calculateSheepPoints(player);
+
+        return score;
+    }
+
+    private int calculateBeggingPoints(Player player) {
+        int beggingCard = player.getResource("beggingCard");
+        return -3 * beggingCard;
+    }
+
+    private int calculateGrainPoints(Player player) {
+        int grains = player.getResource("grain");
+        if (grains == 0) {
+            return -1;
+        } else if (grains <= 3) {
+            return 1;
+        } else if (grains <= 6) {
+            return 2;
+        } else if (grains <= 7) {
+            return 3;
+        } else if (grains >= 8) {
+            return 4;
+        }
+        return 0;
+    }
+
+    private int calculateSheepPoints(Player player) {
+        int sheep = player.getResource("sheep");
+        if (sheep == 0) {
+            return -1;
+        } else if (sheep <= 3) {
+            return 1;
+        } else if (sheep <= 5) {
+            return 2;
+        } else if (sheep <= 7) {
+            return 3;
+        } else if (sheep >= 8) {
+            return 4;
+        }
         return 0;
     }
 
@@ -374,7 +529,9 @@ public class GameController {
         return players;
     }
 
+    // 추가된 디버깅 코드
     public void purchaseMajorImprovementCard(Player player, int cardId) {
+        System.out.println("Executing purchaseMajorImprovementCard for player: " + player.getName());
         List<CommonCard> majorImprovementCards = mainBoard.getMajorImprovementCards();
         MajorImprovementCard cardToPurchase = null;
 
@@ -392,8 +549,9 @@ public class GameController {
             if (cardToPurchase.hasImmediateBakingAction()) {
                 cardToPurchase.triggerBreadBaking(player);
             }
+            System.out.println(cardToPurchase.getName() + " 카드가 성공적으로 구매되었습니다.");
         } else {
-//            notifyPlayer(player, "자원이 부족하여 주요 설비 카드를 구매할 수 없습니다.");
+            System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
         }
     }
 
@@ -416,34 +574,38 @@ public class GameController {
         }
     }
 
-//    private void printAvailableCards() {
-//        System.out.println("Available cards:");
-//        List<ActionRoundCard> availableCards = new ArrayList<>();
-//        availableCards.addAll(mainBoard.getActionCards());
-//        availableCards.addAll(mainBoard.getRevealedRoundCards());
-//        availableCards.removeIf(card -> mainBoard.canPlaceFamilyMember(card));
-//
-//        for (ActionRoundCard card : availableCards) {
-//            System.out.println("  Card: " + card.getName());
+
+//    private void printFamilyMembersOnBoard() {
+//        System.out.println("Family members on board:");
+//        for (Player player : players) {
+//            FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
+//            for (int i = 0; i < familyMembers.length; i++) {
+//                for (int j = 0; j < familyMembers[i].length; j++) {
+//                    if (familyMembers[i][j] != null && familyMembers[i][j].isUsed()) {
+//                        FamilyMember member = familyMembers[i][j];
+//                        System.out.println("  Player " + player.getId() + " - Family Member at (" + i + ", " + j + ") - Adult: " + member.isAdult());
+//                    }
+//                }
+//            }
 //        }
 //    }
-
-    private void printFamilyMembersOnBoard() {
-        System.out.println("Family members on board:");
-        for (Player player : players) {
-            FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
-            for (int i = 0; i < familyMembers.length; i++) {
-                for (int j = 0; j < familyMembers[i].length; j++) {
-                    if (familyMembers[i][j] != null && familyMembers[i][j].isUsed()) {
-                        FamilyMember member = familyMembers[i][j];
-                        System.out.println("  Player " + player.getId() + " - Family Member at (" + i + ", " + j + ") - Adult: " + member.isAdult());
-                    }
+private void printFamilyMembersOnBoard() {
+    System.out.println("Family members on board:");
+    for (Player player : players) {
+        FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
+        for (int i = 0; i < familyMembers.length; i++) {
+            for (int j = 0; j < familyMembers[i].length; j++) {
+                if (familyMembers[i][j] != null && familyMembers[i][j].isUsed()) {
+                    FamilyMember member = familyMembers[i][j];
+                    System.out.println("  Player " + player.getId() + " - Family Member at (" + i + ", " + j + ") - Adult: " + member.isAdult());
                 }
             }
         }
     }
+}
 
     public void setMainBoard(MainBoard mainBoard) {
         this.mainBoard = mainBoard;
+        System.out.println("MainBoard set to: " + mainBoard);
     }
 }

@@ -4,6 +4,7 @@ import models.Player;
 import cards.common.UnifiedCard;
 import cards.common.ExchangeableCard;
 import enums.ExchangeTiming;
+import models.Effect;
 
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class TestOccupationCard implements UnifiedCard, ExchangeableCard {
     @Override
     public void applyEffect(Player player) {
         System.out.println("Applying effect for " + getName());
+        player.addActiveEffect(new Effect("additional wood", 1));
     }
 
     @Override

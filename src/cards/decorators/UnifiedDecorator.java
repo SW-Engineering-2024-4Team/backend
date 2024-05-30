@@ -1,14 +1,12 @@
 package cards.decorators;
 
 import cards.common.AccumulativeCard;
-import cards.common.UnifiedCard;
-import enums.RoomType;
-import models.MainBoard;
 import models.Player;
 import java.util.Map;
 
 public abstract class UnifiedDecorator implements AccumulativeCard {
     protected AccumulativeCard decoratedCard;
+    protected boolean occupied;
 
     public UnifiedDecorator(AccumulativeCard decoratedCard) {
         this.decoratedCard = decoratedCard;

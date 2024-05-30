@@ -1,5 +1,6 @@
 package cards.majorimprovement;
 
+import enums.ExchangeTiming;
 import models.Player;
 import java.util.Map;
 
@@ -10,7 +11,7 @@ public class TestMajorImprovementCard extends MajorImprovementCard {
                                     Map<String, Integer> breadBakingExchangeRate,
                                     int additionalPoints,
                                     boolean immediateBakingAction) {
-        super(id, name, description, purchaseCost, anytimeExchangeRate, breadBakingExchangeRate, additionalPoints, immediateBakingAction);
+        super(id, name, description, purchaseCost, anytimeExchangeRate, breadBakingExchangeRate, additionalPoints, immediateBakingAction, ExchangeTiming.NONE);
     }
 
     @Override

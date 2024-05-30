@@ -8,7 +8,7 @@ import models.Player;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableCard {
+public class MinorImprovementCard implements UnifiedCard, ExchangeableCard {
     private int id;
     private String name;
     private String description;
@@ -16,8 +16,10 @@ public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableC
     private Map<String, Integer> gainResources;
     private Map<String, Integer> cost;
     private Predicate<Player> condition;
+    private ExchangeTiming exchangeTiming;
+    private int bonusPoints;
 
-    public MinorImprovementCard(int id, String name, String description, Map<String, Integer> exchangeRate, Map<String, Integer> gainResources, Map<String, Integer> cost, Predicate<Player> condition) {
+    public MinorImprovementCard(int id, String name, String description, Map<String, Integer> exchangeRate, Map<String, Integer> gainResources, Map<String, Integer> cost, Predicate<Player> condition, ExchangeTiming exchangeTiming, int bonusPoints) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -25,6 +27,8 @@ public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableC
         this.gainResources = gainResources;
         this.cost = cost;
         this.condition = condition;
+        this.exchangeTiming = exchangeTiming;
+        this.bonusPoints = bonusPoints;
     }
 
     @Override
@@ -67,16 +71,18 @@ public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableC
     }
 
     @Override
-    public abstract void applyEffect(Player player);
+    public void applyEffect(Player player) {
+        // 구현 필요: 카드의 효과를 적용하는 로직
+    }
 
     @Override
     public boolean canExchange(ExchangeTiming timing) {
-        return exchangeRate != null;
+        return exchangeRate != null && this.exchangeTiming == timing;
     }
 
     @Override
     public void executeExchange(Player player, String fromResource, String toResource, int amount) {
-        if (exchangeRate != null) {
+        if (canExchange(exchangeTiming)) {
             int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
             player.addResource(fromResource, -amount);
             player.addResource(toResource, exchangeAmount);
@@ -90,5 +96,9 @@ public abstract class MinorImprovementCard implements UnifiedCard, ExchangeableC
 
     public boolean testCondition(Player player) {
         return condition == null || condition.test(player);
+    }
+
+    public int getBonusPoints() {
+        return bonusPoints;
     }
 }

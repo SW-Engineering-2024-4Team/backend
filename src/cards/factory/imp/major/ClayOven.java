@@ -1,6 +1,8 @@
-package cards.majorimprovement;
+package cards.factory.imp.major;
 
 import cards.common.BakingCard;
+import cards.majorimprovement.MajorImprovementCard;
+import enums.ExchangeTiming;
 import models.Player;
 
 import java.util.HashMap;
@@ -8,8 +10,17 @@ import java.util.Map;
 
 public class ClayOven extends MajorImprovementCard implements BakingCard {
     public ClayOven(int id) {
-        super(id, "Clay Oven", "빵굽기: 곡식 1개당 음식 5개로 교환 가능. 이 설비를 지을 때 즉시 빵굽기 행동을 할 수 있습니다. 추가점수 2점.",
-                createPurchaseCost(), null, createBreadBakingExchangeRate(), 2, true);
+        super(
+                id,
+                "Clay Oven",
+                "빵굽기: 곡식 1개당 음식 5개로 교환 가능. 이 설비를 지을 때 즉시 빵굽기 행동을 할 수 있습니다. 추가점수 2점.",
+                createPurchaseCost(),
+                null,
+                createBreadBakingExchangeRate(),
+                2,
+                true,
+                ExchangeTiming.NONE
+        );
     }
 
     private static Map<String, Integer> createPurchaseCost() {

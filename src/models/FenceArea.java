@@ -7,13 +7,19 @@ public class FenceArea {
     private Set<Barn> barns;
     private List<Animal> animals;
     private int remainingCapacity;
+    private int initalCapacity;
     private String animalType; // 울타리 영역 내 동물 종류를 관리하는 필드
+
+    public int getInitalCapacity() {
+        return initalCapacity;
+    }
 
     public FenceArea() {
         this.tiles = new LinkedHashSet<>();
         this.barns = new LinkedHashSet<>();
         this.animals = new ArrayList<>();
         this.remainingCapacity = calculateInitialCapacity();
+        this.initalCapacity = calculateInitialCapacity();
         this.animalType = null;
     }
 
@@ -67,7 +73,7 @@ public class FenceArea {
     }
 
     void updateRemainingCapacity() {
-        this.remainingCapacity = calculateInitialCapacity() - animals.size();
+        this.remainingCapacity = calculateInitialCapacity() - this.animals.size();
     }
 
     public int getRemainingCapacity() {
@@ -108,7 +114,8 @@ public class FenceArea {
             animalType = animal.getType(); // 처음 추가된 동물의 종류를 설정
         }
         animals.add(animal);
-        updateRemainingCapacity();
+//        updateRemainingCapacity();
+        remainingCapacity--;
     }
 
     public boolean isSingleAnimalType(String type) {
@@ -150,6 +157,7 @@ public class FenceArea {
     }
     public void addBarn(Barn barn) {
         barns.add(barn);
+        updateRemainingCapacity();
     }
 
 
@@ -158,21 +166,36 @@ public class FenceArea {
         return tiles;
     }
 
+    // 펜스 안 정보들을 보여 줌.
     public void printFenceAreaDetails() {
         System.out.println("Fence Area Details:");
+        // 펜스로 둘러쌓인 타일들을 출력
         System.out.println("Tiles:");
         for (int[] tile : tiles) {
             System.out.println("Tile at (" + tile[0] + ", " + tile[1] + ")");
         }
+
+        // 펜스 안에 존재하는 외양간을 출력
         System.out.println("Barns:");
         for (Barn barn : barns) {
             System.out.println("Barn at (" + barn.getX() + ", " + barn.getY() + ")");
         }
+
+        // 펜스 안에 존재하는 동물을 출력
         System.out.println("Animals:");
         for (Animal animal : animals) {
             System.out.println("Animal: " + animal.getType() + " at (" + animal.getX() + ", " + animal.getY() + ")");
         }
         System.out.println("Remaining Capacity: " + getRemainingCapacity());
+    }
+
+    // 새로 추가된 메서드들
+    public boolean hasBarn() {
+        return !barns.isEmpty();
+    }
+
+    public int getTileCount() {
+        return tiles.size();
     }
 
 }

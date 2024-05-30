@@ -3,6 +3,7 @@ package cards.action;
 import cards.common.ActionRoundCard;
 import models.Player;
 
+import java.util.Map;
 import java.util.Objects;
 
 public class NonAccumulativeActionCard implements ActionRoundCard {
@@ -11,6 +12,7 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
     private String description;
     private boolean revealed;
     private boolean occupied;
+    private Map<String, Integer> resourcesToGain;
 
     public NonAccumulativeActionCard(int id, String name, String description) {
         this.id = id;
@@ -22,8 +24,9 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
 
     @Override
     public void execute(Player player) {
-        // 액션 카드 실행 로직
-        System.out.println("executed");
+//        // 액션 카드 실행 로직
+//        gainResources(player, resourcesToGain);
+//        setOccupied(true);
     }
 
     @Override
@@ -66,16 +69,4 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
         this.occupied = occupied;
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        AccumulativeActionCard that = (AccumulativeActionCard) o;
-//        return Objects.equals(name, that.name);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(name);
-//    }
 }

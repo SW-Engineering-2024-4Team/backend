@@ -21,7 +21,16 @@ public interface ActionRoundCard extends CommonCard {
             String resource = entry.getKey();
             int amount = entry.getValue();
 
+            // TODO 양 자원
+            // 보드 외부에 먼저 배치가 됨.
+            // 몇 마리 배치해야 하는지
+            // 빈 공간을 알려주시고
+            // 프론트가 어떤 좌표에 플레이어가 배치하고 싶어함.
+            // 플레이어가 어떤 좌표에 동물 배치했는지 알려주시고(배치 할 수 있는지 없는지)
+            // 배치를 못하는 경우
+
             if (resource.equals("sheep")) {
+                System.out.println("양 자원 시작");
                 // 양 자원일 경우
                 for (int i = 0; i < amount; i++) {
                     // 양 객체를 추가하여 플레이어에게 배치 요청
@@ -30,6 +39,7 @@ public interface ActionRoundCard extends CommonCard {
                 }
                 // 배치된 양의 수를 카운트하여 자원으로 추가
                 int placedSheep = player.placeNewAnimals();
+                System.out.println("placedSheep = " + placedSheep);
                 player.addResource(resource, placedSheep);
             } else {
                 // 일반 자원일 경우
@@ -39,6 +49,11 @@ public interface ActionRoundCard extends CommonCard {
     }
 
 
+    /*
+    * 프론트에게 사용 가능한 카드 목록 보여줌
+    * 프론트가 구매한 카드명 보여줌
+    * 구매했다는 걸 프론트에게 알려줌
+    * */
     // 직업 카드 사용
     default void useOccupationCard(Player player) {
         // 직업 카드 사용 로직
@@ -63,8 +78,11 @@ public interface ActionRoundCard extends CommonCard {
 
     // 주요 설비 카드 구매
     default void purchaseMajorImprovementCard(Player player) {
+        System.out.println("purchaseMajorImprovemetnCard 속 cardList");
+
         GameController gameController = player.getGameController();
         MainBoard mainBoard = gameController.getMainBoard();
+        mainBoard.printCardLists();
         List<CommonCard> majorImprovementCards = mainBoard.getAvailableMajorImprovementCards();
 
         // TODO 플레이어가 카드를 선택하는 로직 (예시로 랜덤 선택)
@@ -83,6 +101,10 @@ public interface ActionRoundCard extends CommonCard {
         }
 
     }
+
+    /*
+    *
+    * */
     default void triggerBreadBaking(Player player) {
         List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
         List<BakingCard> bakingCards = majorImprovementCards.stream()
@@ -95,11 +117,20 @@ public interface ActionRoundCard extends CommonCard {
             BakingCard selectedCard = player.selectBakingCard(bakingCards);
             selectedCard.triggerBreadBaking(player);
         } else {
+            System.out.println("사용 가능한 설비가 없습니다.");
             // 빵굽기 가능한 설비가 없다는 메시지 표시
         }
     }
 
     // 기물 짓기
+
+
+    /*
+    * 집, 외양간, 밭
+    * 한번에 기물만 생성
+    *
+    * 1. 프론트에게 선택 가능한 좌표를 보여주고
+    * 2. 프론트가 좌표를 선택하면*/
 
     // 집 짓기
     default void buildHouse(Player player) {
@@ -121,7 +152,6 @@ public interface ActionRoundCard extends CommonCard {
             System.out.println("기존 집 타입을 찾을 수 없습니다.");
             return;
         }
-
         if (playerBoard.canBuildHouse(x, y, currentRoomType, playerResources)) {
             Map<String, Integer> cost = player.getHouseResourceCost(currentRoomType);
             if (player.checkResources(cost)) {
@@ -182,21 +212,38 @@ public interface ActionRoundCard extends CommonCard {
     }
 
     // 울타리 짓기
+    // 프론트에게 좌표 요청
+    // 프론트가 좌표 set (1,1)(1,2)(1,3)
+    // 그거 갖고 울타리 지으면 됨
     default void buildFence(Player player) {
+        // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
         Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
+        player.getPlayerBoard().printPlayerBoardWithFences("유효 좌표", validPositions);
+
+        // 지을 수 있는 좌표가 없으면 짓지 못함.
         if (!validPositions.isEmpty()) {
             List<int[]> selectedPositions = new ArrayList<>();
+
+            /*
+            * 프론트엔드가 한 칸의 좌표를 보내줄 때 마다 필요한 자원 계산 및 유효 좌표를 업데이트 하기 위한 변수
+            * 지을 좌표들을 모으기 위함.
+            * */
+
+            // TODO 좌표 무더기로 들어오면 펜스 짓기로. 하나씩 선택은 프론트에서 하기로
             boolean fenceBuildingComplete = false;
             while (!fenceBuildingComplete) {
                 // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
                 int[] position = validPositions.iterator().next();
                 selectedPositions.add(position);
                 validPositions = player.getPlayerBoard().getValidFencePositions();
+                // 유효 좌표가 없거나, 자원 부족등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
                 if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
                     fenceBuildingComplete = true;
                 }
             }
+            // 선택된 좌표들의 모음으로 울타리를 지음
             player.getPlayerBoard().buildFences(selectedPositions, player);
+            // 울타리 짓는데 필요한 자원을 차감
             player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
             System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
         } else {
@@ -204,7 +251,9 @@ public interface ActionRoundCard extends CommonCard {
         }
     }
 
-    // 곡식 심기
+
+
+    // 곡식 심기 // 집, 외양간, 밭과 유사
     default void plantField(Player player) {
         PlayerBoard playerBoard = player.getPlayerBoard();
 
@@ -291,4 +340,5 @@ public interface ActionRoundCard extends CommonCard {
     default void applyAdditionalEffects(Player player) {
         // 추가 효과가 필요한 경우 오버라이드하여 구현
     }
+
 }

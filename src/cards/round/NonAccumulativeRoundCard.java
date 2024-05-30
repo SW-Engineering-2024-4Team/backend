@@ -26,7 +26,6 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     @Override
     public void execute(Player player) {
         // 라운드 카드 실행 로직
-        System.out.println("executed");
     }
 
     @Override
@@ -72,18 +71,4 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
     }
-
-
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        AccumulativeActionCard that = (AccumulativeActionCard) o;
-//        return Objects.equals(name, that.name);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(name);
-//    }
 }

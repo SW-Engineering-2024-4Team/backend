@@ -10,7 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,7 +30,11 @@ public class CardOccupiedTest {
         gameController = roomController.getGameController();
         player = gameController.getPlayers().get(0);
 
-        actionCard = new AccumulativeActionCard(1, "Test Card", "This is a test card.");
+        Map<String, Integer> resources = new HashMap<>();
+        resources.put("wood", 3);
+        resources.put("clay", 2);
+
+        actionCard = new AccumulativeActionCard(1, "Test Card", "This is a test card.", resources);
         gameController.getMainBoard().getActionCards().add(actionCard);
     }
 
