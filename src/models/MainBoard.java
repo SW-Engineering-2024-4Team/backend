@@ -191,9 +191,12 @@ package models;
 import cards.common.AccumulativeCard;
 import cards.common.ActionRoundCard;
 import cards.common.CommonCard;
+import cards.factory.imp.occupation.Lumberjack;
+import cards.factory.imp.occupation.Lumberjack;
 import cards.majorimprovement.MajorImprovementCard;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MainBoard {
     private List<ActionRoundCard> actionCards;
@@ -339,17 +342,32 @@ public class MainBoard {
     public void printCardLists() {
         System.out.println("Action Cards:");
         for (ActionRoundCard card : actionCards) {
-            System.out.println("- " + card.getName());
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
 
         System.out.println("Round Cards:");
         for (ActionRoundCard card : roundCards) {
-            System.out.println("- " + card.getName());
-        }
-
-        System.out.println("Major Improvement Cards:");
-        for (CommonCard card : majorImprovementCards) {
-            System.out.println("- " + card.getName());
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
     }
+
+    public List<ActionRoundCard> getBuildOrRenovateCards() {
+        return actionCards.stream()
+                .filter(ActionRoundCard::executesBuildOrRenovate)
+                .collect(Collectors.toList());
+    }
+
+    public void updateCardsWithDecorated(List<ActionRoundCard> originalCards, List<ActionRoundCard> decoratedCards) {
+        for (int i = 0; i < actionCards.size(); i++) {
+            if (originalCards.contains(actionCards.get(i))) {
+                actionCards.set(i, decoratedCards.get(originalCards.indexOf(actionCards.get(i))));
+            }
+        }
+        for (int i = 0; i < roundCards.size(); i++) {
+            if (originalCards.contains(roundCards.get(i))) {
+                roundCards.set(i, decoratedCards.get(originalCards.indexOf(roundCards.get(i))));
+            }
+        }
+    }
+
 }

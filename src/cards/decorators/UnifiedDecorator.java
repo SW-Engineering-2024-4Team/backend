@@ -1,21 +1,43 @@
 package cards.decorators;
 
 import cards.common.AccumulativeCard;
+import cards.factory.imp.action.Seed;
 import models.Player;
 import java.util.Map;
 
 public abstract class UnifiedDecorator implements AccumulativeCard {
     protected AccumulativeCard decoratedCard;
     protected boolean occupied;
+    protected Player appliedPlayer;
 
-    public UnifiedDecorator(AccumulativeCard decoratedCard) {
+
+    public UnifiedDecorator(AccumulativeCard decoratedCard, Player appliedPlayer) {
+        if (decoratedCard == null) {
+            throw new IllegalArgumentException("Decorated card cannot be null");
+        }
         this.decoratedCard = decoratedCard;
+        this.occupied = decoratedCard.isOccupied();
+        this.appliedPlayer = appliedPlayer;
+    }
+
+    @Override
+    public Map<String , Integer> getAccumulatedAmounts() {
+        return decoratedCard.getAccumulatedAmounts();
     }
 
     @Override
     public void execute(Player player) {
-        decoratedCard.execute(player);
-        applyAdditionalEffects(player);
+    }
+
+    @Override
+    public boolean isOccupied() {
+        return this.occupied;
+    }
+
+    @Override
+    public void setOccupied(boolean occupied) {
+        this.occupied = occupied;
+        decoratedCard.setOccupied(occupied);
     }
 
     @Override
@@ -65,6 +87,8 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
 
     @Override
     public void gainResources(Player player, Map<String, Integer> resources) {
+//        if (player.equals(appliedPlayer))
+//            decoratedCard.gainResources(player, resources);
         decoratedCard.gainResources(player, resources);
     }
 
@@ -144,7 +168,16 @@ public abstract class UnifiedDecorator implements AccumulativeCard {
     }
 
     @Override
-    public void applyAdditionalEffects(Player player) {
-        decoratedCard.applyAdditionalEffects(player);
+    public void applyAdditionalEffects(Player player) { }
+
+    public void executeAndOr(Player player, Runnable action1, Runnable action2) {
+        decoratedCard.executeAndOr(player, action1, action2);
     }
+
+//    public Map<String, Integer> getResourcesToGain() {
+//        if (decoratedCard instanceof Seed) {
+//            return ((Seed) decoratedCard).createResourcesToGain();
+//        }
+//        return null;
+//    }
 }

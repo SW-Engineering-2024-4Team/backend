@@ -69,6 +69,11 @@ public class AccumulativeRoundCard implements AccumulativeCard {
     }
 
     @Override
+    public Map<String, Integer> getAccumulatedAmounts() {
+        return accumulatedAmounts;
+    }
+
+    @Override
     public void clearAccumulatedResources() {
         accumulatedResources.clear();
     }

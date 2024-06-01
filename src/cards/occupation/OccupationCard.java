@@ -7,7 +7,7 @@ import models.Player;
 
 import java.util.Map;
 
-public class OccupationCard implements UnifiedCard, ExchangeableCard {
+public abstract class OccupationCard implements UnifiedCard, ExchangeableCard {
     private int id;
     private String name;
     private String description;
@@ -88,5 +88,10 @@ public class OccupationCard implements UnifiedCard, ExchangeableCard {
     // 현재 플레이어 수가 이 카드를 사용할 수 있는지 여부 확인
     public boolean canPlayWithPlayerCount(int playerCount) {
         return playerCount >= minPlayer && playerCount <= maxPlayer;
+    }
+
+    // 필요한 경우에만 오버라이드하도록 추상 메서드로 선언
+    public void gainResources(Player player, Map<String, Integer> resources) {
+        throw new UnsupportedOperationException("This occupation card does not support gaining resources.");
     }
 }

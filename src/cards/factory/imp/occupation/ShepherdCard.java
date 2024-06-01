@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class ShepherdCard extends OccupationCard {
 
-    public ShepherdCard(int id, ExchangeTiming exchangeTiming) {
-        super(id, "Shepherd", "Exchange 1 sheep for 1 stone anytime.", createExchangeRate(), null, 1, 4, exchangeTiming);
+    public ShepherdCard(int id) {
+        super(id, "Shepherd", "아무때나 양 1마리를 돌 1개로 바꿉니다.", createExchangeRate(), null, 1, 4, ExchangeTiming.ANYTIME);
     }
 
     private static Map<String, Integer> createExchangeRate() {

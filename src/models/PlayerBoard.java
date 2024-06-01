@@ -908,6 +908,19 @@ import java.util.*;
                 return null; // 집이 없으면 null 반환
             }
 
+            // 방의 수를 반환하는 메서드 추가
+            public int getRoomCount() {
+                int roomCount = 0;
+                for (Tile[] row : tiles) {
+                    for (Tile tile : row) {
+                        if (tile instanceof Room) {
+                            roomCount++;
+                        }
+                    }
+                }
+                return roomCount;
+            }
+
             public boolean canBuildBarn(int x, int y) {
                 // 타일이 비어 있거나 이미 울타리 영역 안에 있는 경우에만 외양간을 지을 수 있음
                 if (tiles[x][y] == null || isPartOfFence(x, y)) {
@@ -2080,6 +2093,25 @@ import java.util.*;
                 int paddingSize = (width - str.length()) / 2;
                 String padding = " ".repeat(paddingSize);
                 return padding + str + padding;
+            }
+
+            public int getAdditionalRoomsCount() {
+                int initialRooms = 2; // 초기 집의 방 수
+                int currentRooms = 0;
+                for (Tile[] row : tiles) {
+                    for (Tile tile : row) {
+                        if (tile instanceof Room) {
+                            currentRooms++;
+                        }
+                    }
+                }
+                return Math.max(0, currentRooms - initialRooms);
+            }
+
+            public void applyWaterTroughEffect(Player player) {
+                for (FenceArea area : managedFenceAreas) {
+                    area.addWaterTrough(player);
+                }
             }
 
             // getter and setter methods

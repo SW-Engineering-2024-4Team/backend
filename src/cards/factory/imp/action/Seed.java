@@ -12,7 +12,7 @@ public class Seed extends NonAccumulativeActionCard {
         super(id, "곡식 종자", "곡식 자원 1개를 획득합니다.");
     }
 
-    private Map<String, Integer> createResourcesToGain() {
+    public Map<String, Integer> createResourcesToGain() {
         Map<String, Integer> resourcesToGain = new HashMap<>();
         resourcesToGain.put("grain", 1); // 돌 1개 획득
         return resourcesToGain;

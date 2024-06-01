@@ -9,6 +9,7 @@ public class FenceArea {
     private int remainingCapacity;
     private int initalCapacity;
     private String animalType; // 울타리 영역 내 동물 종류를 관리하는 필드
+    private boolean hasWaterTrough; // 물통이 있는지 여부
 
     public int getInitalCapacity() {
         return initalCapacity;
@@ -21,6 +22,7 @@ public class FenceArea {
         this.remainingCapacity = calculateInitialCapacity();
         this.initalCapacity = calculateInitialCapacity();
         this.animalType = null;
+        this.hasWaterTrough = false;
     }
 
 //    public void addTile(int x, int y, Tile tile) {
@@ -42,6 +44,13 @@ public class FenceArea {
 //            }
 //        }
 //    }
+
+    public void addWaterTrough(Player player) {
+        if (!hasWaterTrough) {
+            hasWaterTrough = true;
+            updateRemainingCapacity();
+        }
+    }
 
     public void addTile(int x, int y, Tile tile) {
         // 타일이 이미 존재하는지 확인
@@ -93,8 +102,12 @@ public class FenceArea {
 
     public int calculateInitialCapacity() {
         int capacity = (int) Math.pow(2, tiles.size()); // 기본 수용량: 타일 한 칸당 2배
+        int numBarns = barns.size();
         for (Barn barn : barns) {
             capacity *= 2; // 외양간이 있으면 타일당 수용량 2배
+        }
+        if (hasWaterTrough) {
+            capacity += numBarns * 2; // 물통이 있으면 외양간 타일당 추가 수용량 2
         }
         return capacity;
     }

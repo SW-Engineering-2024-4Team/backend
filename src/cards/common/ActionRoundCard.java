@@ -341,4 +341,28 @@ public interface ActionRoundCard extends CommonCard {
         // 추가 효과가 필요한 경우 오버라이드하여 구현
     }
 
+    public default boolean executesBuildOrRenovate() {
+        boolean[] result = {false};
+
+        // 기존 메서드들을 래핑하여 buildHouse 또는 renovateRooms 호출 여부 확인
+        executeThen(new Player("dummy", "dummy", null),
+                () -> { result[0] = true; },
+                () -> {}
+        );
+
+        executeAndOr(new Player("dummy", "dummy", null),
+                () -> { result[0] = true; },
+                () -> {}
+        );
+
+        executeOr(new Player("dummy", "dummy", null),
+                () -> { result[0] = true; },
+                () -> {}
+        );
+
+        execute(new Player("dummy", "dummy", null));
+
+        return result[0];
+    }
+
 }

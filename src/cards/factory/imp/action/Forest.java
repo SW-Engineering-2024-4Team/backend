@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class Forest extends AccumulativeActionCard {
 
-    public Forest(int id, String name, String description, Map<String, Integer> accumulatedAmounts) {
-        super(id, "숲", "나무 자원 3개를 누적합니다.", accumulatedAmounts);
+    public Forest(int id) {
+        super(id, "숲", "나무 자원 3개를 누적합니다.", createAccumulatedAmounts());
     }
 
     private static Map<String, Integer> createAccumulatedAmounts() {

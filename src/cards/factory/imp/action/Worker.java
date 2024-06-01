@@ -12,7 +12,7 @@ public class Worker extends NonAccumulativeActionCard {
         super(id, "날품팔이", "음식 자원을 2개씩 획득합니다.");
     }
 
-    private Map<String, Integer> createResourcesToGain() {
+    public Map<String, Integer> createResourcesToGain() {
         Map<String, Integer> resourcesToGain = new HashMap<>();
         resourcesToGain.put("food", 2);
         return resourcesToGain;

@@ -66,6 +66,10 @@ public class AccumulativeActionCard implements AccumulativeCard {
         return accumulatedResources;
     }
 
+    public Map<String, Integer> getAccumulatedAmounts() {
+        return accumulatedAmounts;
+    }
+
     @Override
     public void clearAccumulatedResources() {
         accumulatedResources.clear();

@@ -742,16 +742,71 @@ public class Player {
     }
 
 
+//    public void placeFamilyMember(ActionRoundCard card) {
+//        // 카드에 올려놓을 수 있는지(점유가 됐는지 확인)
+//        if (!gameController.getMainBoard().canPlaceFamilyMember(card)) {
+//            System.out.println("Card " + card.getName() + " is already occupied.");
+//            return;
+//        }
+//
+//        // 이 부분이 카드 효과를 발동
+//        // TODO: 프론트가 가족 구성원의 좌표, 카드명주면
+//        // 가족 구성원 사용됨, 카드 점유, 카드 실행
+//
+//        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+//        for (int i = 0; i < familyMembers.length; i++) {
+//            for (int j = 0; j < familyMembers[i].length; j++) {
+//                if (familyMembers[i][j] != null && familyMembers[i][j].isAdult() && !familyMembers[i][j].isUsed()) {
+//                    FamilyMember selectedMember = familyMembers[i][j];
+//                    System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
+//
+//                    // 카드가 사용되면 점유상태가 되어 있어야 함.
+//                    gameController.getMainBoard().placeFamilyMember(card); // 점유 상태로 먼저 설정
+//
+//                    // 카드 효과를 발동
+//                    card.execute(this); // 카드 실행 로직
+//
+//                    // 가족 구성원이 사용되었음 표시
+//                    selectedMember.setUsed(true); //hasFamilyMember()
+//
+//                    System.out.println("Player " + this.id + " placed a family member on card: " + card.getName());
+//                    System.out.println("Family member used status: " + selectedMember.isUsed());
+//                    return;
+//                }
+//            }
+//        }
+//        System.out.println("No available family member found for player " + this.id);
+//    }
+
     public void placeFamilyMember(ActionRoundCard card) {
-        // 카드에 올려놓을 수 있는지(점유가 됐는지 확인)
-        if (!gameController.getMainBoard().canPlaceFamilyMember(card)) {
-            System.out.println("Card " + card.getName() + " is already occupied.");
+        MainBoard mainBoard = gameController.getMainBoard();
+
+        // 최신 카드 리스트에서 해당 카드를 찾음
+        ActionRoundCard latestCard = null;
+        for (ActionRoundCard actionCard : mainBoard.getActionCards()) {
+            if (actionCard.getId() == card.getId()) {
+                latestCard = actionCard;
+                break;
+            }
+        }
+        if (latestCard == null) {
+            for (ActionRoundCard roundCard : mainBoard.getRoundCards()) {
+                if (roundCard.getId() == card.getId()) {
+                    latestCard = roundCard;
+                    break;
+                }
+            }
+        }
+
+        if (latestCard == null) {
+            System.out.println("Card not found on the main board.");
             return;
         }
 
-        // 이 부분이 카드 효과를 발동
-        // TODO: 프론트가 가족 구성원의 좌표, 카드명주면
-        // 가족 구성원 사용됨, 카드 점유, 카드 실행
+        if (!mainBoard.canPlaceFamilyMember(latestCard)) {
+            System.out.println("Card " + latestCard.getName() + " is already occupied.");
+            return;
+        }
 
         FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
         for (int i = 0; i < familyMembers.length; i++) {
@@ -760,16 +815,11 @@ public class Player {
                     FamilyMember selectedMember = familyMembers[i][j];
                     System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
 
-                    // 카드가 사용되면 점유상태가 되어 있어야 함.
-                    gameController.getMainBoard().placeFamilyMember(card); // 점유 상태로 먼저 설정
+                    mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
+                    latestCard.execute(this); // 카드 실행 로직
+                    selectedMember.setUsed(true);
 
-                    // 카드 효과를 발동
-                    card.execute(this); // 카드 실행 로직
-
-                    // 가족 구성원이 사용되었음 표시
-                    selectedMember.setUsed(true); //hasFamilyMember()
-
-                    System.out.println("Player " + this.id + " placed a family member on card: " + card.getName());
+                    System.out.println("Player " + this.id + " placed a family member on card: " + latestCard.getName());
                     System.out.println("Family member used status: " + selectedMember.isUsed());
                     return;
                 }
@@ -777,6 +827,7 @@ public class Player {
         }
         System.out.println("No available family member found for player " + this.id);
     }
+
 
     public void resetFamilyMembers() {
         FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
@@ -890,9 +941,13 @@ public class Player {
         }
     }
 
-    public void useUnifiedCard(UnifiedCard card) {
-        card.execute(this);
-        moveToActiveCards(card);
+    public void useUnifiedCard(CommonCard card) {
+        if (card != null) {
+            card.execute(this);
+            moveToActiveCards(card);
+        } else {
+            System.out.println("UnifiedCard is null.");
+        }
     }
 
     public BakingCard selectBakingCard(List<BakingCard> bakingCards) {
@@ -1131,5 +1186,34 @@ public class Player {
     public void setChooseOption(boolean chooseOption) {
         this.chooseOption = chooseOption;
     }
+
+    private boolean woodDiscountActive = false;
+    public boolean isWoodDiscountActive() {
+        return woodDiscountActive;
+    }
+
+    public void setWoodDiscountActive(boolean woodDiscountActive) {
+        this.woodDiscountActive = woodDiscountActive;
+    }
+
+    public Map<String, Integer> getDiscountedCost(Map<String, Integer> originalCost) {
+        if (!woodDiscountActive) return originalCost;
+
+        Map<String, Integer> discountedCost = new HashMap<>(originalCost);
+        if (discountedCost.containsKey("wood")) {
+            discountedCost.put("wood", Math.max(0, discountedCost.get("wood") - 1));
+        }
+        if (discountedCost.containsKey("stone")) {
+            discountedCost.put("stone", Math.max(0, discountedCost.get("stone") - stoneDiscount));
+        }
+        return discountedCost;
+    }
+
+    private int stoneDiscount = 0;
+
+    public void setStoneDiscount(int discount) {
+        this.stoneDiscount = discount;
+    }
+
 }
 

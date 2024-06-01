@@ -42,12 +42,19 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
 
     @Override
     public void execute(Player player) {
-        if (checkResources(player, purchaseCost)) {
-            payResources(player, purchaseCost);
+        purchase(player);
+    }
+
+    public boolean purchase(Player player) {
+        Map<String, Integer> cost = player.getDiscountedCost(this.purchaseCost);
+        if (player.checkResources(cost)) {
+            player.payResources(cost);
             player.addMajorImprovementCard(this);
-            this.purchased = true; // 카드가 구매되었음을 표시
+            this.purchased = true;
+            return true;
         } else {
             System.out.println("Not enough resources to purchase " + name);
+            return false;
         }
     }
 
@@ -125,5 +132,9 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
                 player.addResource("food", exchangeAmount);
             }
         }
+    }
+
+    public void setPurchaseCost(Map<String, Integer> purchaseCost) {
+        this.purchaseCost = purchaseCost;
     }
 }
