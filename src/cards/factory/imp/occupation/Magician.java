@@ -15,7 +15,7 @@ import java.util.Map;
 public class Magician extends OccupationCard {
 
     public Magician(int id) {
-        super(id, "Magician", "유랑 극단 칸을 이용할 시 추가 자원을 얻습니다(곡식1, 나무1).", null, null, 1, 4, ExchangeTiming.NONE);
+        super(id, "마술사", "유랑 극단 칸을 이용할 시 추가 자원을 얻습니다(곡식1, 나무1).", null, null, 1, 4, ExchangeTiming.NONE);
     }
 
     @Override

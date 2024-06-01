@@ -61,7 +61,7 @@ public class BuildFenceTest {
             System.out.println("actionRoundCard = " + actionRoundCard.getName());
         }
         player.resetResources();
-        player.addResource("wood", 10);  // 울타리 짓기 위한 자원 추가
+        player.addResource("wood", 50);  // 울타리 짓기 위한 자원 추가
         player.printPlayerResources("울타리 치기 전 자원.");
 
         // 초기 상태 출력

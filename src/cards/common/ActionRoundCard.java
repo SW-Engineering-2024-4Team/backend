@@ -211,10 +211,46 @@ public interface ActionRoundCard extends CommonCard {
         }
     }
 
-    // 울타리 짓기
-    // 프론트에게 좌표 요청
-    // 프론트가 좌표 set (1,1)(1,2)(1,3)
-    // 그거 갖고 울타리 지으면 됨
+//    // 울타리 짓기
+//    // 프론트에게 좌표 요청
+//    // 프론트가 좌표 set (1,1)(1,2)(1,3)
+//    // 그거 갖고 울타리 지으면 됨
+//    default void buildFence(Player player) {
+//        // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
+//        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
+//        player.getPlayerBoard().printPlayerBoardWithFences("유효 좌표", validPositions);
+//
+//        // 지을 수 있는 좌표가 없으면 짓지 못함.
+//        if (!validPositions.isEmpty()) {
+//            List<int[]> selectedPositions = new ArrayList<>();
+//
+//            /*
+//             * 프론트엔드가 한 칸의 좌표를 보내줄 때 마다 필요한 자원 계산 및 유효 좌표를 업데이트 하기 위한 변수
+//             * 지을 좌표들을 모으기 위함.
+//             * */
+//
+//            // TODO 좌표 무더기로 들어오면 펜스 짓기로. 하나씩 선택은 프론트에서 하기로
+//            boolean fenceBuildingComplete = false;
+//            while (!fenceBuildingComplete) {
+//                // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
+//                int[] position = validPositions.iterator().next();
+//                selectedPositions.add(position);
+//                validPositions = player.getPlayerBoard().getValidFencePositions();
+//                // 유효 좌표가 없거나, 자원 부족등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
+//                if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
+//                    fenceBuildingComplete = true;
+//                }
+//            }
+//            // 선택된 좌표들의 모음으로 울타리를 지음
+//            player.getPlayerBoard().buildFences(selectedPositions, player);
+//            // 울타리 짓는데 필요한 자원을 차감
+//            player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
+//            System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
+//        } else {
+//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
+//        }
+//    }
+
     default void buildFence(Player player) {
         // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
         Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
@@ -224,23 +260,31 @@ public interface ActionRoundCard extends CommonCard {
         if (!validPositions.isEmpty()) {
             List<int[]> selectedPositions = new ArrayList<>();
 
-            /*
-            * 프론트엔드가 한 칸의 좌표를 보내줄 때 마다 필요한 자원 계산 및 유효 좌표를 업데이트 하기 위한 변수
-            * 지을 좌표들을 모으기 위함.
-            * */
-
-            // TODO 좌표 무더기로 들어오면 펜스 짓기로. 하나씩 선택은 프론트에서 하기로
             boolean fenceBuildingComplete = false;
             while (!fenceBuildingComplete) {
-                // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
-                int[] position = validPositions.iterator().next();
-                selectedPositions.add(position);
-                validPositions = player.getPlayerBoard().getValidFencePositions();
-                // 유효 좌표가 없거나, 자원 부족등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
-                if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
+                // 유효 위치 중 하나를 선택하는 로직 (가정)
+                Iterator<int[]> iterator = validPositions.iterator();
+                if (iterator.hasNext()) {
+                    int[] position = iterator.next();
+                    selectedPositions.add(position);
+                    iterator.remove();  // 선택한 위치를 유효 위치에서 제거
+
+                    // 유효 좌표 업데이트
+                    validPositions = player.getPlayerBoard().getValidFencePositions();
+                    validPositions.removeAll(selectedPositions);
+
+                    // 선택된 좌표와 인접한 타일들만 남기기
+                    validPositions.removeIf(pos -> !isAdjacent(selectedPositions.get(selectedPositions.size() - 1), pos));
+
+                    // 유효 좌표가 없거나, 자원 부족 등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
+                    if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
+                        fenceBuildingComplete = true;
+                    }
+                } else {
                     fenceBuildingComplete = true;
                 }
             }
+
             // 선택된 좌표들의 모음으로 울타리를 지음
             player.getPlayerBoard().buildFences(selectedPositions, player);
             // 울타리 짓는데 필요한 자원을 차감
@@ -250,6 +294,17 @@ public interface ActionRoundCard extends CommonCard {
             System.out.println("울타리를 지을 유효한 위치가 없습니다.");
         }
     }
+
+    // 인접한 좌표인지 확인하는 메서드
+    private boolean isAdjacent(int[] pos1, int[] pos2) {
+        int dx = Math.abs(pos1[0] - pos2[0]);
+        int dy = Math.abs(pos1[1] - pos2[1]);
+        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
+    }
+
+
+
+
 
 
 

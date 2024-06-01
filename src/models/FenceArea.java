@@ -102,12 +102,12 @@ public class FenceArea {
 
     public int calculateInitialCapacity() {
         int capacity = (int) Math.pow(2, tiles.size()); // 기본 수용량: 타일 한 칸당 2배
-        int numBarns = barns.size();
+        int numTiles = tiles.size();
         for (Barn barn : barns) {
             capacity *= 2; // 외양간이 있으면 타일당 수용량 2배
         }
         if (hasWaterTrough) {
-            capacity += numBarns * 2; // 물통이 있으면 외양간 타일당 추가 수용량 2
+            capacity += numTiles * 2; // 물통이 있으면 우리 타일당 추가 수용량 2
         }
         return capacity;
     }
@@ -209,6 +209,27 @@ public class FenceArea {
 
     public int getTileCount() {
         return tiles.size();
+    }
+
+    // 타일을 울타리 영역에서 제거하는 메서드
+    public void removeTile(int x, int y, Tile tile) {
+        // 타일을 제거
+        Iterator<int[]> iterator = tiles.iterator();
+        while (iterator.hasNext()) {
+            int[] pos = iterator.next();
+            if (pos[0] == x && pos[1] == y) {
+                iterator.remove();
+                break;
+            }
+        }
+
+        // 울타리 영역의 수용량 업데이트
+        updateRemainingCapacity();
+    }
+
+    // 울타리 영역이 비어 있는지 확인하는 메서드
+    public boolean isEmpty() {
+        return tiles.isEmpty();
     }
 
 }

@@ -1,7 +1,7 @@
 package cards.factory.imp.minor;
 
 import cards.common.ActionRoundCard;
-import cards.factory.imp.decorators.occupation.BuildFenceDecorator;
+import cards.factory.imp.decorators.minorimprovement.BuildFenceDecorator;
 import cards.minorimprovement.MinorImprovementCard;
 import enums.ExchangeTiming;
 import models.MainBoard;
@@ -15,12 +15,12 @@ import java.util.Map;
 public class CompressedSoil extends MinorImprovementCard {
 
     public CompressedSoil(int id) {
-        super(id, "다진 흙", "울타리를 칠 때 나무 대신 흙을 낼 수 있습니다.", createPurchaseCost(), null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
+        super(id, "다진 흙", "흙 1개를 가져옵니다. 울타리를 칠 때 나무 대신 흙을 낼 수 있습니다.", createPurchaseCost(), null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
     }
 
     private static Map<String, Integer> createPurchaseCost() {
         Map<String, Integer> cost = new HashMap<>();
-        cost.put("clay", 2);
+        cost.put("clay", 0);
         return cost;
     }
 
@@ -29,10 +29,19 @@ public class CompressedSoil extends MinorImprovementCard {
         // 플레이어에게 흙 자원 1개를 추가로 제공합니다.
         player.addResource("clay", 1);
 
+        // CompressedSoil 효과를 활성화합니다.
+        player.setCompressedSoilActive(true);
+
+        // 필요한 액션 카드 데코레이터 적용
+        applyBuildFenceDecorator(player);
+    }
+
+    private void applyBuildFenceDecorator(Player player) {
         MainBoard mainBoard = player.getGameController().getMainBoard();
         List<ActionRoundCard> actionCards = mainBoard.getActionCards();
         List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
 
+        // 액션 카드에 데코레이터 적용
         List<ActionRoundCard> newActionCards = wrapWithDecorators(actionCards, player);
         List<ActionRoundCard> newRoundCards = wrapWithDecorators(roundCards, player);
 
@@ -44,18 +53,17 @@ public class CompressedSoil extends MinorImprovementCard {
     private List<ActionRoundCard> wrapWithDecorators(List<ActionRoundCard> cards, Player player) {
         List<ActionRoundCard> newCards = new ArrayList<>();
         for (ActionRoundCard card : cards) {
-            ActionRoundCard decoratedCard = card;
-            if (hasMethod(card, "buildFence")) {
-                decoratedCard = new BuildFenceDecorator(decoratedCard, player);
+            if (hasBuildFenceMethod(card)) {
+                card = new BuildFenceDecorator(card, player);
             }
-            newCards.add(decoratedCard);
+            newCards.add(card);
         }
         return newCards;
     }
 
-    private boolean hasMethod(ActionRoundCard card, String methodName) {
+    private boolean hasBuildFenceMethod(ActionRoundCard card) {
         try {
-            card.getClass().getMethod(methodName, Player.class);
+            card.getClass().getMethod("buildFence", Player.class);
             return true;
         } catch (NoSuchMethodException e) {
             return false;

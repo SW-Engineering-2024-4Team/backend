@@ -935,11 +935,17 @@ public class Player {
         return true;
     }
 
-    public void payResources(Map<String, Integer> cost) {
-        for (Map.Entry<String, Integer> entry : cost.entrySet()) {
-            addResource(entry.getKey(), -entry.getValue());
-        }
+//    public void payResources(Map<String, Integer> cost) {
+//        for (Map.Entry<String, Integer> entry : cost.entrySet()) {
+//            addResource(entry.getKey(), -entry.getValue());
+//        }
+//    }
+public void payResources(Map<String, Integer> cost) {
+    Map<String, Integer> finalCost = getDiscountedCost(cost);
+    for (Map.Entry<String, Integer> entry : finalCost.entrySet()) {
+        addResource(entry.getKey(), -entry.getValue());
     }
+}
 
     public void useUnifiedCard(CommonCard card) {
         if (card != null) {
@@ -1041,34 +1047,65 @@ public class Player {
         }
     }
 
-    public int placeNewAnimals() {
-        int placedCount = 0;
-        List<Animal> animalsToRemove = new ArrayList<>();
-        Iterator<Animal> iterator = newAnimals.iterator();
+//    public int placeNewAnimals() {
+//        int placedCount = 0;
+//        List<Animal> animalsToRemove = new ArrayList<>();
+//        Iterator<Animal> iterator = newAnimals.iterator();
+//
+//        // TODO 임의로 좌표를 설정한 것
+//        // 더 배치할 수 없을 경우: 방생
+//        while (iterator.hasNext()) {
+//            Animal animal = iterator.next();
+//            Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
+//
+//            if (!validPositions.isEmpty()) {
+//                int[] position = validPositions.iterator().next();
+//                System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
+//
+//                // TODO 프론트한테 좌표 받아서 배치
+//                placeAnimalOnBoard(animal, position[0], position[1]);
+//                placedCount++;
+//                animalsToRemove.add(animal);
+//            } else {
+//                System.out.println(animal.getType() + " 방생됨.");
+//                animalsToRemove.add(animal);
+//            }
+//        }
+//
+//        newAnimals.removeAll(animalsToRemove);
+//        return placedCount;
+//    }
+public int placeNewAnimals() {
+    int placedCount = 0;
+    List<Animal> animalsToRemove = new ArrayList<>();
+    List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
 
-        // TODO 임의로 좌표를 설정한 것
-        // 더 배치할 수 없을 경우: 방생
-        while (iterator.hasNext()) {
-            Animal animal = iterator.next();
-            Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
+    // TODO 임의로 좌표를 설정한 것
+    // 더 배치할 수 없을 경우: 방생
+    for (Animal animal : newAnimalsCopy) {
+        Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
 
-            if (!validPositions.isEmpty()) {
-                int[] position = validPositions.iterator().next();
-                System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
+        if (!validPositions.isEmpty()) {
+            int[] position = validPositions.iterator().next();
+            System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 
-                // TODO 프론트한테 좌표 받아서 배치
-                placeAnimalOnBoard(animal, position[0], position[1]);
-                placedCount++;
-                animalsToRemove.add(animal);
-            } else {
-                System.out.println(animal.getType() + " 방생됨.");
-                animalsToRemove.add(animal);
-            }
+            // TODO 프론트한테 좌표 받아서 배치
+            placeAnimalOnBoard(animal, position[0], position[1]);
+            placedCount++;
+            animalsToRemove.add(animal);
+
+            // 유효한 위치 리스트를 갱신
+            validPositions = playerBoard.getValidAnimalPositions(animal.getType());
+        } else {
+            System.out.println(animal.getType() + " 방생됨.");
+            animalsToRemove.add(animal);
         }
-
-        newAnimals.removeAll(animalsToRemove);
-        return placedCount;
     }
+
+    newAnimals.removeAll(animalsToRemove);
+    return placedCount;
+}
+
 
     public void buildBarn(int x, int y) {
         if (playerBoard.canBuildBarn(x, y)) {
@@ -1197,7 +1234,7 @@ public class Player {
     }
 
     public Map<String, Integer> getDiscountedCost(Map<String, Integer> originalCost) {
-        if (!woodDiscountActive) return originalCost;
+        if (!woodDiscountActive && stoneDiscount == 0) return originalCost;
 
         Map<String, Integer> discountedCost = new HashMap<>(originalCost);
         if (discountedCost.containsKey("wood")) {
@@ -1213,6 +1250,25 @@ public class Player {
 
     public void setStoneDiscount(int discount) {
         this.stoneDiscount = discount;
+    }
+
+    private boolean compressedSoilActive;
+
+    // 기존 코드 생략
+
+    public boolean isCompressedSoilActive() {
+        return compressedSoilActive;
+    }
+
+    public void setCompressedSoilActive(boolean compressedSoilActive) {
+        this.compressedSoilActive = compressedSoilActive;
+    }
+
+    //TODO
+    public boolean chooseResource(String resource1, String resource2, int amount) {
+        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 단순히 흙을 선택하도록 가정합니다.
+        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+        return getResource(resource2) >= amount;
     }
 
 }

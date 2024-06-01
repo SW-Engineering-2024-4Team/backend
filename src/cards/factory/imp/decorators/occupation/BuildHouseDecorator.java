@@ -18,4 +18,12 @@ public class BuildHouseDecorator extends UnifiedDecoratorNon {
             System.out.println("초벽질공 효과: 음식 3개를 가져옵니다.");
         }
     }
+
+    @Override
+    public void execute(Player player) {
+        executeAndOr(player,
+                () -> buildHouse(player),
+                () -> buildBarn(player)
+        );
+    }
 }

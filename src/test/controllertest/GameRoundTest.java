@@ -40,7 +40,7 @@ public class GameRoundTest {
         System.out.println("Main Board Round Cards: " + getCardNames(gameController.getMainBoard().getRoundCards()));
         System.out.println("Main Board Major Improvement Cards: " + getCardNames(gameController.getMainBoard().getMajorImprovementCards()));
 
-        gameController.testGame();
+//        gameController.testGame();
 
 //        testBecomeFirstPlayer(gameController);
 

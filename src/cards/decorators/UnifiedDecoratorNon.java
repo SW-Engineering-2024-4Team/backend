@@ -22,6 +22,7 @@ public abstract class UnifiedDecoratorNon implements ActionRoundCard {
 
     @Override
     public void execute(Player player) {
+        decoratedCard.execute(player);
     }
 
     @Override

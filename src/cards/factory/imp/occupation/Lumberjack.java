@@ -15,7 +15,7 @@ import java.util.Map;
 public class Lumberjack extends OccupationCard {
 
     public Lumberjack(int id) {
-        super(id, "Lumberjack", "나무 자원 누적칸을 사용할 시 나무를 추가로 1개 얻습니다.", null, null, 1, 4, ExchangeTiming.NONE);
+        super(id, "나무꾼", "나무 자원 누적칸을 사용할 시 나무를 추가로 1개 얻습니다.", null, null, 1, 4, ExchangeTiming.NONE);
     }
 
     @Override

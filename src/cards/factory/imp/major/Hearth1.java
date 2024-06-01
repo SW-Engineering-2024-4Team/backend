@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class Hearth1 extends MajorImprovementCard implements BakingCard {
     public Hearth1(int id) {
-        super(id, "Hearth1",
+        super(id, "화로1",
                 "아무때나 양 한 마리를 음식 2개로 교환 가능. 빵굽기: 곡식 1개를 음식 2개로 교환 가능. 추가점수 1점.",
                 createPurchaseCost(),
                 createAExchangeRate(),

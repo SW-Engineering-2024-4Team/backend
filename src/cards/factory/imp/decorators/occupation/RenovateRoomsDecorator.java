@@ -18,4 +18,12 @@ public class RenovateRoomsDecorator extends UnifiedDecoratorNon {
             System.out.println("초벽질공 효과: 음식 3개를 가져옵니다.");
         }
     }
+
+    @Override
+    public void execute(Player player) {
+        executeThen(player,
+                () -> renovateRooms(player),
+                () -> buildFence(player)
+        );
+    }
 }

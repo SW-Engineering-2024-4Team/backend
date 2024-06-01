@@ -3,15 +3,11 @@ package cards.factory.imp.minor;
 import cards.common.ActionRoundCard;
 import cards.minorimprovement.MinorImprovementCard;
 import cards.decorators.UnifiedDecoratorNon;
-import cards.factory.imp.decorators.occupation.RenovateRoomsDecorator;
 import enums.ExchangeTiming;
 import models.MainBoard;
 import models.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StoneAxe extends MinorImprovementCard {
 
@@ -27,6 +23,7 @@ public class StoneAxe extends MinorImprovementCard {
 
     @Override
     public void execute(Player player) {
+        player.payResources(createPurchaseCost());
         // 플레이어에게 음식 자원 1개를 추가로 제공합니다.
         player.addResource("food", 1);
 
@@ -47,9 +44,6 @@ public class StoneAxe extends MinorImprovementCard {
         for (ActionRoundCard card : cards) {
             ActionRoundCard decoratedCard = card;
             if (hasMethod(card, "renovateRooms")) {
-                decoratedCard = new RenovateRoomsDecorator(decoratedCard, player);
-            }
-            if (hasMethod(card, "buildBarn")) {
                 decoratedCard = new BuildBarnDecorator(decoratedCard, player);
             }
             newCards.add(decoratedCard);
@@ -73,11 +67,47 @@ public class StoneAxe extends MinorImprovementCard {
         }
 
         @Override
-        public void buildBarn(Player player) {
-            super.buildBarn(player);
-            if (player.equals(appliedPlayer)) {
-                System.out.println("채굴 망치 효과로 인해 외양간이 무료로 지어집니다.");
+        public void execute(Player player) {
+            if (appliedPlayer.equals(player)) {
+                executeThen(player,
+                        () -> renovateRooms(player),
+                        () -> buildRandomBarn(player),
+                        () -> buildFence(player)
+                );
+            } else {
+                decoratedCard.execute(player);
             }
+        }
+
+        private void executeThen(Player player, Runnable o1, Runnable o2, Runnable o3) {
+            o1.run();
+            o2.run();
+            o3.run();
+        }
+
+        private void buildRandomBarn(Player player) {
+            Set<int[]> validPositions = player.getPlayerBoard().getValidBarnPositions();
+            if (validPositions.isEmpty()) {
+                System.out.println("No valid positions to build a barn.");
+                return;
+            }
+
+            int[] position = getRandomPosition(validPositions);
+            player.getPlayerBoard().buildBarn(position[0], position[1]);
+            System.out.println("Barn built at: (" + position[0] + ", " + position[1] + ")");
+        }
+
+        private int[] getRandomPosition(Set<int[]> positions) {
+            int size = positions.size();
+            int item = new Random().nextInt(size); // 랜덤 인덱스 선택
+            int i = 0;
+            for (int[] pos : positions) {
+                if (i == item) {
+                    return pos;
+                }
+                i++;
+            }
+            return null;
         }
     }
 }

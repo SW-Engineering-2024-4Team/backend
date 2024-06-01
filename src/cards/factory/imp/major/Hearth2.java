@@ -11,7 +11,7 @@ package cards.factory.imp.major;
 public class Hearth2 extends MajorImprovementCard implements BakingCard {
     public Hearth2(int id) {
         super(id,
-                "Hearth",
+                "화로2",
                 "아무때나 양 한 마리를 음식 2개로 교환 가능. 빵굽기: 곡식 1개를 음식 2개로 교환 가능. 추가점수 1점.",
                 createPurchaseCost(),
                 createAExchangeRate(),

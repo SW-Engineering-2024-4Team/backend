@@ -1103,7 +1103,7 @@ import java.util.*;
                     updateAdjacentFences(x, y, coordinates);
                 }
 
-                player.addResource("wood", -woodRequired);
+//                player.addResource("wood", -woodRequired);
                 mergeFenceAreas(coordinates);
             }
 
@@ -1437,11 +1437,6 @@ import java.util.*;
                 }
                 return validPositions;
             }
-
-
-
-
-
 
 //    private boolean isAdjacentToFence(int x, int y) {
 //        if (x > 0 && fences[x - 1][y][1]) return true; // 상단 인접 타일의 하단 울타리
@@ -1798,19 +1793,31 @@ import java.util.*;
             }
 
             // 보드의 모든 집에 동물이 있는지 확인하는 메서드
+//            private boolean canPlaceAnimalInHouse() {
+//                for (int i = 0; i < tiles.length; i++) {
+//                    for (int j = 0; j < tiles[0].length; j++) {
+//                        if (tiles[i][j] instanceof Room) {
+//                            Room room = (Room) tiles[i][j];
+//                            if (!room.hasAnimal()) {
+//                                return true;
+//                            }
+//                        }
+//                    }
+//                }
+//                return false;
+//            }
             private boolean canPlaceAnimalInHouse() {
+                // 모든 방을 통틀어 한 마리의 동물만 보관 가능
                 for (int i = 0; i < tiles.length; i++) {
                     for (int j = 0; j < tiles[0].length; j++) {
-                        if (tiles[i][j] instanceof Room) {
-                            Room room = (Room) tiles[i][j];
-                            if (!room.hasAnimal()) {
-                                return true;
-                            }
+                        if (tiles[i][j] instanceof Room && ((Room) tiles[i][j]).hasAnimal()) {
+                            return false; // 이미 동물이 있는 경우
                         }
                     }
                 }
-                return false;
+                return true; // 빈 방이 있는 경우
             }
+
             // 보드의 모든 집에 동물이 있는지 확인하는 메서드
             private boolean isAnyHouseContainingAnimal() {
                 for (int i = 0; i < tiles.length; i++) {
@@ -1826,35 +1833,62 @@ import java.util.*;
                 return false;
             }
 
-
-            // 보드에 동물을 추가하는 메서드
-            public void addAnimalToBoard(Animal animal, int x, int y) {
-                if (canPlaceAnimal(x, y, animal.getType())) {
-                    if (tiles[x][y] instanceof Room) {
-                        ((Room) tiles[x][y]).setAnimal(animal);
-//                System.out.println("tile is a room");
-                    } else if (tiles[x][y] instanceof Barn) {
-//                System.out.println("tile is a barn");
-                        if (isFenceArea(x, y)) {
-                            addAnimalToFenceArea(animal, x, y);
-//                    System.out.println("barn is in a fence");
-                        } else {
-                            ((Barn) tiles[x][y]).setAnimal(animal);
-//                    System.out.println("barn is not in a fence");
-                        }
-                    } else if (isFenceArea(x, y)) {
-                        addAnimalToFenceArea(animal, x, y);
-//                System.out.println("tile is a fence");
-                    } else {
-                        animals[x][y] = animal;
-//                System.out.println("tile is empty");
-                    }
-                    animal.setX(x);
-                    animal.setY(y);
-                } else {
-                    System.out.println("(" + x + "," + y + ") 해당 위치에는 동물을 배치할 수 없습니다.");
-                }
+//
+//            // 보드에 동물을 추가하는 메서드
+//            public void addAnimalToBoard(Animal animal, int x, int y) {
+//                if (canPlaceAnimal(x, y, animal.getType())) {
+//                    if (tiles[x][y] instanceof Room) {
+//                        ((Room) tiles[x][y]).setAnimal(animal);
+////                System.out.println("tile is a room");
+//                    } else if (tiles[x][y] instanceof Barn) {
+////                System.out.println("tile is a barn");
+//                        if (isFenceArea(x, y)) {
+//                            addAnimalToFenceArea(animal, x, y);
+////                    System.out.println("barn is in a fence");
+//                        } else {
+//                            ((Barn) tiles[x][y]).setAnimal(animal);
+////                    System.out.println("barn is not in a fence");
+//                        }
+//                    } else if (isFenceArea(x, y)) {
+//                        addAnimalToFenceArea(animal, x, y);
+////                System.out.println("tile is a fence");
+//                    } else {
+//                        animals[x][y] = animal;
+////                System.out.println("tile is empty");
+//                    }
+//                    animal.setX(x);
+//                    animal.setY(y);
+//                } else {
+//                    System.out.println("(" + x + "," + y + ") 해당 위치에는 동물을 배치할 수 없습니다.");
+//                }
+//            }
+// 보드에 동물을 추가하는 메서드
+public void addAnimalToBoard(Animal animal, int x, int y) {
+    if (canPlaceAnimal(x, y, animal.getType())) {
+        if (tiles[x][y] instanceof Room) {
+            if (canPlaceAnimalInHouse()) {
+                ((Room) tiles[x][y]).setAnimal(animal);
+            } else {
+                System.out.println("모든 방이 동물로 이미 차 있습니다.");
+                return;
             }
+        } else if (tiles[x][y] instanceof Barn) {
+            if (isFenceArea(x, y)) {
+                addAnimalToFenceArea(animal, x, y);
+            } else {
+                ((Barn) tiles[x][y]).setAnimal(animal);
+            }
+        } else if (isFenceArea(x, y)) {
+            addAnimalToFenceArea(animal, x, y);
+        } else {
+            animals[x][y] = animal;
+        }
+        animal.setX(x);
+        animal.setY(y);
+    } else {
+        System.out.println("(" + x + "," + y + ") 해당 위치에는 동물을 배치할 수 없습니다.");
+    }
+}
 
             // 보드에 울타리 영역 내에 동물을 추가하는 메서드
             public void addAnimalToFenceArea(Animal animal, int x, int y) {
@@ -2115,4 +2149,88 @@ import java.util.*;
             }
 
             // getter and setter methods
+
+            public void removeFences(List<int[]> coordinates, Player player) {
+                // 유효 좌표가 없는 경우
+                if (coordinates == null || coordinates.isEmpty()) {
+                    System.out.println("No coordinates provided.");
+                    return;
+                }
+
+                for (int[] coord : coordinates) {
+                    int x = coord[0];
+                    int y = coord[1];
+
+                    // 상단 울타리 제거
+                    if (fences[x][y][0]) {
+                        fences[x][y][0] = false;
+                        if (x > 0 && fences[x - 1][y][1]) {
+                            fences[x - 1][y][1] = false;
+                        }
+                    }
+
+                    // 하단 울타리 제거
+                    if (fences[x][y][1]) {
+                        fences[x][y][1] = false;
+                        if (x < tiles.length - 1 && fences[x + 1][y][0]) {
+                            fences[x + 1][y][0] = false;
+                        }
+                    }
+
+                    // 좌측 울타리 제거
+                    if (fences[x][y][2]) {
+                        fences[x][y][2] = false;
+                        if (y > 0 && fences[x][y - 1][3]) {
+                            fences[x][y - 1][3] = false;
+                        }
+                    }
+
+                    // 우측 울타리 제거
+                    if (fences[x][y][3]) {
+                        fences[x][y][3] = false;
+                        if (y < tiles[0].length - 1 && fences[x][y + 1][2]) {
+                            fences[x][y + 1][2] = false;
+                        }
+                    }
+                }
+
+                // 자원 반환 (울타리 제거 시 자원의 일부를 반환)
+                int woodReturned = calculateReturnedWoodForFences(coordinates);
+                player.addResource("wood", woodReturned);
+
+                // 울타리 영역 업데이트
+                updateFenceAreasAfterRemoval(coordinates);
+            }
+
+            private int calculateReturnedWoodForFences(List<int[]> coordinates) {
+                // 각 울타리 조각 당 반환할 자원의 양 계산 (반환 비율 조정 가능)
+                return coordinates.size(); // 간단히 좌표 수만큼 반환한다고 가정
+            }
+
+            private void updateFenceAreasAfterRemoval(List<int[]> coordinates) {
+                for (int[] coord : coordinates) {
+                    int x = coord[0];
+                    int y = coord[1];
+
+                    // 각 좌표에 대해 울타리 영역 갱신
+                    Set<FenceArea> affectedAreas = new HashSet<>();
+                    for (FenceArea area : fenceAreas) {
+                        if (area.containsTile(x, y)) {
+                            affectedAreas.add(area);
+                        }
+                    }
+
+                    for (FenceArea area : affectedAreas) {
+                        area.removeTile(x, y, tiles[x][y]);
+                        if (area.isEmpty()) {
+                            fenceAreas.remove(area);
+                            managedFenceAreas.remove(area);
+                        }
+                    }
+                }
+
+                // 울타리 영역을 다시 계산하여 업데이트
+                updateFenceAreas();
+            }
+
         }

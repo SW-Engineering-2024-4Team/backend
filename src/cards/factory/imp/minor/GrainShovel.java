@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 public class GrainShovel extends MinorImprovementCard {
 
     public GrainShovel(int id) {
-        super(id, "Grain Shovel", "곡식 종자 행동 카드를 이용할 때, 곡식 1개를 추가로 가져옵니다.", null, null, Map.of("wood", 1), null, ExchangeTiming.NONE, 0);
+        super(id, "곡식용 삽", "곡식 종자 행동 카드를 이용할 때, 곡식 1개를 추가로 가져옵니다.", null, null, Map.of("wood", 1), null, ExchangeTiming.NONE, 0);
     }
 
     @Override

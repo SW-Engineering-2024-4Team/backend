@@ -16,7 +16,7 @@ import java.util.Map;
 public class ClayPit extends MinorImprovementCard {
 
     public ClayPit(int id) {
-        super(id, "Clay Pit", "날품팔이 행동 카드를 이용할 때, 흙 3개를 추가로 가져옵니다.", null, null, Map.of("food", 1), player -> player.getActiveCards().stream().filter(card -> card instanceof OccupationCard).count() <= 3, ExchangeTiming.NONE, 0);
+        super(id, "양토 채굴장", "날품팔이 행동 카드를 이용할 때, 흙 3개를 추가로 가져옵니다.", null, null, Map.of("food", 1), player -> player.getActiveCards().stream().filter(card -> card instanceof OccupationCard).count() <= 3, ExchangeTiming.NONE, 0);
     }
 
     @Override

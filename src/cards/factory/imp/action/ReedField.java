@@ -14,7 +14,7 @@ public class ReedField extends AccumulativeActionCard {
 
     private static Map<String, Integer> createAccumulatedAmounts() {
         Map<String, Integer> accumulatedAmounts = new HashMap<>();
-        accumulatedAmounts.put("wood", 1); // 음식 1개를 누적
+        accumulatedAmounts.put("food", 1); // 음식 1개를 누적
         return accumulatedAmounts;
     }
 

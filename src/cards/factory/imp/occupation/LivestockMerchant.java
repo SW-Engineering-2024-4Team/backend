@@ -16,7 +16,7 @@ import java.util.Map;
 public class LivestockMerchant extends OccupationCard {
 
     public LivestockMerchant(int id) {
-        super(id, "Livestock Merchant", "음식 자원을 1개 지불하고 추가로 양을 한 마리 얻습니다.", null, null, 1, 4, ExchangeTiming.NONE);
+        super(id, "가축 상인", "음식 자원을 1개 지불하고 추가로 양을 한 마리 얻습니다.", null, null, 1, 4, ExchangeTiming.NONE);
     }
 
     @Override
@@ -51,30 +51,30 @@ public class LivestockMerchant extends OccupationCard {
             super(decoratedCard, appliedPlayer);
         }
 
-        @Override
-        public void gainResources(Player player, Map<String, Integer> resources) {
-            super.gainResources(player, resources);
-            if (player.equals(appliedPlayer) && player.getResource("food") >= 1) {
-                player.addResource("food", -1); // 음식 자원 1개 지불
-                player.addResource("sheep", 1); // 추가 양 자원 1개 획득
-                System.out.println("Livestock Merchant effect: Gained an additional sheep.");
-            }
-        }
+//        @Override
+//        public void gainResources(Player player, Map<String, Integer> resources) {
+//            super.gainResources(player, resources);
+//            if (player.equals(appliedPlayer) && player.getResource("food") >= 1) {
+//                player.addResource("food", -1); // 음식 자원 1개 지불
+//                player.addResource("sheep", 1); // 추가 양 자원 1개 획득
+//                System.out.println("Livestock Merchant effect: Gained an additional sheep.");
+//            }
+//        }
 
         @Override
         public void execute(Player player) {
             super.execute(player);
-//            if (player.equals(appliedPlayer) && player.getResource("food") >= 1) {
-//                super.execute(player);
-//                gainResources(player, getAccumulatedResources());
-//                clearAccumulatedResources();
-//            } else {
-//                decoratedCard.execute(player);
-//            }
-            decoratedCard.execute(player);
-//            if (player.equals(appliedPlayer) && player.getResource("food") >= 1) {
-//                gainResources(player, getAccumulatedResources());
-//            }
+            if (player.equals(appliedPlayer) && player.getResource("food") >= 1) {
+                player.addResource("food", -1); // 음식 자원 1개 지불
+                Map<String, Integer> resources = getAccumulatedResources();
+                resources.put("sheep", resources.getOrDefault("sheep", 0) + 1); // 추가 양 자원 1개 획득
+                gainResources(player, resources);
+                clearAccumulatedResources();
+                System.out.println("Livestock Merchant execute: Gained an additional sheep.");
+            } else {
+                decoratedCard.execute(player);
+            }
         }
+
     }
 }

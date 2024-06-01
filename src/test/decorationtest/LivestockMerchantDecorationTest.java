@@ -6,6 +6,7 @@ import cards.factory.imp.round.SheepMarket;
 import cards.factory.imp.occupation.LivestockMerchant;
 import controllers.GameController;
 import controllers.RoomController;
+import enums.RoomType;
 import models.MainBoard;
 import models.Player;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,13 @@ public class LivestockMerchantDecorationTest {
         }
         gameController.getMainBoard().revealRoundCard(1);
 
+        player1.getPlayerBoard().buildBarn(0, 0);
+        System.out.println("player1 = " + player1.getPlayerBoard().getAnimalCapacity());
+
+        Set<int[]> validPositions = player1.getPlayerBoard().getValidAnimalPositions("sheep");
+        printValidPositions("유효한 동물 배치 위치", validPositions);
+
+
         // 플레이어 1이 가축 상인 카드 사용
         player1.useUnifiedCard(livestockMerchantCard);
         player1.resetResources();
@@ -88,5 +96,12 @@ public class LivestockMerchantDecorationTest {
         player2.placeFamilyMember(sheepMarketCard);
         player2.printPlayerResources("Sheep Market 이후");
         assertEquals(1, player2.getResource("sheep"), "Player 2 should have gained 1 sheep for using Sheep Market card without Livestock Merchant.");
+    }
+
+    private void printValidPositions(String message, Set<int[]> positions) {
+        System.out.println(message);
+        for (int[] pos : positions) {
+            System.out.println("유효 위치: (" + pos[0] + ", " + pos[1] + ")");
+        }
     }
 }
