@@ -1,7 +1,8 @@
 package com.example.agricola.controller;
 
-import cards.common.ActionRoundCard;
-import cards.factory.CardFactory;
+import com.example.agricola.cards.common.ActionRoundCard;
+import com.example.agricola.cards.common.CommonCard;
+import com.example.agricola.cards.factory.CardFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,4 +89,3 @@ public class CardController {
 
 
 }
-
