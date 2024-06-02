@@ -36,7 +36,7 @@ public class WaterTroughTest {
         );
         player.getPlayerBoard().buildFences(selectedPositions, player);
         // WaterTrough 카드 생성
-        waterTrough = new WaterTrough(1, player);
+        waterTrough = new WaterTrough(1);
 
         // 카드를 플레이어에게 추가
 

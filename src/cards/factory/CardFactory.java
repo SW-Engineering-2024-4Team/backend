@@ -5,7 +5,7 @@ import cards.action.NonAccumulativeActionCard;
 import cards.common.CommonCard;
 import cards.factory.imp.action.*;
 import cards.factory.imp.major.*;
-import cards.factory.imp.minor.ClayPit;
+import cards.factory.imp.minor.*;
 import cards.factory.imp.occupation.*;
 import cards.factory.imp.round.*;
 import cards.majorimprovement.MajorImprovementCard;
@@ -22,9 +22,9 @@ import java.util.Map;
 public class CardFactory {
 
     public static void createCards(List<CommonCard> actionCards, List<CommonCard> roundCards, List<CommonCard> minorImprovementCards, List<CommonCard> occupationCards, List<CommonCard> majorImprovementCards) {
-        Map<String, Integer> accumulatedAmounts = new HashMap<>();
-        accumulatedAmounts.put("food", 0);
-        accumulatedAmounts.put("wood", 0);
+//        Map<String, Integer> accumulatedAmounts = new HashMap<>();
+//        accumulatedAmounts.put("food", 0);
+//        accumulatedAmounts.put("wood", 0);
 
 //        for (int i = 0; i < 7; i++) {
 //            actionCards.add(new AccumulativeActionCard(i, "Accumulative Action Card " + (i + 1), "Description of Accumulative Action Card " + (i + 1), accumulatedAmounts));
@@ -35,7 +35,7 @@ public class CardFactory {
 //        actionCards.add(new WanderingTheater(16));
 //        actionCards.add(new Bush(17));
 //
-        int roundId = 17;
+//        int roundId = 17;
 //        roundCards.add(new AccumulativeRoundCard(roundId++, "Accumulative Round Card A" + (0), "Description of Accumulative Round Card A" + (0), 1, accumulatedAmounts));
 //        roundCards.add(new NonAccumulativeRoundCard(roundId++, "Non-Accumulative Round Card A" + (1), "Description of Non-Accumulative Round Card A" + (1), 1));
 //        roundCards.add(new AccumulativeRoundCard(roundId++, "Accumulative Round Card A" + (2), "Description of Accumulative Round Card A" + (21), 1, accumulatedAmounts));
@@ -56,10 +56,10 @@ public class CardFactory {
 //
 //        roundCards.add(new AccumulativeRoundCard(roundId++, "Accumulative Round Card F" + (13), "Description of Accumulative Round Card F" + (13), 6, accumulatedAmounts));
 
-        for (int i = 0; i < 8; i++) {
-            minorImprovementCards.add(new TestMinorImprovementCard(i, "Minor Improvement Card " + (i + 1), "Description of Minor Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>()));
+//        for (int i = 0; i < 8; i++) {
+//            minorImprovementCards.add(new TestMinorImprovementCard(i, "Minor Improvement Card " + (i + 1), "Description of Minor Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>()));
 //            occupationCards.add(new TestOccupationCard(i, "Test Occupation Card " + (i + 1), "Description of Test Occupation Card " + (i + 1), new HashMap<>(), new HashMap<>(), 1, 4));
-        }
+//        }
 
 //        for (int i = 0; i < 5; i++) {
 //            majorImprovementCards.add(new MajorImprovementCard(i, "Major Improvement Card " + (i + 1), "Description of Major Improvement Card " + (i + 1), new HashMap<>(), new HashMap<>(), new HashMap<>(), 1, false, ExchangeTiming.ANYTIME));
@@ -117,6 +117,15 @@ public class CardFactory {
         occupationCards.add(new Plasterer(42));
         occupationCards.add(new Roofer(43));
         occupationCards.add(new ShepherdCard(44));
+
+        minorImprovementCards.add(new ClayPit(45));
+        minorImprovementCards.add(new CompressedSoil(46));
+        minorImprovementCards.add(new GrainShovel(47));
+        minorImprovementCards.add(new HardenedClay(48));
+        minorImprovementCards.add(new KitchenRoom(49));
+        minorImprovementCards.add(new StoneAxe(50));
+        minorImprovementCards.add(new WaterTrough(51));
+        minorImprovementCards.add(new WoodYard(52));
 
     }
 }

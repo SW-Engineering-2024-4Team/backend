@@ -12,13 +12,13 @@ import java.util.HashMap;
 public class WaterTrough extends MinorImprovementCard {
     private Player appliedPlayer; // 물통 효과가 적용될 플레이어
 
-    public WaterTrough(int id, Player appliedPlayer) {
+    public WaterTrough(int id) {
         super(id, "물통",
                 "우리(외양간이 있든 없든) 하나당 가축을 2마리씩 더 키울 수 있습니다.",
                 null, null,
                 createPurchaseCost(), null,
                 ExchangeTiming.NONE, 1);
-        this.appliedPlayer = appliedPlayer;
+//        this.appliedPlayer = appliedPlayer;
     }
 
 
@@ -30,9 +30,6 @@ public class WaterTrough extends MinorImprovementCard {
 
     @Override
     public void applyEffect(Player player) {
-        if (player.equals(appliedPlayer)) {
-            player.getPlayerBoard().applyWaterTroughEffect(player);
-            System.out.println("물통 효과가 " + player.getName() + "에게 적용되었습니다.");
-        }
+        player.getPlayerBoard().applyWaterTroughEffect(player);
     }
 }
