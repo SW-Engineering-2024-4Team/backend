@@ -674,7 +674,9 @@ public class PlayerBoard {
                 for (int i = 0; i < tiles.length; i++) {
                     for (int j = 0; j < tiles[0].length; j++) {
                         if (tiles[i][j] instanceof FieldTile) {
-                            validPositions.add(new int[]{i, j});
+                            if (((FieldTile) tiles[i][j]).getCrops() == 0) {
+                                validPositions.add(new int[]{i, j});
+                            }
                         }
                     }
                 }

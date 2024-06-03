@@ -41,6 +41,8 @@ public class GameService {
     private int currentRound;
     private final Object nextPhaseLock = new Object();
     private Set<String> readyPlayers = new HashSet<>();
+    private Map<String, CommonCard> selectedCards;
+
 
     public void startGame(String gameID, List<Player> players) {
         this.gameID = gameID;
@@ -313,16 +315,6 @@ public class GameService {
         Player player = getPlayerByID(playerID);
 
         if (player != null) {
-            // 사용 가능한 가족 구성원의 좌표를 수집
-            List<Map<String, Integer>> availableFamilyMembers = new ArrayList<>();
-            FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
-            for (int i = 0; i < familyMembers.length; i++) {
-                for (int j = 0; j < familyMembers[i].length; j++) {
-                    if (familyMembers[i][j] != null && !familyMembers[i][j].isUsed()) {
-                        availableFamilyMembers.add(Map.of("x", i, "y", j));
-                    }
-                }
-            }
 
             // 플레이어에게 턴 정보를 프론트엔드로 전송
             Map<String, Object> playerTurnInfo = Map.of(
@@ -334,7 +326,6 @@ public class GameService {
                                     "description", card.getDescription()
                             ))
                             .collect(Collectors.toList()),
-                    "availableFamilyMembers", availableFamilyMembers,
                     "message", "턴 정보를 아래와 같은 포맷으로 전송해주세요.: {\"playerID\": \"플레이어 ID\", \"cardName\": \"선택한 카드 이름\", \"familyMemberX\": 가족 구성원 X 좌표, \"familyMemberY\": 가족 구성원 Y 좌표}"
             );
             notifyPlayer(player, playerTurnInfo);
@@ -351,10 +342,10 @@ public class GameService {
     }
 
     // 프론트엔드에서 플레이어의 턴 정보를 받아오는 메서드
-    public void receivePlayerTurn(String playerID, String cardName, int familyMemberX, int familyMemberY) {
+    public void receivePlayerTurn(String playerID, int cardID) {
         Player player = getPlayerByID(playerID);
-        ActionRoundCard selectedCard = (ActionRoundCard) mainBoard.getCardByName(cardName);
-        player.placeFamilyMember(selectedCard, familyMemberX, familyMemberY);
+        ActionRoundCard selectedCard = (ActionRoundCard) mainBoard.getCardById(cardID);
+        player.placeFamilyMember(selectedCard);
 
         synchronized (this) {
             notify(); // 플레이어 턴 진행 후 대기 중인 스레드 깨움
@@ -512,50 +503,6 @@ public class GameService {
 
     private void breedAnimalsPhase() {
         notifyPlayers("가축 번식 단계가 시작되었습니다.");
-
-        // 가축 번식 단계에서 사용 가능한 교환 가능 카드 정보를 프론트엔드로 전송
-        for (Player player : players) {
-            List<ExchangeableCard> breedExchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
-            breedExchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
-
-            Map<String, Object> breedExchangeableCardsInfo = Map.of(
-                    "playerId", player.getId(),
-                    "breedExchangeableCards", breedExchangeableCards.stream()
-                            .filter(card -> {
-                                // 자원이 충분한지 확인
-                                Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                    if (player.getResource(entry.getKey()) < entry.getValue()) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            })
-                            .map(card -> {
-                                if (card instanceof CommonCard) {
-                                    CommonCard commonCard = (CommonCard) card;
-                                    // 교환 가능한 최대 값 계산
-                                    Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                    int maxExchangeAmount = Integer.MAX_VALUE;
-                                    for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                        int availableAmount = player.getResource(entry.getKey()) / entry.getValue();
-                                        maxExchangeAmount = Math.min(maxExchangeAmount, availableAmount);
-                                    }
-                                    return Map.of(
-                                            "id", commonCard.getId(),
-                                            "name", commonCard.getName(),
-                                            "description", commonCard.getDescription(),
-                                            "exchangeRate", exchangeRate,
-                                            "maxExchangeAmount", maxExchangeAmount
-                                    );
-                                } else {
-                                    return Map.of(); // 기본값
-                                }
-                            })
-                            .collect(Collectors.toList())
-            );
-            notifyPlayer(player, breedExchangeableCardsInfo);
-        }
 
         for (Player player : players) {
             Animal newAnimal = player.getPlayerBoard().breedAnimals();
@@ -740,8 +687,8 @@ public class GameService {
 
     public void executeCard(String playerID, String cardID) {
         Player player = getPlayerByID(playerID);
-        CommonCard card = getCardByID(cardID);
-        card.execute(player);
+//        CommonCard card = getCardByID(cardID);
+//        card.execute(player);
     }
 
     private Player getPlayerByID(String playerID) {
@@ -753,9 +700,30 @@ public class GameService {
         return null;
     }
 
-    private CommonCard getCardByID(String cardID) {
+    private CommonCard getCardById(Player player, int cardId) {
+        // Check Major Improvement Cards in MainBoard
+        for (CommonCard card : mainBoard.getMajorImprovementCards()) {
+            if (card.getId() == cardId) {
+                return card;
+            }
+        }
+
+        // Check Occupation and Minor Improvement Cards in Player's hand
+        for (CommonCard card : player.getOccupationCards()) {
+            if (card.getId() == cardId) {
+                return card;
+            }
+        }
+
+        for (CommonCard card : player.getMinorImprovementCards()) {
+            if (card.getId() == cardId) {
+                return card;
+            }
+        }
+
         return null;
     }
+
 
     private void notifyPlayers(String message) {
         // 프론트엔드에 메시지를 보내는 로직 필요
@@ -810,4 +778,130 @@ public class GameService {
             readyPlayers.clear();
         }
     }
+
+    public List<Map<String, Object>> getOccupationCards(String playerId) {
+        Player player = getPlayerByID(playerId);
+        if (player != null) {
+            return player.getOccupationCards().stream().map(CommonCard::toMap).collect(Collectors.toList());
+        }
+        return List.of();
+    }
+
+    public List<Map<String, Object>> getMinorImprovementCards(String playerId) {
+        Player player = getPlayerByID(playerId);
+        if (player != null) {
+            return player.getMinorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList());
+        }
+        return List.of();
+    }
+
+    public List<Map<String, Object>> getAvailableMajorImprovementCards() {
+        return mainBoard.getAvailableMajorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList());
+    }
+
+    public void sendCardListToFrontEnd(List<CommonCard> cards, String playerId) {
+        List<Map<String, Object>> cardList = cards.stream().map(CommonCard::toMap).collect(Collectors.toList());
+        simpMessagingTemplate.convertAndSend("/topic/cards/" + playerId, cardList);
+        System.out.println("Sending card list to frontend for player " + playerId + ": " + cardList);
+    }
+
+    public void receiveSelectedCard(String playerId, int cardId) {
+        Player player = getPlayerByID(playerId);
+        if (player != null) {
+            CommonCard selectedCard = getCardById(player, cardId);
+            if (selectedCard != null) {
+                selectedCards.put(playerId, selectedCard);
+                System.out.println("Received selected card from player: " + playerId + " with cardId: " + cardId);
+            }
+        }
+    }
+
+
+    public CommonCard getSelectedCard(String playerId) {
+        return selectedCards.get(playerId);
+    }
+
+    private Map<String, int[]> selectedPositions = new HashMap<>();
+
+    public void sendValidPositionsToFrontEnd(String playerId, Set<int[]> validPositions, String actionType) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "actionType", actionType,
+                "validPositions", validPositions.stream()
+                        .map(pos -> Map.of("x", pos[0], "y", pos[1]))
+                        .collect(Collectors.toList())
+        );
+        simpMessagingTemplate.convertAndSend("/topic/validPositions", message);
+    }
+
+    public void receiveSelectedPosition(String playerId, int x, int y) {
+        selectedPositions.put(playerId, new int[]{x, y});
+        System.out.println("Received selected position from player: " + playerId + " with coordinates: (" + x + ", " + y + ")");
+    }
+
+    public int[] getSelectedPosition(String playerId) {
+        return selectedPositions.get(playerId);
+    }
+
+    private Map<String, List<int[]>> selectedFencePositions = new HashMap<>();
+
+    public void sendFenceRequestToFrontEnd(String playerId) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "actionType", "buildFence"
+        );
+        simpMessagingTemplate.convertAndSend("/topic/fenceRequest", message);
+    }
+
+    public void receiveSelectedFencePositions(String playerId, List<int[]> positions) {
+        selectedFencePositions.put(playerId, positions);
+        System.out.println("Received selected fence positions from player: " + playerId + " with positions: " + positions);
+    }
+
+    public List<int[]> getSelectedFencePositions(String playerId) {
+        return selectedFencePositions.get(playerId);
+    }
+
+    public void sendFamilyMemberPosition(String playerId, int x, int y) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "actionType", "addNewborn",
+                "position", Map.of("x", x, "y", "y")
+        );
+        simpMessagingTemplate.convertAndSend("/topic/familyMemberPosition", message);
+    }
+
+    public void sendRenovationInfo(String playerId, RoomType newType) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "actionType", "renovateRooms",
+                "newRoomType", newType.name()
+        );
+        simpMessagingTemplate.convertAndSend("/topic/renovationInfo", message);
+    }
+
+    public void sendTurnOrderInfo(String playerId, List<Player> currentTurnOrder, List<Player> newTurnOrder) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "actionType", "becomeFirstPlayer",
+                "currentTurnOrder", currentTurnOrder.stream()
+                        .map(player -> Map.of("id", player.getId(), "name", player.getName()))
+                        .collect(Collectors.toList()),
+                "newTurnOrder", newTurnOrder.stream()
+                        .map(player -> Map.of("id", player.getId(), "name", player.getName()))
+                        .collect(Collectors.toList())
+        );
+        simpMessagingTemplate.convertAndSend("/topic/turnOrderInfo", message);
+    }
+
+
+    public void sendAnimalPlacementInfo(String playerId, List<Map<String, Object>> placedAnimals, int remainingCapacity) {
+        Map<String, Object> message = Map.of(
+                "playerId", playerId,
+                "placedAnimals", placedAnimals,
+                "remainingCapacity", remainingCapacity
+        );
+        simpMessagingTemplate.convertAndSend("/topic/animalPlacement", message);
+    }
+
 }

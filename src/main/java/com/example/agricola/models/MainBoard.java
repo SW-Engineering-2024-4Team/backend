@@ -195,4 +195,17 @@ public class MainBoard {
         }
     }
 
+    public ActionRoundCard getCardById(int cardID) {
+        for (ActionRoundCard card : getActionCards()) {
+            if (card.getId() == cardID) {
+                return card;
+            }
+        }
+        for (ActionRoundCard card : getRoundCards()) {
+            if (card.getId() == (cardID)) {
+                return card;
+            }
+        }
+        return null;
+    }
 }

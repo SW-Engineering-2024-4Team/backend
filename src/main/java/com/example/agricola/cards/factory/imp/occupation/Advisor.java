@@ -48,6 +48,7 @@ public class Advisor extends OccupationCard {
     }
 
     @Override
+    // TODO 양배치
     public void gainResources(Player player, Map<String, Integer> resources) {
         for (Map.Entry<String, Integer> entry : resources.entrySet()) {
             String resource = entry.getKey();
