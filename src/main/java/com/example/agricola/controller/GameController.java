@@ -14,17 +14,6 @@ public class GameController {
     @Autowired
     private GameService gameService;
 
-//    @MessageMapping("/playCard")
-//    @SendTo("/topic/game")
-//    public Map<String, Object> playCard(Map<String, Object> payload) {
-//        String playerId = (String) payload.get("playerId");
-//        int cardId = (int) payload.get("cardId");
-//
-//        gameService.executeCard(playerId, String.valueOf(cardId));
-//
-//        return gameService.getGameState();
-//    }
-
     @MessageMapping("/gamePlay")
     @SendTo("/topic/game")
     public void playGame(String gameID) {
