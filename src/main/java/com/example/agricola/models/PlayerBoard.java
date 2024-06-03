@@ -76,6 +76,8 @@ public class PlayerBoard {
 //                // 4. 자원이 충분한지 확인
 //                return true;
                 // 4. 자원이 충분한지 확인
+                if (!(resources.get(type.name().toLowerCase()) != null) && resources.get(type.name().toLowerCase()) > 0)
+                    System.out.println("자원이 부족합니다.");
                 return resources.get(type.name().toLowerCase()) != null && resources.get(type.name().toLowerCase()) > 0;
 
             }

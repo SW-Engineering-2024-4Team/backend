@@ -78,6 +78,9 @@ public class RoomController {
 
         System.out.println("Game started with players: " + players);
 
+        // 여기서 playGame 메서드 호출
+        gameService.playGame(roomNumber);
+
         return gameService.getGameState();
     }
 

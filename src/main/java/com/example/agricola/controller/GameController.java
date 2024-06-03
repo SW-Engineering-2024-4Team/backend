@@ -25,10 +25,7 @@ public class GameController {
     @MessageMapping("/receivePlayerTurn")
     public void receivePlayerTurn(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
-//        String cardName = (String) payload.get("cardName");
         int cardId = (int) payload.get("cardId");
-//        int familyMemberX = (int) payload.get("familyMemberX");
-//        int familyMemberY = (int) payload.get("familyMemberY");
 
         gameService.receivePlayerTurn(playerId, cardId);
     }
@@ -92,11 +89,26 @@ public class GameController {
     @MessageMapping("/receiveSelectedPosition")
     public void receiveSelectedPosition(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
-        int x = (int) payload.get("x");
-        int y = (int) payload.get("y");
+        Integer x = null;
+        Integer y = null;
+
+        try {
+            x = (Integer) payload.get("x");
+            y = (Integer) payload.get("y");
+        } catch (ClassCastException e) {
+            System.err.println("Received coordinates are not in the correct format from player: " + playerId);
+            return;
+        }
+
+        if (x == null || y == null) {
+            System.err.println("Received null coordinates from player: " + playerId);
+            return; // 또는 에러 핸들링 로직 추가
+        }
 
         gameService.receiveSelectedPosition(playerId, x, y);
     }
+
+
 
     @MessageMapping("/receiveSelectedFencePositions")
     public void receiveSelectedFencePositions(Map<String, Object> payload) {
@@ -107,6 +119,21 @@ public class GameController {
                 .collect(Collectors.toList());
 
         gameService.receiveSelectedFencePositions(playerId, fencePositions);
+    }
+
+    @MessageMapping("/playerChoice")
+    public void receivePlayerChoice(Map<String, Object> payload) {
+        String playerId = (String) payload.get("playerId");
+        String choiceType = (String) payload.get("choiceType");
+        int choice = (int) payload.get("choice");
+        gameService.receivePlayerChoice(playerId, choiceType, choice);
+    }
+
+    @MessageMapping("/chooseResource")
+    public void receiveChosenResource(Map<String, Object> payload) {
+        String playerId = (String) payload.get("playerId");
+        String chosenResource = (String) payload.get("chosenResource");
+        gameService.receiveChosenResource(playerId, chosenResource);
     }
 
 

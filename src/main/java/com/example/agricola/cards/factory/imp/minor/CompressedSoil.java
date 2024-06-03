@@ -49,6 +49,8 @@ public class CompressedSoil extends MinorImprovementCard {
         // 메인보드의 원래 리스트를 업데이트
         mainBoard.setActionCards(newActionCards);
         mainBoard.setRoundCards(newRoundCards);
+
+        player.getGameService().sendDecoratedCardInfo(player, newActionCards, newRoundCards);
     }
 
     private List<ActionRoundCard> wrapWithDecorators(List<ActionRoundCard> cards, Player player) {

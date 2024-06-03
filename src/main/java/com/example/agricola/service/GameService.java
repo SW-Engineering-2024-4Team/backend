@@ -15,6 +15,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,10 +26,12 @@ public class GameService {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     private void notifyPlayers(Map<String, Object> message) {
+        System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
         simpMessagingTemplate.convertAndSend("/topic/game", message);
     }
 
     private void notifyPlayer(Player player, Map<String, Object> message) {
+        System.out.println("Sending message to player " + player.getId() + ": " + message); // 디버깅 메시지 추가
         simpMessagingTemplate.convertAndSend("/topic/game", message);
     }
 
@@ -41,7 +45,8 @@ public class GameService {
     private int currentRound;
     private final Object nextPhaseLock = new Object();
     private Set<String> readyPlayers = new HashSet<>();
-    private Map<String, CommonCard> selectedCards;
+    private Map<String, CommonCard> selectedCards = new ConcurrentHashMap<>(); // 맵 초기화
+
 
 
     public void startGame(String gameID, List<Player> players) {
@@ -162,24 +167,32 @@ public class GameService {
     }
 
     public void playGame(String gameID) {
+        System.out.println("playGame method called with gameID: " + gameID); // 디버깅 메시지 추가
+
         while (currentRound <= 14) {
             System.out.println("-------------------------------------------------------------------------------");
             System.out.println("Round " + currentRound + " starts.");
             prepareRound();
+            System.out.println("after preparing round " + currentRound);
             playRound();
+            System.out.println("after playing round " + currentRound);
             if (isHarvestRound(currentRound)) {
                 harvestPhase();
             }
             endRound();
             System.out.println("Round " + currentRound + " ends.");
             System.out.println("-------------------------------------------------------------------------------");
+            if (currentRound == 5) {
+                currentRound = 14;
+                continue;
+            }
             currentRound++;
         }
         endGame();
     }
 
+
     private void prepareRound() {
-        notifyPlayers("라운드 준비 단계 입니다.");
         mainBoard.revealRoundCard(currentRound);
         mainBoard.accumulateResources();
 
@@ -191,8 +204,8 @@ public class GameService {
         List<Map<String, Object>> openedCards = mainBoard.getRevealedRoundCards().stream()
                 .map(card -> (Map<String, Object>) Map.of(
                         "id", (Object) card.getId(),
-                        "name", (Object) card.getName(),
-                        "description", (Object) card.getDescription()
+                        "name", (Object) card.getName()
+//                        "description", (Object) card.getDescription()
                 )).collect(Collectors.toList());
         roundInfo.put("openedCards", openedCards);
 
@@ -202,7 +215,7 @@ public class GameService {
                 .map(card -> Map.of(
                         "id", card.getId(),
                         "name", card.getName(),
-                        "description", card.getDescription(),
+//                        "description", card.getDescription(),
                         "accumulatedResources", ((AccumulativeCard) card).getAccumulatedResources()
                 )).collect(Collectors.toList());
         roundInfo.put("accumulatedResources", accumulatedResources);
@@ -252,7 +265,7 @@ public class GameService {
                                     return Map.of(
                                             "id", commonCard.getId(),
                                             "name", commonCard.getName(),
-                                            "description", commonCard.getDescription(),
+//                                            "description", commonCard.getDescription(),
                                             "exchangeRate", exchangeRate,
                                             "maxExchangeAmount", maxExchangeAmount
                                     );
@@ -273,19 +286,6 @@ public class GameService {
                     List<ActionRoundCard> availableCards = new ArrayList<>(mainBoard.getActionCards());
                     availableCards.addAll(mainBoard.getRevealedRoundCards());
                     availableCards.removeIf(card -> mainBoard.isCardOccupied(card));
-
-                    // 사용 가능한 카드 정보를 프론트엔드로 전송
-                    Map<String, Object> availableCardsInfo = Map.of(
-                            "playerId", player.getId(),
-                            "availableCards", availableCards.stream()
-                                    .map(card -> Map.of(
-                                            "id", card.getId(),
-                                            "name", card.getName(),
-                                            "description", card.getDescription()
-                                    ))
-                                    .collect(Collectors.toList())
-                    );
-                    notifyPlayer(player, availableCardsInfo);
 
                     if (!availableCards.isEmpty()) {
                         roundFinished = false;
@@ -322,11 +322,11 @@ public class GameService {
                     "availableCards", availableCards.stream()
                             .map(card -> Map.of(
                                     "id", card.getId(),
-                                    "name", card.getName(),
-                                    "description", card.getDescription()
+                                    "name", card.getName()
+//                                    "description", card.getDescription()
                             ))
                             .collect(Collectors.toList()),
-                    "message", "턴 정보를 아래와 같은 포맷으로 전송해주세요.: {\"playerID\": \"플레이어 ID\", \"cardName\": \"선택한 카드 이름\", \"familyMemberX\": 가족 구성원 X 좌표, \"familyMemberY\": 가족 구성원 Y 좌표}"
+                    "message", "턴 정보를 아래와 같은 포맷으로 전송해주세요.: {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
             );
             notifyPlayer(player, playerTurnInfo);
 
@@ -338,6 +338,16 @@ public class GameService {
                     e.printStackTrace();
                 }
             }
+
+            Map<String, Integer> playerResources = player.getResources();
+
+            Map<String, Object> turnResultInfo = Map.of(
+                    "playerId", player.getId(),
+                    "resources", playerResources
+            );
+            notifyPlayer(player, turnResultInfo);
+
+
         }
     }
 
@@ -363,27 +373,12 @@ public class GameService {
     }
 
     private void harvestPhase() {
-        notifyPlayers("수확 단계가 시작되었습니다.");
         farmPhase();
         feedFamilyPhase();
         breedAnimalsPhase();
     }
 
     private void farmPhase() {
-//        for (Player player : players) {
-//            PlayerBoard board = player.getPlayerBoard();
-//            for (Tile[] row : board.getTiles()) {
-//                for (Tile tile : row) {
-//                    if (tile instanceof FieldTile) {
-//                        FieldTile field = (FieldTile) tile;
-//                        if (field.getCrops() > 0) {
-//                            player.addResource("grain", 1);
-//                            field.removeCrop(1);
-//                        }
-//                    }
-//                }
-//            }
-//        }
 
         notifyPlayers(Map.of("message", "농장 단계가 시작되었습니다."));
 
@@ -449,17 +444,6 @@ public class GameService {
     }
 
     private void feedFamilyPhase() {
-//        notifyPlayers("가족 먹여살리기 단계가 시작되었습니다.");
-//        for (Player player : players) {
-//            int foodNeeded = calculateFoodNeeded(player);
-//            if (player.getResource("food") >= foodNeeded) {
-//                player.addResource("food", -foodNeeded);
-//            } else {
-//                int foodShortage = foodNeeded - player.getResource("food");
-//                player.addResource("food", -player.getResource("food"));
-//                player.addResource("beggingCard", foodShortage);
-//            }
-//        }
         notifyPlayers(Map.of("message", "가족 먹여살리기 단계가 시작되었습니다."));
         for (Player player : players) {
             int foodNeeded = calculateFoodNeeded(player);
@@ -561,13 +545,16 @@ public class GameService {
         for (Player player : players) {
             player.convertBabiesToAdults();
         }
+        System.out.println("endRound 안");
         calculateAndRecordScores();
     }
 
     private void calculateAndRecordScores() {
         for (Player player : players) {
+            System.out.println("calculate 안");
             int score = calculateScoreForPlayer(player);
             player.setScore(score);
+            System.out.println("setScore");
 
             // 점수 정보를 프론트엔드로 전송
             Map<String, Object> scoreInfo = Map.of(
@@ -726,7 +713,9 @@ public class GameService {
 
 
     private void notifyPlayers(String message) {
-        // 프론트엔드에 메시지를 보내는 로직 필요
+        System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
+        simpMessagingTemplate.convertAndSend("/topic/game", message);
+
     }
 
     public MainBoard getMainBoard() {
@@ -805,6 +794,7 @@ public class GameService {
         System.out.println("Sending card list to frontend for player " + playerId + ": " + cardList);
     }
 
+
     public void receiveSelectedCard(String playerId, int cardId) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -813,6 +803,9 @@ public class GameService {
                 selectedCards.put(playerId, selectedCard);
                 System.out.println("Received selected card from player: " + playerId + " with cardId: " + cardId);
             }
+        }
+        synchronized (this) {
+            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
         }
     }
 
@@ -837,6 +830,9 @@ public class GameService {
     public void receiveSelectedPosition(String playerId, int x, int y) {
         selectedPositions.put(playerId, new int[]{x, y});
         System.out.println("Received selected position from player: " + playerId + " with coordinates: (" + x + ", " + y + ")");
+        synchronized (this) {
+            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
+        }
     }
 
     public int[] getSelectedPosition(String playerId) {
@@ -856,6 +852,9 @@ public class GameService {
     public void receiveSelectedFencePositions(String playerId, List<int[]> positions) {
         selectedFencePositions.put(playerId, positions);
         System.out.println("Received selected fence positions from player: " + playerId + " with positions: " + positions);
+        synchronized (this) {
+            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
+        }
     }
 
     public List<int[]> getSelectedFencePositions(String playerId) {
@@ -903,5 +902,148 @@ public class GameService {
         );
         simpMessagingTemplate.convertAndSend("/topic/animalPlacement", message);
     }
+
+    public void sendChoiceRequestToFrontEnd(String playerId, String choiceType, Map<String, Object> options) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("playerId", playerId);
+        message.put("choiceType", choiceType);
+        message.put("options", options);
+
+        simpMessagingTemplate.convertAndSend("/topic/choiceRequest", message);
+    }
+
+    private Map<String, CountDownLatch> playerLatches = new ConcurrentHashMap<>();
+
+    public void receivePlayerChoice(String playerId, String choiceType, int choice) {
+        System.out.println("Received choice from player: " + playerId + " choiceType: " + choiceType + " choice: " + choice);
+        Player player = getPlayerByID(playerId);
+        if (player != null) {
+            switch (choiceType) {
+                case "AndOr":
+                    player.setAndOrChoice(choice);
+                    break;
+                case "Then":
+                    player.setThenChoice(choice == 1);
+                    break;
+                case "Or":
+                    player.setOrChoice(choice == 1);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown choiceType: " + choiceType);
+            }
+        }
+
+        CountDownLatch latch = playerLatches.get(playerId);
+        if (latch != null) {
+            latch.countDown(); // 대기 중인 스레드를 깨움
+        }
+    }
+
+    public void waitForPlayerChoice(String playerId) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        playerLatches.put(playerId, latch);
+        latch.await(); // 대기
+    }
+
+    // 플레이어가 선택을 했는지 확인하는 메서드
+    public boolean hasPlayerChoice(String id) {
+        Player player = getPlayerByID(id);
+        return player != null && player.chooseOption();
+    }
+
+    // 플레이어의 선택을 반환하는 메서드
+    public int getPlayerChoice(String id) {
+        Player player = getPlayerByID(id);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not found with id: " + id);
+        }
+        return player.chooseOptionForAndOr(); // 또는 적절한 선택을 반환
+    }
+
+
+    // 플레이어의 AND/OR 선택을 반환하는 메서드
+    public int getPlayerAndOrChoice(String id) {
+        Player player = getPlayerByID(id);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not found with id: " + id);
+        }
+        return player.chooseOptionForAndOr();
+    }
+
+    // 플레이어의 THEN 선택을 반환하는 메서드
+    public boolean getPlayerThenChoice(String id) {
+        Player player = getPlayerByID(id);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not found with id: " + id);
+        }
+        return player.chooseOptionForThen();
+    }
+
+    // 플레이어의 OR 선택을 반환하는 메서드
+    public boolean getPlayerOrChoice(String id) {
+        Player player = getPlayerByID(id);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not found with id: " + id);
+        }
+        return player.chooseOptionForOr();
+    }
+
+    public void sendDecoratedCardInfo(Player player, List<ActionRoundCard> actionCards, List<ActionRoundCard> roundCards) {
+        // ActionRoundCard 리스트를 CommonCard 리스트로 변환
+        List<CommonCard> commonActionCards = actionCards.stream()
+                .map(card -> (CommonCard) card)
+                .collect(Collectors.toList());
+        List<CommonCard> commonRoundCards = roundCards.stream()
+                .map(card -> (CommonCard) card)
+                .collect(Collectors.toList());
+
+        // 프론트엔드로 전송
+        sendCardListToFrontEnd(commonActionCards, player.getId());
+        sendCardListToFrontEnd(commonRoundCards, player.getId());
+    }
+
+    private Map<String, Object> cardToMap(ActionRoundCard card) {
+        // 카드 정보를 맵으로 변환하는 메서드
+        return Map.of(
+                "id", card.getId(),
+                "name", card.getName(),
+                "description", card.getDescription()
+        );
+    }
+
+    private Map<String, String> resourceChoices = new ConcurrentHashMap<>();
+
+    public void sendResourceChoiceRequestToFrontEnd(String playerId, String resource1, String resource2, int amount) {
+        Map<String, Object> options = Map.of(
+                "resource1", resource1,
+                "resource2", resource2,
+                "amount", amount
+        );
+        simpMessagingTemplate.convertAndSend("/topic/choiceRequest", options);
+        System.out.println("Sending resource choice request to frontend for player " + playerId + ": " + options);
+
+    }
+
+    public String getChosenResource(String playerId) {
+        synchronized (resourceChoices) {
+            while (!resourceChoices.containsKey(playerId)) {
+                try {
+                    resourceChoices.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return resourceChoices.remove(playerId);
+        }
+    }
+
+    public void receiveChosenResource(String playerId, String chosenResource) {
+        synchronized (resourceChoices) {
+            resourceChoices.put(playerId, chosenResource);
+            resourceChoices.notifyAll(); // 선택을 기다리는 스레드를 깨움
+        }
+    }
+
+
 
 }

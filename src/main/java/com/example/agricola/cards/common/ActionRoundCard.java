@@ -358,7 +358,6 @@ public interface ActionRoundCard extends CommonCard {
         GameService gameService = player.getGameService();
         String playerId = player.getId();
 
-        // TODO: 플레이어가 곡식이나 야채를 선택하는 로직 (예시로 곡식을 선택했다고 가정)
         String cropType = "grain"; // 플레이어 선택에 따라 "grain" 또는 "vegetable"
 
         // 곡식을 심을 수 있는 유효한 좌표를 가져옴

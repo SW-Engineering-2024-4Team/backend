@@ -441,7 +441,7 @@ public void payResources(Map<String, Integer> cost) {
 //        List<Animal> animalsToRemove = new ArrayList<>();
 //        Iterator<Animal> iterator = newAnimals.iterator();
 //
-//        // TODO 임의로 좌표를 설정한 것
+//
 //        // 더 배치할 수 없을 경우: 방생
 //        while (iterator.hasNext()) {
 //            Animal animal = iterator.next();
@@ -451,7 +451,7 @@ public void payResources(Map<String, Integer> cost) {
 //                int[] position = validPositions.iterator().next();
 //                System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 //
-//                // TODO 프론트한테 좌표 받아서 배치
+
 //                placeAnimalOnBoard(animal, position[0], position[1]);
 //                placedCount++;
 //                animalsToRemove.add(animal);
@@ -469,7 +469,7 @@ public void payResources(Map<String, Integer> cost) {
 //    List<Animal> animalsToRemove = new ArrayList<>();
 //    List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
 //
-//    // TODO 임의로 좌표를 설정한 것
+
 //    // 더 배치할 수 없을 경우: 방생
 //    for (Animal animal : newAnimalsCopy) {
 //        Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
@@ -537,6 +537,9 @@ public int placeNewAnimals() {
     return placedCount;
 }
 
+    public GameService getGameService() {
+        return gameService;
+    }
 
 
     public void buildBarn(int x, int y) {
@@ -648,13 +651,7 @@ public int placeNewAnimals() {
         return Objects.hash(id);
     }
 
-    public boolean chooseOption() {
-        return chooseOption;
-    }
 
-    public void setChooseOption(boolean chooseOption) {
-        this.chooseOption = chooseOption;
-    }
 
     private boolean woodDiscountActive = false;
     public boolean isWoodDiscountActive() {
@@ -696,15 +693,86 @@ public int placeNewAnimals() {
         this.compressedSoilActive = compressedSoilActive;
     }
 
-    //TODO
-    public boolean chooseResource(String resource1, String resource2, int amount) {
-        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 단순히 흙을 선택하도록 가정합니다.
-        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
-        return getResource(resource2) >= amount;
+//    //TODO
+//    public boolean chooseResource(String resource1, String resource2, int amount) {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 단순히 흙을 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        return getResource(resource2) >= amount;
+//    }
+//
+//    public GameService getGameService() {
+//        return gameService;
+//    }
+//
+//    public boolean chooseOption() {
+//        return chooseOption;
+//    }
+//
+//    public void setChooseOption(boolean chooseOption) {
+//        this.chooseOption = chooseOption;
+//    }
+//
+//    public int chooseOptionForAndOr() {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 랜덤으로 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        Random random = new Random();
+//        return random.nextInt(3); // 0, 1, 2 중 하나를 랜덤으로 반환
+//    }
+//
+//    public boolean chooseOptionForThen() {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 랜덤으로 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        Random random = new Random();
+//        return random.nextBoolean(); // true 또는 false 중 하나를 랜덤으로 반환
+//    }
+    private int andOrChoice;
+    private boolean thenChoice;
+    private boolean orChoice;
+
+    public boolean chooseOption() {
+        return chooseOption;
     }
 
-    public GameService getGameService() {
-        return gameService;
+    public void setChooseOption(boolean chooseOption) {
+        this.chooseOption = chooseOption;
     }
+
+    public int chooseOptionForAndOr() {
+        return andOrChoice;
+    }
+
+    public void setAndOrChoice(int choice) {
+        this.andOrChoice = choice;
+    }
+
+    public boolean chooseOptionForThen() {
+        return thenChoice;
+    }
+
+    public void setThenChoice(boolean choice) {
+        this.thenChoice = choice;
+    }
+
+    public boolean chooseOptionForOr() {
+        return orChoice;
+    }
+
+    public void setOrChoice(boolean choice) {
+        this.orChoice = choice;
+    }
+
+    public boolean chooseResource(String resource1, String resource2, int amount) {
+        GameService gameService = this.getGameService();
+        String playerId = this.getId();
+
+        // 프론트엔드에 선택 요청을 보냄
+        gameService.sendResourceChoiceRequestToFrontEnd(playerId, resource1, resource2, amount);
+
+        // 플레이어의 선택 대기
+        String chosenResource = gameService.getChosenResource(playerId);
+
+        return chosenResource.equals(resource2);
+    }
+
 }
 

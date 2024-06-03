@@ -29,6 +29,9 @@ public class Plasterer extends OccupationCard {
         // 메인보드의 원래 리스트를 업데이트
         mainBoard.setActionCards(newActionCards);
         mainBoard.setRoundCards(newRoundCards);
+
+        // 데코레이터 효과를 받는 카드들의 정보를 프론트엔드로 전송
+        player.getGameService().sendDecoratedCardInfo(player, newActionCards, newRoundCards);
     }
 
     private List<ActionRoundCard> wrapWithDecorators(List<ActionRoundCard> cards, Player player) {

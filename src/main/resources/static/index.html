@@ -28,11 +28,28 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             overflow: auto;
-            max-height: 500px; /* Set a max height for better scrolling */
+            max-height: 500px;
         }
         .section-title {
             font-weight: bold;
             margin-top: 20px;
+        }
+        .card-button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .card-button:hover {
+            background-color: #218838;
+        }
+        .input-section {
+            margin-top: 20px;
+        }
+        .input-section input {
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -40,8 +57,11 @@
 <h1>Agricola Game</h1>
 <button id="startGameButton">Start Game</button>
 <div id="gameState"></div>
-
-<!-- Add SockJS and Stomp.js -->
+<div class="input-section">
+    <label for="cardIdInput">Enter Card ID: </label>
+    <input type="number" id="cardIdInput" />
+    <button id="sendCardIdButton">Send Card ID</button>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script src="app.js"></script>

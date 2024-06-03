@@ -33,10 +33,10 @@ public class CardFactory {
 //        actionCards.add(new ReedField(15));
 
 
-        roundCards.add(new SheepMarket(15, 1));
-        roundCards.add(new BuildFence(16, 1));
-        roundCards.add(new PlantSeed(17, 1));
-        roundCards.add(new PurchaseMajor(18, 1));
+        roundCards.add(new PurchaseMajor(15, 1));
+        roundCards.add(new PlantSeed(16, 1));
+        roundCards.add(new BuildFence(17, 1));
+        roundCards.add(new SheepMarket(18, 1));
 
         roundCards.add(new AddFamilyMember(19, 2));
         roundCards.add(new NonAccumulativeRoundCard(20, "22 비누적 자원 카드 주기2 ","효과가 없는 라운드 카드", 2));

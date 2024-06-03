@@ -69,7 +69,7 @@ public class CardController {
                     cycle.add((ActionRoundCard) card);
                 }
             }
-            Collections.shuffle(cycle);
+//            Collections.shuffle(cycle);
             cycles.add(cycle);
             startIndex += rounds;
         }
