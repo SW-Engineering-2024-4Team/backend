@@ -50,11 +50,20 @@ public class Player {
     }
 
     private void initializeResources() {
-        resources.put("wood", 0);
-        resources.put("clay", 0);
-        resources.put("stone", 0);
-        resources.put("grain", 0);
-        resources.put("food", 0);
+//        resources.put("wood", 0);
+//        resources.put("clay", 0);
+//        resources.put("stone", 0);
+//        resources.put("grain", 0);
+//        resources.put("food", 0);
+//        resources.put("beggingCard", 0);
+//        resources.put("sheep", 0);
+
+        // TODO
+        resources.put("wood", 50);
+        resources.put("clay", 50);
+        resources.put("stone", 50);
+        resources.put("grain", 50);
+        resources.put("food", 50);
         resources.put("beggingCard", 0);
         resources.put("sheep", 0);
     }
@@ -772,6 +781,21 @@ public int placeNewAnimals() {
         String chosenResource = gameService.getChosenResource(playerId);
 
         return chosenResource.equals(resource2);
+    }
+
+    public void printActiveCardsLists() {
+        System.out.println("Active cards lists:");
+        for (CommonCard card : activeCards) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
+
+        System.out.println("보유 Cards:");
+        for (CommonCard card : getOccupationCards()) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
+        for (CommonCard card : getMinorImprovementCards()) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
     }
 
 }

@@ -34,7 +34,6 @@ public class RenovateFarms extends NonAccumulativeRoundCard {
         Map<String, Object> options = new LinkedHashMap<>();
         options.put("option1", "집 고치기 후 울타리 치기");
         options.put("option2", "집 고치기만");
-        options.put("option3", "울타리 치기만");
 
         System.out.println("Sending choice request to frontend.");
         gameService.sendChoiceRequestToFrontEnd(player.getId(), "Then", options);

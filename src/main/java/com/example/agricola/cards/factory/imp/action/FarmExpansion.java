@@ -69,7 +69,4 @@ public class FarmExpansion extends NonAccumulativeActionCard {
             System.out.println("Invalid choice: " + choice); // 디버깅 메시지 추가
         }
     }
-
-
-
 }

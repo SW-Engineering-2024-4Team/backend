@@ -159,6 +159,7 @@ public class GameService {
     }
 
     public void setNextTurnOrder(List<Player> nextTurnOrder) {
+        System.out.println("nextturnorder 호출됨");
         this.nextTurnOrder = nextTurnOrder;
     }
 
@@ -293,6 +294,7 @@ public class GameService {
                         // 플레이어 턴 진행
                         playerTurn(player.getId(), availableCards);
                         printFamilyMembersOnBoard();
+                        player.getActiveCards();
                     }
                 }
             }
@@ -338,15 +340,27 @@ public class GameService {
                     e.printStackTrace();
                 }
             }
+            player.printActiveCardsLists();
 
-            Map<String, Integer> playerResources = player.getResources();
+//            PlayerBoard playerBoard = player.getPlayerBoard();
 
-            Map<String, Object> turnResultInfo = Map.of(
-                    "playerId", player.getId(),
-                    "resources", playerResources
-            );
-            notifyPlayer(player, turnResultInfo);
-
+//            // 플레이어 보드 정보 포함
+//            Map<String, Object> playerBoardInfo = Map.of(
+//                    "tiles", playerBoard.getTileInfo()
+////                    "fences", playerBoard.getFences(),
+////                    "familyMembers", playerBoard.getFamilyMembers(),
+////                    "animals", playerBoard.getAnimals(),
+////                    "fenceAreas", playerBoard.getManagedFenceAreas().stream().map(FenceArea::toMap).collect(Collectors.toList())
+//            );
+//            notifyPlayer(player, playerBoardInfo);
+//
+//            Map<String, Integer> playerResources = player.getResources();
+//
+//            Map<String, Object> turnResultInfo = Map.of(
+//                    "playerId", player.getId(),
+//                    "resources", playerResources
+//            );
+//            notifyPlayer(player, turnResultInfo);
 
         }
     }
@@ -545,13 +559,11 @@ public class GameService {
         for (Player player : players) {
             player.convertBabiesToAdults();
         }
-        System.out.println("endRound 안");
         calculateAndRecordScores();
     }
 
     private void calculateAndRecordScores() {
         for (Player player : players) {
-            System.out.println("calculate 안");
             int score = calculateScoreForPlayer(player);
             player.setScore(score);
             System.out.println("setScore");
@@ -804,8 +816,9 @@ public class GameService {
                 System.out.println("Received selected card from player: " + playerId + " with cardId: " + cardId);
             }
         }
-        synchronized (this) {
-            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
+        CountDownLatch latch = latches.get(playerId);
+        if (latch != null) {
+            latch.countDown(); // 동기화된 스레드를 깨움
         }
     }
 
@@ -827,11 +840,19 @@ public class GameService {
         simpMessagingTemplate.convertAndSend("/topic/validPositions", message);
     }
 
+    private final Map<String, CountDownLatch> latches = new ConcurrentHashMap<>();
+
+
+    public void setLatch(String playerId, CountDownLatch latch) {
+        latches.put(playerId, latch);
+    }
+
+
     public void receiveSelectedPosition(String playerId, int x, int y) {
         selectedPositions.put(playerId, new int[]{x, y});
-        System.out.println("Received selected position from player: " + playerId + " with coordinates: (" + x + ", " + y + ")");
-        synchronized (this) {
-            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
+        CountDownLatch latch = latches.get(playerId);
+        if (latch != null) {
+            latch.countDown(); // 동기화된 스레드를 깨움
         }
     }
 
@@ -852,8 +873,9 @@ public class GameService {
     public void receiveSelectedFencePositions(String playerId, List<int[]> positions) {
         selectedFencePositions.put(playerId, positions);
         System.out.println("Received selected fence positions from player: " + playerId + " with positions: " + positions);
-        synchronized (this) {
-            notify(); // 선택이 완료되면 대기 중인 스레드를 깨움
+        CountDownLatch latch = latches.get(playerId);
+        if (latch != null) {
+            latch.countDown(); // 동기화된 스레드를 깨움
         }
     }
 
@@ -914,19 +936,19 @@ public class GameService {
 
     private Map<String, CountDownLatch> playerLatches = new ConcurrentHashMap<>();
 
-    public void receivePlayerChoice(String playerId, String choiceType, int choice) {
+    public void receivePlayerChoice(String playerId, String choiceType, Object choice) {
         System.out.println("Received choice from player: " + playerId + " choiceType: " + choiceType + " choice: " + choice);
         Player player = getPlayerByID(playerId);
         if (player != null) {
             switch (choiceType) {
                 case "AndOr":
-                    player.setAndOrChoice(choice);
+                    player.setAndOrChoice((int) choice);
                     break;
                 case "Then":
-                    player.setThenChoice(choice == 1);
+                    player.setThenChoice((boolean) choice);
                     break;
                 case "Or":
-                    player.setOrChoice(choice == 1);
+                    player.setOrChoice((boolean) choice);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown choiceType: " + choiceType);
@@ -938,6 +960,7 @@ public class GameService {
             latch.countDown(); // 대기 중인 스레드를 깨움
         }
     }
+
 
     public void waitForPlayerChoice(String playerId) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
@@ -1043,7 +1066,44 @@ public class GameService {
             resourceChoices.notifyAll(); // 선택을 기다리는 스레드를 깨움
         }
     }
+    public void sendMajorImprovementCardsToFrontEnd(Player player) {
+        List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
+        List<Map<String, Object>> cards = majorImprovementCards.stream()
+                .map(CommonCard::toMap)
+                .collect(Collectors.toList());
+
+        Map<String, Object> message = new HashMap<>();
+        message.put("playerId", player.getId());
+        message.put("majorImprovementCards", cards);
+
+        System.out.println("Sending major improvement cards to frontend for player " + player.getId() + ": " + cards);
+
+        simpMessagingTemplate.convertAndSend("/topic/majorImprovementCards", message);
+    }
 
 
+    public void sendPlayerResourcesToFrontEnd(Player player) {
+        Map<String, Object> message = new HashMap<>();
+        message.put("playerId", player.getId());
+        message.put("resources", player.getResources());
 
+        System.out.println("Sending player resources to frontend for player " + player.getId() + ": " + player.getResources());
+
+        simpMessagingTemplate.convertAndSend("/topic/playerResources", message);
+    }
+
+    public void sendActiveCardsListToFrontEnd(Player player) {
+        List<CommonCard> activeCards = player.getActiveCards();
+        List<Map<String, Object>> cards = activeCards.stream()
+                .map(CommonCard::toMap)
+                .collect(Collectors.toList());
+
+        Map<String, Object> message = new HashMap<>();
+        message.put("playerId", player.getId());
+        message.put("majorImprovementCards", cards);
+
+        System.out.println("Sending active cards to frontend for player " + player.getId() + ": " + cards);
+
+        simpMessagingTemplate.convertAndSend("/topic/activeCards", message);
+    }
 }

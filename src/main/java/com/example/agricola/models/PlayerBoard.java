@@ -48,41 +48,47 @@ public class PlayerBoard {
         );
     }
 
-            public boolean canBuildHouse(int x, int y, RoomType type, Map<String, Integer> resources) {
-                // 1. 타일이 비어 있는지 확인
-                if (tiles[x][y] != null) {
+    public boolean canBuildHouse(int x, int y, RoomType type, Map<String, Integer> resources) {
+        // 1. 타일이 비어 있는지 확인
+        if (tiles[x][y] != null) {
+            System.out.println("타일이 비어있지 않음.");
+            return false;
+        }
+
+        // 2. 위치가 기존의 집과 이웃해 있는지 확인
+        boolean adjacentToExistingHouse = false;
+        if (x > 0 && tiles[x - 1][y] instanceof Room) adjacentToExistingHouse = true;
+        if (x < tiles.length - 1 && tiles[x + 1][y] instanceof Room) adjacentToExistingHouse = true;
+        if (y > 0 && tiles[x][y - 1] instanceof Room) adjacentToExistingHouse = true;
+        if (y < tiles[0].length - 1 && tiles[x][y + 1] instanceof Room) adjacentToExistingHouse = true;
+        if (!adjacentToExistingHouse) {
+            System.out.println("타일이 기존 집과 이웃하지 않음");
+            return false;
+        }
+
+        // 3. 같은 타입의 집을 지으려는지 확인
+        for (Tile[] row : tiles) {
+            for (Tile tile : row) {
+                if (tile instanceof Room && ((Room) tile).getType() != type) {
+                    System.out.println("다른 타입의 집을 지으려고 함");
                     return false;
                 }
-
-                // 2. 위치가 기존의 집과 이웃해 있는지 확인
-                boolean adjacentToExistingHouse = false;
-                if (x > 0 && tiles[x - 1][y] instanceof Room) adjacentToExistingHouse = true;
-                if (x < tiles.length - 1 && tiles[x + 1][y] instanceof Room) adjacentToExistingHouse = true;
-                if (y > 0 && tiles[x][y - 1] instanceof Room) adjacentToExistingHouse = true;
-                if (y < tiles[0].length - 1 && tiles[x][y + 1] instanceof Room) adjacentToExistingHouse = true;
-                if (!adjacentToExistingHouse) {
-                    return false;
-                }
-
-                // 3. 같은 타입의 집을 지으려는지 확인
-                for (Tile[] row : tiles) {
-                    for (Tile tile : row) {
-                        if (tile instanceof Room && ((Room) tile).getType() != type) {
-                            return false;
-                        }
-                    }
-                }
-
-//                // 4. 자원이 충분한지 확인
-//                return true;
-                // 4. 자원이 충분한지 확인
-                if (!(resources.get(type.name().toLowerCase()) != null) && resources.get(type.name().toLowerCase()) > 0)
-                    System.out.println("자원이 부족합니다.");
-                return resources.get(type.name().toLowerCase()) != null && resources.get(type.name().toLowerCase()) > 0;
-
             }
+        }
 
-            public void buildHouse(int x, int y, RoomType type) {
+        // 4. 자원이 충분한지 확인
+        Integer resourceAmount = resources.get(type.name().toLowerCase());
+        System.out.println("resources = " + resourceAmount);
+        if (resourceAmount == null || resourceAmount <= 0) {
+            System.out.println("자원이 부족합니다.");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    public void buildHouse(int x, int y, RoomType type) {
                 if (tiles[x][y] == null) {
                     tiles[x][y] = new Room(type, x, y);
                     updateFenceAreas();
@@ -188,7 +194,7 @@ public class PlayerBoard {
 
             // 유효한 외양간 위치를 반환하는 메서드
             public Set<int[]> getValidBarnPositions() {
-                Set<int[]> validPositions = new HashSet<>();
+                Set<int[]> validPositions = new LinkedHashSet<>();
                 boolean hasExistingBarn = hasExistingBarn();
                 for (int i = 0; i < tiles.length; i++) {
                     for (int j = 0; j < tiles[0].length; j++) {
@@ -716,7 +722,55 @@ public class PlayerBoard {
                 return tiles;
             }
 
-            public boolean[][][] getFences() {
+    public Map<String, Object> getTileInfo() {
+        Map<String, Object> boardInfo = new HashMap<>();
+
+        for (int x = 0; x < tiles.length; x++) {
+            for (int y = 0; y < tiles[0].length; y++) {
+                Map<String, Object> tileInfo = new HashMap<>();
+                Tile tile = tiles[x][y];
+                FamilyMember familyMember = familyMembers[x][y];
+                Animal animal = animals[x][y];
+
+                if (tile != null) {
+                    tileInfo.put("tileType", tile.getClass().getSimpleName());
+                    if (tile instanceof Room) {
+                        tileInfo.put("roomType", ((Room) tile).getType().name());
+                    } else if (tile instanceof Barn) {
+                        tileInfo.put("hasAnimal", ((Barn) tile).hasAnimal());
+                    } else if (tile instanceof FieldTile) {
+                        tileInfo.put("crops", ((FieldTile) tile).getCrops());
+                        tileInfo.put("cropType", ((FieldTile) tile).getCropType());
+                    }
+                } else {
+                    tileInfo.put("tileType", "Empty");
+                }
+
+                if (familyMember != null) {
+                    tileInfo.put("familyMember", familyMember.isAdult() ? "Adult" : "Child");
+                }
+
+                if (animal != null) {
+                    tileInfo.put("animalType", animal.getType());
+                }
+
+                tileInfo.put("fences", new boolean[]{
+                        fences[x][y][0], // 상단 울타리
+                        fences[x][y][1], // 하단 울타리
+                        fences[x][y][2], // 좌측 울타리
+                        fences[x][y][3]  // 우측 울타리
+                });
+
+                boardInfo.put("tile_" + x + "_" + y, tileInfo);
+            }
+        }
+
+        return boardInfo;
+    }
+
+
+
+    public boolean[][][] getFences() {
                 return fences;
             }
 
@@ -997,7 +1051,7 @@ public void addAnimalToBoard(Animal animal, int x, int y) {
 
                 // 2. 자원이 충분한지 확인
                 Map<String, Integer> cost = new HashMap<>();
-                cost.put(newType.name().toLowerCase(), roomCount); // 방 수만큼 자원 필요
+                cost.put(newType.name().toLowerCase(), 2 * roomCount); // 방 수만큼 자원 필요
                 if (player.checkResources(cost)) {
                     player.payResources(cost);
 

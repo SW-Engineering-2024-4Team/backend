@@ -10,6 +10,7 @@ import com.sun.tools.javac.Main;
 
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 public interface ActionRoundCard extends CommonCard {
@@ -42,6 +43,7 @@ public interface ActionRoundCard extends CommonCard {
                 player.addResource(resource, amount);
             }
         }
+        player.getGameService().sendPlayerResourcesToFrontEnd(player);
     }
 
 
@@ -57,17 +59,25 @@ public interface ActionRoundCard extends CommonCard {
         List<CommonCard> occupationCards = player.getOccupationCards();
         if (!occupationCards.isEmpty()) {
             gameService.sendCardListToFrontEnd(occupationCards, player.getId());
-            // 기다리며 프론트엔드에서 카드를 선택하는 동안 대기
-            synchronized (gameService) {
-                try {
-                    gameService.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
             UnifiedCard selectedCard = (UnifiedCard) gameService.getSelectedCard(player.getId());
             if (selectedCard != null) {
                 player.useUnifiedCard(selectedCard);
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+//                gameService.sendActiveCardsListToFrontEnd(player);
             } else {
                 System.out.println("카드 선택이 취소되었습니다.");
             }
@@ -94,17 +104,25 @@ public interface ActionRoundCard extends CommonCard {
         List<CommonCard> minorImprovementCards = player.getMinorImprovementCards();
         if (!minorImprovementCards.isEmpty()) {
             gameService.sendCardListToFrontEnd(minorImprovementCards, player.getId());
-            // 기다리며 프론트엔드에서 카드를 선택하는 동안 대기
-            synchronized (gameService) {
-                try {
-                    gameService.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             UnifiedCard selectedCard = (UnifiedCard) gameService.getSelectedCard(player.getId());
             if (selectedCard != null) {
+                System.out.println("보조설비 카드를 사용합니다.");
                 player.useUnifiedCard(selectedCard);
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+                gameService.sendActiveCardsListToFrontEnd(player);
             } else {
                 System.out.println("카드 선택이 취소되었습니다.");
             }
@@ -113,30 +131,39 @@ public interface ActionRoundCard extends CommonCard {
         }
     }
 
-    // 주요 설비 카드 구매
     default void purchaseMajorImprovementCard(Player player) {
+        GameService gameService = player.getGameService();
         System.out.println("purchaseMajorImprovementCard 속 cardList");
 
-        GameService gameService = player.getGameService();
         MainBoard mainBoard = gameService.getMainBoard();
         List<CommonCard> majorImprovementCards = mainBoard.getAvailableMajorImprovementCards();
 
         if (!majorImprovementCards.isEmpty()) {
             gameService.sendCardListToFrontEnd(majorImprovementCards, player.getId());
-            // 기다리며 프론트엔드에서 카드를 선택하는 동안 대기
-            synchronized (gameService) {
-                try {
-                    gameService.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
             MajorImprovementCard selectedCard = (MajorImprovementCard) gameService.getSelectedCard(player.getId());
             if (selectedCard != null && player.checkResources(selectedCard.getPurchaseCost())) {
                 player.payResources(selectedCard.getPurchaseCost());
                 player.addMajorImprovementCard(selectedCard);
                 selectedCard.setPurchased(true); // 카드가 구매되었음을 표시
+                player.addCard(selectedCard, "majorimprovementcard");
                 System.out.println(selectedCard.getName() + " 카드가 성공적으로 구매되었습니다.");
+
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+                gameService.sendActiveCardsListToFrontEnd(player);
             } else {
                 System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
             }
@@ -144,6 +171,8 @@ public interface ActionRoundCard extends CommonCard {
             System.out.println("구매할 수 있는 주요 설비 카드가 없습니다.");
         }
     }
+
+
 
     /*
     *
@@ -159,13 +188,14 @@ public interface ActionRoundCard extends CommonCard {
 
         if (!bakingCards.isEmpty()) {
             gameService.sendCardListToFrontEnd(bakingCards, player.getId());
-            // 기다리며 프론트엔드에서 카드를 선택하는 동안 대기
-            synchronized (gameService) {
-                try {
-                    gameService.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
             BakingCard selectedCard = (BakingCard) gameService.getSelectedCard(player.getId());
             if (selectedCard != null) {
@@ -204,17 +234,20 @@ public interface ActionRoundCard extends CommonCard {
             gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "house");
 
             // 선택된 좌표를 프론트엔드로부터 받아옴
-            synchronized (gameService) {
-                try {
-                    gameService.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             int[] selectedPosition = gameService.getSelectedPosition(playerId);
             int x = selectedPosition[0];
             int y = selectedPosition[1];
+
+            System.out.println("Selected position: (" + x + ", " + y + ")");
 
             // 기존 집의 타입을 가져옴
             RoomType currentRoomType = playerBoard.getExistingRoomType();
@@ -223,11 +256,15 @@ public interface ActionRoundCard extends CommonCard {
                 System.out.println("기존 집 타입을 찾을 수 없습니다.");
                 return;
             }
+            System.out.println("Current room type: " + currentRoomType);
+
             if (playerBoard.canBuildHouse(x, y, currentRoomType, playerResources)) {
                 Map<String, Integer> cost = player.getHouseResourceCost(currentRoomType);
                 if (player.checkResources(cost)) {
                     player.payResources(cost);
                     player.getPlayerBoard().buildHouse(x, y, currentRoomType);
+                    System.out.println("House built at (" + x + ", " + y + ") with room type: " + currentRoomType);
+
                 } else {
                     // 자원이 부족하다는 메시지 표시
                     System.out.println("자원이 부족합니다.");
@@ -241,6 +278,7 @@ public interface ActionRoundCard extends CommonCard {
             System.out.println("유효한 건축 위치가 없습니다.");
         }
     }
+
 
 
     // 밭 일구기
@@ -258,12 +296,12 @@ public interface ActionRoundCard extends CommonCard {
             gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "plow");
 
             // 선택된 좌표를 프론트엔드로부터 받아옴
-            synchronized (gameService) {
-                try {
-                    gameService.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             int[] selectedPosition = gameService.getSelectedPosition(playerId);
@@ -271,10 +309,12 @@ public interface ActionRoundCard extends CommonCard {
             int y = selectedPosition[1];
 
             playerBoard.plowField(x, y);
+            System.out.println("Plowed field at (" + x + ", " + y + ")");
         } else {
             System.out.println("밭을 일굴 수 있는 위치가 없습니다.");
         }
     }
+
 
 
     // 외양간 짓기
@@ -291,27 +331,37 @@ public interface ActionRoundCard extends CommonCard {
             gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "barn");
 
             // 선택된 좌표를 프론트엔드로부터 받아옴
-            synchronized (gameService) {
-                try {
-                    gameService.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
+
+            System.out.println("프론트엔드에게 좌표 전송");
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             int[] selectedPosition = gameService.getSelectedPosition(playerId);
+            if (selectedPosition == null) {
+                System.out.println("No position selected for barn.");
+                return;
+            }
+            System.out.println("프론트엔드에게 좌표 받음");
+
             int x = selectedPosition[0];
             int y = selectedPosition[1];
 
             if (playerBoard.canBuildBarn(x, y)) {
                 player.buildBarn(x, y);
+                System.out.println("Barn built at (" + x + ", " + y + ")");
             } else {
-                System.out.println("외양간을 지을 수 없습니다.");
+                System.out.println("Cannot build barn at (" + x + ", " + y + ")");
             }
         } else {
-            System.out.println("외양간을 지을 수 있는 위치가 없습니다.");
+            System.out.println("No valid positions for barn.");
         }
     }
+
 
     // 울타리 짓기
     default void buildFence(Player player) {
@@ -324,12 +374,13 @@ public interface ActionRoundCard extends CommonCard {
         gameService.sendFenceRequestToFrontEnd(playerId);
 
         // 프론트엔드로부터 선택된 좌표를 받아옴
-        synchronized (gameService) {
-            try {
-                gameService.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        CountDownLatch latch = new CountDownLatch(1);
+        gameService.setLatch(playerId, latch);
+
+        try {
+            latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         List<int[]> selectedPositions = gameService.getSelectedFencePositions(playerId);
@@ -368,12 +419,13 @@ public interface ActionRoundCard extends CommonCard {
             gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "plantField");
 
             // 프론트엔드로부터 선택된 좌표를 받아옴
-            synchronized (gameService) {
-                try {
-                    gameService.wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             int[] selectedPosition = gameService.getSelectedPosition(playerId);
@@ -414,6 +466,10 @@ public interface ActionRoundCard extends CommonCard {
         for (int i = 0; i < playerIndex; i++) {
             newTurnOrder.add(turnOrder.get(i));
         }
+        
+        for (Player p : newTurnOrder) {
+            System.out.println("p.getId() = " + p.getId());
+        }
 
         // 게임 컨트롤러에 새로운 턴 오더 설정
         gameService.setNextTurnOrder(newTurnOrder);
@@ -421,6 +477,7 @@ public interface ActionRoundCard extends CommonCard {
         // 프론트엔드에 선 플레이어가 변경되었다는 정보를 전송
         gameService.sendTurnOrderInfo(player.getId(), turnOrder, newTurnOrder);
     }
+
 
 
 

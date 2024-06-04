@@ -50,11 +50,11 @@ public class PurchaseMajor extends NonAccumulativeRoundCard {
 
         // 선택에 따른 액션 실행
         if (choice) {
-            System.out.println("Executing action2: useMinorImprovementCard");
-            action2.run();
-        } else {
             System.out.println("Executing action1: purchaseMajorImprovementCard");
             action1.run();
+        } else {
+            System.out.println("Executing action2: useMinorImprovementCard");
+            action2.run();
         }
     }
 

@@ -121,13 +121,22 @@ public class GameController {
         gameService.receiveSelectedFencePositions(playerId, fencePositions);
     }
 
+//    @MessageMapping("/playerChoice")
+//    public void receivePlayerChoice(Map<String, Object> payload) {
+//        String playerId = (String) payload.get("playerId");
+//        String choiceType = (String) payload.get("choiceType");
+//        int choice = (int) payload.get("choice");
+//        gameService.receivePlayerChoice(playerId, choiceType, choice);
+//    }
+
     @MessageMapping("/playerChoice")
     public void receivePlayerChoice(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
         String choiceType = (String) payload.get("choiceType");
-        int choice = (int) payload.get("choice");
+        Object choice = payload.get("choice"); // choice를 Object로 받아서 동적으로 처리
         gameService.receivePlayerChoice(playerId, choiceType, choice);
     }
+
 
     @MessageMapping("/chooseResource")
     public void receiveChosenResource(Map<String, Object> payload) {

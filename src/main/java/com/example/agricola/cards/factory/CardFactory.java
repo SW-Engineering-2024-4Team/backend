@@ -33,15 +33,16 @@ public class CardFactory {
 //        actionCards.add(new ReedField(15));
 
 
-        roundCards.add(new PurchaseMajor(15, 1));
-        roundCards.add(new PlantSeed(16, 1));
-        roundCards.add(new BuildFence(17, 1));
-        roundCards.add(new SheepMarket(18, 1));
-
         roundCards.add(new AddFamilyMember(19, 2));
-        roundCards.add(new NonAccumulativeRoundCard(20, "22 비누적 자원 카드 주기2 ","효과가 없는 라운드 카드", 2));
-        roundCards.add(new NonAccumulativeRoundCard(21, "23 비누적 자원 카드 주기2 ","효과가 없는 라운드 카드", 2));
+        roundCards.add(new PlantSeed(16, 1));
+        roundCards.add(new PurchaseMajor(15, 1));
+        roundCards.add(new RenovateFarms(20, 1));
+        roundCards.add(new SheepMarket(18, 1));
+        roundCards.add(new BuildFence(17, 2));
 
+        roundCards.add(new NonAccumulativeRoundCard(20, "22 비누적 자원 카드 주기2 ","효과가 없는 라운드 카드", 2));
+//        roundCards.add(new NonAccumulativeRoundCard(21, "23 비누적 자원 카드 주기2 ","효과가 없는 라운드 카드", 2));
+//
         roundCards.add(new NonAccumulativeRoundCard(22, "24 비누적 자원 카드 주기3 ","효과가 없는 라운드 카드", 3));
         roundCards.add(new NonAccumulativeRoundCard(23, "25 비누적 자원 카드 주기3 ","효과가 없는 라운드 카드", 3));
 
@@ -50,8 +51,9 @@ public class CardFactory {
 
         roundCards.add(new NonAccumulativeRoundCard(26, "28 비누적 자원 카드 주기5 ","효과가 없는 라운드 카드", 5));
         roundCards.add(new NonAccumulativeRoundCard(27, "29 비누적 자원 카드 주기5 ","효과가 없는 라운드 카드", 5));
-
-        roundCards.add(new RenovateFarms(28, 6));
+//
+        roundCards.add(new NonAccumulativeRoundCard(28, "29 비누적 자원 카드 주기6 ","효과가 없는 라운드 카드", 5));
+//        roundCards.add(new RenovateFarms(28, 6));
 
         majorImprovementCards.add(new PotteryWorkshop(29));
         majorImprovementCards.add(new Hearth1(30));

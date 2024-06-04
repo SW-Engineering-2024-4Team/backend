@@ -18,24 +18,34 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 handleGameState(JSON.parse(message.body));
             });
 
-            // Subscribe to receive card list messages dynamically after setting currentPlayerID
-            if (currentPlayerID) {
-                stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
-                    console.log('Received card options: ' + message.body);
-                    handleCardOptions(JSON.parse(message.body));
-                });
-            }
+            stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
+                console.log('Received card options: ' + message.body);
+                handleCardOptions(JSON.parse(message.body));
+            });
 
-            // 추가된 부분: validPositions 구독
             stompClient.subscribe('/topic/validPositions', (message) => {
                 console.log('Received valid positions: ' + message.body);
                 handleValidPositions(JSON.parse(message.body));
             });
 
-            // 추가된 부분: choiceRequest 구독
             stompClient.subscribe('/topic/choiceRequest', (message) => {
                 console.log('Received choice request: ' + message.body);
                 handleChoiceRequest(JSON.parse(message.body));
+            });
+
+            stompClient.subscribe('/topic/majorImprovementCards', (message) => {
+                console.log('Received major improvement cards: ' + message.body);
+                handleMajorImprovementCards(JSON.parse(message.body));
+            });
+            // 플레이어 자원 업데이트를 받는 부분 추가
+            stompClient.subscribe('/topic/playerResources', (message) => {
+                console.log('Received player resources: ' + message.body);
+                handlePlayerResources(JSON.parse(message.body));
+            });
+
+            stompClient.subscribe('/topic/activeCards', (message) => {
+                console.log('Received active cards: ' + message.body);
+                handleActiveCards(JSON.parse(message.body));
             });
 
             startGameButton.addEventListener('click', () => {
@@ -79,7 +89,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
             currentPlayerID = gameState.playerId;
             handlePlayerTurn(gameState.playerId, gameState.availableCards);
 
-            // Re-subscribe to card list topic with the correct currentPlayerID
             stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
                 console.log('Received card options: ' + message.body);
                 handleCardOptions(JSON.parse(message.body));
@@ -128,6 +137,18 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     }
 
+    function handleMajorImprovementCards(message) {
+        const { playerId, majorImprovementCards } = message;
+
+        if (playerId === currentPlayerID) {
+            let cardListHtml = majorImprovementCards.map(card => `<li>${card.name}: ${card.description}</li>`).join('');
+            gameStateDiv.innerHTML += `<div class="section-title">Your Major Improvement Cards</div>\n<ul>${cardListHtml}</ul>`;
+            console.log('Major improvement cards displayed for player: ', currentPlayerID, majorImprovementCards);
+        } else {
+            console.log('Received major improvement cards for player: ', playerId, majorImprovementCards);
+        }
+    }
+
     function exchangeCard(cardId) {
         // Implement the exchange card logic
     }
@@ -157,31 +178,52 @@ document.addEventListener('DOMContentLoaded', (event) => {
             playerId: currentPlayerID,
             cardId: cardId
         };
-        console.log('Selecting occupation card with ID:', cardId);
+        console.log('Selecting card with ID:', cardId);
         stompClient.send('/app/selectedCard', {}, JSON.stringify(payload));
     }
 
-    // Add the function definition to make it available globally
     window.selectOccupationCard = selectOccupationCard;
 
-    // 추가된 부분: 좌표 선택 함수 정의 및 글로벌로 만들기
+    function handlePlayerResources(message) {
+        const { playerId, resources } = message;
+
+        if (playerId === currentPlayerID) {
+            let resourceListHtml = Object.entries(resources).map(([key, value]) => `<li>${key}: ${value}</li>`).join('');
+            gameStateDiv.innerHTML += `<div class="section-title">Your Resources</div>\n<ul>${resourceListHtml}</ul>`;
+            console.log('Player resources updated for player: ', currentPlayerID, resources);
+        } else {
+            console.log('Received player resources for player: ', playerId, resources);
+        }
+    }
+
     function handleValidPositions(validPositionsMessage) {
         const { playerId, actionType, validPositions } = validPositionsMessage;
 
+        console.log('handleValidPositions called with:', validPositionsMessage);
+
         if (playerId === currentPlayerID) {
-            let positionOptions = validPositions.map(pos =>
-                `<button class="position-button" onclick="selectPosition(${pos.x}, ${pos.y})">(${pos.x}, ${pos.y})</button>`
-            ).join('');
+            let positionOptions = validPositions.map(pos => {
+                return `<button class="position-button" onclick="selectPosition(${pos.x}, ${pos.y})">(${pos.x}, ${pos.y})</button>`;
+            }).join('');
+
+            console.log('Generated position options:', positionOptions);
 
             if (actionType === 'plow') {
                 gameStateDiv.innerHTML += `<div class="section-title">Select a Position to Plow</div>\n${positionOptions}`;
             } else if (actionType === 'house') {
                 gameStateDiv.innerHTML += `<div class="section-title">Select a Position to Build a House</div>\n${positionOptions}`;
+            } else if (actionType === 'barn') {
+                gameStateDiv.innerHTML += `<div class="section-title">Select a Position to Build a Barn</div>\n${positionOptions}`;
+            } else {
+                console.log(`Unknown actionType: ${actionType}`);
             }
+
+            console.log('Updated gameStateDiv:', gameStateDiv.innerHTML);
         }
     }
 
-    // 선택된 좌표를 저장하는 함수
+
+
     function selectPosition(x, y) {
         const payload = {
             playerId: currentPlayerID,
@@ -192,27 +234,65 @@ document.addEventListener('DOMContentLoaded', (event) => {
         stompClient.send('/app/receiveSelectedPosition', {}, JSON.stringify(payload));
     }
 
-    // JavaScript 수정 (옵션 선택 시)
     function handleChoiceRequest(choiceRequest) {
         const { playerId, choiceType, options } = choiceRequest;
 
-        if (playerId === currentPlayerID && choiceType === 'AndOr') {
+        console.log(`Received choice request: playerId=${playerId}, choiceType=${choiceType}, options=${JSON.stringify(options)}`); // 디버깅 메시지 추가
+
+        if (playerId === currentPlayerID && (choiceType === 'AndOr' || choiceType === 'Then' || choiceType === 'Or')) {
             let choiceOptions = Object.entries(options).map(([key, value], index) =>
                 `<button class="choice-button" onclick="selectChoice('${choiceType}', ${index})">${value}</button>`
             ).join('');
+
+            // 현재 gameStateDiv의 내용을 로그로 출력
+            console.log('Before appending choice options, gameStateDiv content:', gameStateDiv.innerHTML);
+
             gameStateDiv.innerHTML += `<div class="section-title">Make a Choice</div>\n${choiceOptions}`;
+
+            // 업데이트된 gameStateDiv의 내용을 로그로 출력
+            console.log('Choice options generated and appended to gameStateDiv:', choiceOptions);
+            console.log('After appending choice options, gameStateDiv content:', gameStateDiv.innerHTML); // 디버깅 메시지 추가
+        } else {
+            console.log('Choice request ignored for player:', playerId, 'current player:', currentPlayerID); // 디버깅 메시지 추가
         }
     }
 
     function selectChoice(choiceType, choice) {
-        const payload = {
-            playerId: currentPlayerID,
-            choiceType: choiceType,
-            choice: choice
-        };
+        let payload;
+        if (choiceType === 'AndOr') {
+            payload = {
+                playerId: currentPlayerID,
+                choiceType: choiceType,
+                choice: choice
+            };
+        } else if (choiceType === 'Then' || choiceType === 'Or') {
+            const booleanChoice = choice === 0;
+            payload = {
+                playerId: currentPlayerID,
+                choiceType: choiceType,
+                choice: booleanChoice
+            };
+        }
         console.log('Selecting choice:', choiceType, choice);
+        console.log('Payload to send:', payload); // 디버깅 메시지 추가
         stompClient.send('/app/playerChoice', {}, JSON.stringify(payload));
     }
+
+    // 활성 카드 목록 처리 및 표시 함수
+    function handleActiveCards(message) {
+        const { playerId, majorImprovementCards } = message;
+
+        if (playerId === currentPlayerID) {
+            let cardListHtml = majorImprovementCards.map(card => `<li>${card.name}: ${card.description}</li>`).join('');
+            gameStateDiv.innerHTML += `<div class="section-title">Your Active Cards</div>\n<ul>${cardListHtml}</ul>`;
+            console.log('Active cards displayed for player: ', currentPlayerID, majorImprovementCards);
+        } else {
+            console.log('Received active cards for player: ', playerId, majorImprovementCards);
+        }
+    }
+
+
+
 
     window.selectCard = selectCard;
     window.selectPosition = selectPosition;
