@@ -7,6 +7,7 @@ import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Hearth2 extends MajorImprovementCard implements BakingCard {
@@ -29,8 +30,8 @@ public class Hearth2 extends MajorImprovementCard implements BakingCard {
         return cost;
     }
 
-    private static Map<String, Integer> createAExchangeRate() {
-        Map<String, Integer> rate = new HashMap<>();
+    private static LinkedHashMap<String, Integer> createAExchangeRate() {
+        LinkedHashMap<String, Integer> rate = new LinkedHashMap<>();
         rate.put("sheep", 1);
         rate.put("food", 2);
         return rate;
@@ -43,11 +44,16 @@ public class Hearth2 extends MajorImprovementCard implements BakingCard {
         return rate;
     }
 
+//    @Override
+//    public void triggerBreadBaking(Player player) {
+//        int grain = player.getResource("grain");
+//        int food = grain * 2;
+//        player.addResource("grain", -grain);
+//        player.addResource("food", food);
+//    }
+
     @Override
-    public void triggerBreadBaking(Player player) {
-        int grain = player.getResource("grain");
-        int food = grain * 2;
-        player.addResource("grain", -grain);
-        player.addResource("food", food);
+    public boolean hasBreadBakingExchangeRate() {
+        return true; // 이 클래스는 항상 빵굽기 교환 비율을 가지고 있음
     }
 }

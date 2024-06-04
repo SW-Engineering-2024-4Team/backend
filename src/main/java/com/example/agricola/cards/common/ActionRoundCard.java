@@ -153,8 +153,10 @@ public interface ActionRoundCard extends CommonCard {
 
             MajorImprovementCard selectedCard = (MajorImprovementCard) gameService.getSelectedCard(player.getId());
             if (selectedCard != null && player.checkResources(selectedCard.getPurchaseCost())) {
-                player.payResources(selectedCard.getPurchaseCost());
+//                player.payResources(selectedCard.getPurchaseCost());
+                selectedCard.execute(player);
                 player.addMajorImprovementCard(selectedCard);
+                player.addCard(selectedCard, ".");
                 selectedCard.setPurchased(true); // 카드가 구매되었음을 표시
                 player.addCard(selectedCard, "majorimprovementcard");
                 System.out.println(selectedCard.getName() + " 카드가 성공적으로 구매되었습니다.");
@@ -180,9 +182,9 @@ public interface ActionRoundCard extends CommonCard {
     // 빵굽기 트리거
     default void triggerBreadBaking(Player player) {
         GameService gameService = player.getGameService();
-        List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
+        List<CommonCard> majorImprovementCards = player.getActiveCards();
         List<CommonCard> bakingCards = majorImprovementCards.stream()
-                .filter(card -> card instanceof BakingCard)
+                .filter(card -> card instanceof BakingCard && ((BakingCard) card).hasBreadBakingExchangeRate())
                 .map(card -> (BakingCard) card)
                 .collect(Collectors.toList());
 
@@ -206,6 +208,7 @@ public interface ActionRoundCard extends CommonCard {
         } else {
             System.out.println("사용 가능한 설비가 없습니다.");
         }
+        player.getGameService().sendPlayerResourcesToFrontEnd(player);
     }
 
 

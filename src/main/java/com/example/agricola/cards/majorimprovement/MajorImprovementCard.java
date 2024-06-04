@@ -7,13 +7,14 @@ import com.example.agricola.cards.common.ExchangeableCard;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MajorImprovementCard implements CommonCard, ExchangeableCard, BakingCard {
     private int id;
     private String name;
     private String description;
-    private Map<String, Integer> exchangeRate;
+    private LinkedHashMap<String, Integer> exchangeRate;
     private Map<String, Integer> breadBakingExchangeRate;
     private Map<String, Integer> purchaseCost;
     private int additionalPoints;
@@ -23,7 +24,7 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
 
     public MajorImprovementCard(int id, String name, String description,
                                 Map<String, Integer> purchaseCost,
-                                Map<String, Integer> exchangeRate,
+                                LinkedHashMap<String, Integer> exchangeRate,
                                 Map<String, Integer> breadBakingExchangeRate,
                                 int additionalPoints,
                                 boolean immediateBakingAction,
@@ -45,12 +46,31 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
         purchase(player);
     }
 
+//    public boolean purchase(Player player) {
+//        Map<String, Integer> cost = player.getDiscountedCost(this.purchaseCost);
+//        if (player.checkResources(cost)) {
+//            player.payResources(cost);
+//            player.addMajorImprovementCard(this);
+//            this.purchased = true;
+//            if (this.purchased) {
+//                triggerBreadBaking(player);
+//            }
+//            return true;
+//        } else {
+//            System.out.println("Not enough resources to purchase " + name);
+//            return false;
+//        }
+//    }
+
     public boolean purchase(Player player) {
         Map<String, Integer> cost = player.getDiscountedCost(this.purchaseCost);
         if (player.checkResources(cost)) {
             player.payResources(cost);
             player.addMajorImprovementCard(this);
             this.purchased = true;
+            if (this.immediateBakingAction) {
+                triggerBreadBaking(player);
+            }
             return true;
         } else {
             System.out.println("Not enough resources to purchase " + name);
@@ -103,24 +123,13 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
     }
 
     @Override
-    public void executeExchange(Player player, String fromResource, String toResource, int amount) {
-        if (exchangeRate == null) {
-            System.out.println("일반적인 교환 기능을 제공하지 않음. 빵굽기만 가능");
-            return;
-        }
-        // TODO 교환할 떄 양이면 양을 제거해줘야 함.
-        int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
-        player.addResource(fromResource, -amount);
-        player.addResource(toResource, exchangeAmount);
-    }
-
-    @Override
-    public Map<String, Integer> getExchangeRate() {
+    public LinkedHashMap<String, Integer> getExchangeRate() {
         return exchangeRate;
     }
 
     @Override
     public void triggerBreadBaking(Player player) {
+        System.out.println("majorimprovement클래스 triggerbreadbaking");
         if (breadBakingExchangeRate == null) return;
 
         int availableGrain = player.getResource("grain");
@@ -137,5 +146,10 @@ public class MajorImprovementCard implements CommonCard, ExchangeableCard, Bakin
 
     public void setPurchaseCost(Map<String, Integer> purchaseCost) {
         this.purchaseCost = purchaseCost;
+    }
+
+    @Override
+    public boolean hasBreadBakingExchangeRate() {
+        return breadBakingExchangeRate != null;
     }
 }

@@ -6,6 +6,7 @@ import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class PotteryWorkshop extends MajorImprovementCard {
@@ -31,8 +32,8 @@ public class PotteryWorkshop extends MajorImprovementCard {
         return purchaseCost;
     }
 
-    private static Map<String, Integer> createExchangeRate() {
-        Map<String, Integer> exchangeRate = new HashMap<>();
+    private static LinkedHashMap<String, Integer> createExchangeRate() {
+        LinkedHashMap<String, Integer> exchangeRate = new LinkedHashMap<>();
         exchangeRate.put("clay", 1);
         exchangeRate.put("food", 2);
         return exchangeRate;

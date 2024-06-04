@@ -307,8 +307,12 @@ public class Player {
         return exchangeableCards;
     }
 
-    public void executeExchange(ExchangeableCard card, String fromResource, String toResource, int amount) {
-        card.executeExchange(this, fromResource, toResource, amount);
+//    public void executeExchange(ExchangeableCard card, String fromResource, String toResource, int amount) {
+//        card.executeExchange(this, fromResource, toResource, amount);
+//    }
+
+    public void executeExchange(ExchangeableCard card) {
+        card.executeExchange(this);
     }
 
     public void useBakingCard(BakingCard card) {

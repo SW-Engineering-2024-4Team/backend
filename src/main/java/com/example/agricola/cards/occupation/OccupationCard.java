@@ -5,19 +5,20 @@ import com.example.agricola.cards.common.UnifiedCard;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public abstract class OccupationCard implements UnifiedCard, ExchangeableCard {
     private int id;
     private String name;
     private String description;
-    private Map<String, Integer> exchangeRate;
+    private LinkedHashMap<String, Integer> exchangeRate;
     private Map<String, Integer> gainResources;
     private int minPlayer; // 최소 플레이어 수
     private int maxPlayer; // 최대 플레이어 수
     private ExchangeTiming exchangeTiming;
 
-    public OccupationCard(int id, String name, String description, Map<String, Integer> exchangeRate, Map<String, Integer> gainResources, int minPlayer, int maxPlayer, ExchangeTiming exchangeTiming) {
+    public OccupationCard(int id, String name, String description, LinkedHashMap<String, Integer> exchangeRate, Map<String, Integer> gainResources, int minPlayer, int maxPlayer, ExchangeTiming exchangeTiming) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -61,18 +62,18 @@ public abstract class OccupationCard implements UnifiedCard, ExchangeableCard {
         return exchangeRate != null;
     }
 
-    @Override
-    // TODO 양 자원이면 플레이어 보드에서 양을 제거해줘야 함
-    public void executeExchange(Player player, String fromResource, String toResource, int amount) {
-        if (exchangeRate != null) {
-            int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
-            player.addResource(fromResource, -amount);
-            player.addResource(toResource, exchangeAmount);
-        }
-    }
+//    @Override
+//    // TODO 양 자원이면 플레이어 보드에서 양을 제거해줘야 함
+//    public void executeExchange(Player player, String fromResource, String toResource, int amount) {
+//        if (exchangeRate != null) {
+//            int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
+//            player.addResource(fromResource, -amount);
+//            player.addResource(toResource, exchangeAmount);
+//        }
+//    }
 
     @Override
-    public Map<String, Integer> getExchangeRate() {
+    public LinkedHashMap<String, Integer> getExchangeRate() {
         return exchangeRate;
     }
 

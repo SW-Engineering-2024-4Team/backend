@@ -33,6 +33,8 @@ public class CardFactory {
 //        actionCards.add(new ReedField(15));
 
 
+        roundCards.add(new PurchaseMajor(15, 1));
+        roundCards.add(new PlantSeed(16, 1));
         roundCards.add(new AddFamilyMember(19, 2));
         roundCards.add(new PlantSeed(16, 1));
         roundCards.add(new PurchaseMajor(15, 1));

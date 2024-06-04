@@ -1,13 +1,14 @@
 package com.example.agricola.service;
 
 import com.example.agricola.cards.common.AccumulativeCard;
+import com.example.agricola.cards.factory.imp.major.*;
+import com.example.agricola.cards.factory.imp.minor.HardenedClay;
+import com.example.agricola.cards.factory.imp.occupation.ShepherdCard;
 import com.example.agricola.controller.CardController;
 import com.example.agricola.models.*;
 import com.example.agricola.cards.common.ActionRoundCard;
 import com.example.agricola.cards.common.CommonCard;
 import com.example.agricola.cards.common.ExchangeableCard;
-import com.example.agricola.cards.factory.imp.major.FurnitureWorkshop;
-import com.example.agricola.cards.factory.imp.major.PotteryWorkshop;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.enums.RoomType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,13 @@ public class GameService {
         simpMessagingTemplate.convertAndSend("/topic/game", message);
     }
 
-    private void notifyPlayer(Player player, Map<String, Object> message) {
+    private void notifyPlayers(String message) {
+        System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
+        simpMessagingTemplate.convertAndSend("/topic/game", message);
+
+    }
+
+    public void notifyPlayer(Player player, Map<String, Object> message) {
         System.out.println("Sending message to player " + player.getId() + ": " + message); // 디버깅 메시지 추가
         simpMessagingTemplate.convertAndSend("/topic/game", message);
     }
@@ -104,12 +111,26 @@ public class GameService {
 
         int numPlayers = players.size();
 
-        for (int i = 0; i < 8; i++) {
-            players.get(i % numPlayers).addCard(occupationDeck.get(i), "occupation");
-        }
+//        for (int i = 0; i < 8; i++) {
+//            players.get(i % numPlayers).addCard(occupationDeck.get(i), "occupation");
+//        }
+//
+//        for (int i = 0; i < 8; i++) {
+//            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
+//        }
 
-        for (int i = 0; i < 8; i++) {
-            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
+        // TODO 테스트 셋업 직업카드:양보행자(ShepherdCard(42) index 7) 보조설비:경질자기(HardenedClay(46) index4)
+        // 보조설비 다 갖는걸로
+
+        for (Player player : players) {
+            player.addCard(new ShepherdCard(42), ".");
+            player.addCard(new HardenedClay(46), ".");
+            player.addCard(new PotteryWorkshop(29), ".");
+            player.addCard(new Hearth1(30), ".");
+            player.addCard(new FurnitureWorkshop(31), ".");
+            player.addCard(new StoneOven(32), ".");
+            player.addCard(new Hearth2(33), ".");
+            player.addCard(new ClayOven(34), ".");
         }
     }
 
@@ -236,48 +257,61 @@ public class GameService {
         }
     }
 
-    private void playRound() {
-        for (Player player : players) {
-            List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
-            // 교환 가능한 카드 정보를 프론트엔드로 전송
-            Map<String, Object> exchangeableCardsInfo = Map.of(
-                    "playerId", player.getId(),
-                    "exchangeableCards", exchangeableCards.stream()
-                            .filter(card -> {
-                                // 자원이 충분한지 확인
-                                Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                    if (player.getResource(entry.getKey()) < entry.getValue()) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            })
-                            .map(card -> {
-                                if (card instanceof CommonCard) {
-                                    CommonCard commonCard = (CommonCard) card;
-                                    // 교환 가능한 최대 값 계산
-                                    Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                    int maxExchangeAmount = Integer.MAX_VALUE;
-                                    for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                        int availableAmount = player.getResource(entry.getKey()) / entry.getValue();
-                                        maxExchangeAmount = Math.min(maxExchangeAmount, availableAmount);
-                                    }
-                                    return Map.of(
-                                            "id", commonCard.getId(),
-                                            "name", commonCard.getName(),
-//                                            "description", commonCard.getDescription(),
-                                            "exchangeRate", exchangeRate,
-                                            "maxExchangeAmount", maxExchangeAmount
-                                    );
-                                } else {
-                                    return Map.of(); // 기본값
-                                }
-                            })
-                            .collect(Collectors.toList())
-            );
+    public void sendExchangeableCardsInfoToFrontEnd(String playerId, ExchangeTiming timing) {
+        Player player = getPlayerByID(playerId);
+        if (player != null) {
+            Map<String, Object> exchangeableCardsInfo = getExchangeableCardsInfo(player, timing);
             notifyPlayer(player, exchangeableCardsInfo);
         }
+    }
+
+
+    private Map<String, Object> getExchangeableCardsInfo(Player player, ExchangeTiming timing) {
+        List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(timing);
+        return Map.of(
+                "playerId", player.getId(),
+                "exchangeableCards", exchangeableCards.stream()
+                        .filter(card -> {
+                            // 자원이 충분한지 확인
+                            Map<String, Integer> exchangeRate = card.getExchangeRate();
+                            for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
+                                if (player.getResource(entry.getKey()) < entry.getValue()) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        })
+                        .map(card -> {
+                            if (card instanceof CommonCard) {
+                                CommonCard commonCard = (CommonCard) card;
+                                // 교환 가능한 최대 값 계산
+                                Map<String, Integer> exchangeRate = card.getExchangeRate();
+                                int maxExchangeAmount = Integer.MAX_VALUE;
+                                for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
+                                    int availableAmount = player.getResource(entry.getKey()) / entry.getValue();
+                                    maxExchangeAmount = Math.min(maxExchangeAmount, availableAmount);
+                                }
+                                return Map.of(
+                                        "id", commonCard.getId(),
+                                        "name", commonCard.getName(),
+                                        "exchangeRate", exchangeRate,
+                                        "maxExchangeAmount", maxExchangeAmount
+                                );
+                            } else {
+                                return Map.of(); // 기본값
+                            }
+                        })
+                        .collect(Collectors.toList())
+        );
+    }
+
+
+
+
+    private void playRound() {
+//        for (Player player : players) {
+//            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
+//        }
 
         boolean roundFinished = false;
         while (!roundFinished) {
@@ -308,16 +342,18 @@ public class GameService {
         ExchangeableCard card = (ExchangeableCard) mainBoard.getCardByName(cardName);
 
         if (card != null && (card.canExchange(ExchangeTiming.ANYTIME) || card.canExchange(ExchangeTiming.HARVEST))) {
-            card.executeExchange(player, fromResource, toResource, amount);
+            card.executeExchange(player);
         }
     }
 
 
     private void playerTurn(String playerID, List<ActionRoundCard> availableCards) {
         Player player = getPlayerByID(playerID);
+        sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
 
         if (player != null) {
 
+            player.printActiveCardsLists();
             // 플레이어에게 턴 정보를 프론트엔드로 전송
             Map<String, Object> playerTurnInfo = Map.of(
                     "playerId", player.getId(),
@@ -328,7 +364,7 @@ public class GameService {
 //                                    "description", card.getDescription()
                             ))
                             .collect(Collectors.toList()),
-                    "message", "턴 정보를 아래와 같은 포맷으로 전송해주세요.: {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
+                    "message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
             );
             notifyPlayer(player, playerTurnInfo);
 
@@ -341,26 +377,6 @@ public class GameService {
                 }
             }
             player.printActiveCardsLists();
-
-//            PlayerBoard playerBoard = player.getPlayerBoard();
-
-//            // 플레이어 보드 정보 포함
-//            Map<String, Object> playerBoardInfo = Map.of(
-//                    "tiles", playerBoard.getTileInfo()
-////                    "fences", playerBoard.getFences(),
-////                    "familyMembers", playerBoard.getFamilyMembers(),
-////                    "animals", playerBoard.getAnimals(),
-////                    "fenceAreas", playerBoard.getManagedFenceAreas().stream().map(FenceArea::toMap).collect(Collectors.toList())
-//            );
-//            notifyPlayer(player, playerBoardInfo);
-//
-//            Map<String, Integer> playerResources = player.getResources();
-//
-//            Map<String, Object> turnResultInfo = Map.of(
-//                    "playerId", player.getId(),
-//                    "resources", playerResources
-//            );
-//            notifyPlayer(player, turnResultInfo);
 
         }
     }
@@ -396,50 +412,13 @@ public class GameService {
 
         notifyPlayers(Map.of("message", "농장 단계가 시작되었습니다."));
 
-        // 수확 단계에서 사용 가능한 교환 가능 카드 정보를 프론트엔드로 전송
+//        for (Player player : players) {
+//            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.HARVEST);
+//            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
+//        }
         for (Player player : players) {
-            List<ExchangeableCard> harvestExchangeableCards = player.getExchangeableCards(ExchangeTiming.ANYTIME);
-            harvestExchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
-
-            Map<String, Object> harvestExchangeableCardsInfo = Map.of(
-                    "playerId", player.getId(),
-                    "harvestExchangeableCards", harvestExchangeableCards.stream()
-                            .filter(card -> {
-                                // 자원이 충분한지 확인
-                                Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                    if (player.getResource(entry.getKey()) < entry.getValue()) {
-                                        return false;
-                                    }
-                                }
-                                return true;
-                            })
-                            .map(card -> {
-                                if (card instanceof CommonCard) {
-                                    CommonCard commonCard = (CommonCard) card;
-                                    // 교환 가능한 최대 값 계산
-                                    Map<String, Integer> exchangeRate = card.getExchangeRate();
-                                    int maxExchangeAmount = Integer.MAX_VALUE;
-                                    for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-                                        int availableAmount = player.getResource(entry.getKey()) / entry.getValue();
-                                        maxExchangeAmount = Math.min(maxExchangeAmount, availableAmount);
-                                    }
-                                    return Map.of(
-                                            "id", commonCard.getId(),
-                                            "name", commonCard.getName(),
-                                            "description", commonCard.getDescription(),
-                                            "exchangeRate", exchangeRate,
-                                            "maxExchangeAmount", maxExchangeAmount
-                                    );
-                                } else {
-                                    return Map.of(); // 기본값
-                                }
-                            })
-                            .collect(Collectors.toList())
-            );
-            notifyPlayer(player, harvestExchangeableCardsInfo);
-        }
-        for (Player player : players) {
+            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.HARVEST);
+            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
             PlayerBoard board = player.getPlayerBoard();
             for (Tile[] row : board.getTiles()) {
                 for (Tile tile : row) {
@@ -515,26 +494,30 @@ public class GameService {
                 continue;
             }
 
-            Map<String, Object> animalPlacementInfo = Map.of(
-                    "playerId", player.getId(),
-                    "animalType", newAnimal.getType(),
-                    "validPositions", validPositions.stream()
-                            .map(pos -> Map.of("x", pos[0], "y", pos[1]))
-                            .collect(Collectors.toList())
-            );
-            notifyPlayer(player, animalPlacementInfo);
-
-            // 프론트엔드로부터 동물 배치 좌표를 기다림
-            synchronized (this) {
-                try {
-                    wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+//            Map<String, Object> animalPlacementInfo = Map.of(
+//                    "playerId", player.getId(),
+//                    "animalType", newAnimal.getType(),
+//                    "validPositions", validPositions.stream()
+//                            .map(pos -> Map.of("x", pos[0], "y", pos[1]))
+//                            .collect(Collectors.toList())
+//            );
+//            notifyPlayer(player, animalPlacementInfo);
+//
+//            // 프론트엔드로부터 동물 배치 좌표를 기다림
+//            synchronized (this) {
+//                try {
+//                    wait(); // 프론트엔드에서 신호를 받을 때까지 대기
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+            // 배치된 양의 수를 카운트하여 자원으로 추가
+            int placedSheep = player.placeNewAnimals();
+            System.out.println("placedSheep = " + placedSheep);
+            player.addResource("sheep", placedSheep);
 
         }
-        waitForAllPlayers(); // 모든 플레이어가 다음 단계로 넘어갈 준비가 될 때까지 대기
+//        waitForAllPlayers(); // 모든 플레이어가 다음 단계로 넘어갈 준비가 될 때까지 대기
     }
 
     public void receiveAnimalPlacement(String playerId, String animalType, int x, int y) {
@@ -552,7 +535,7 @@ public class GameService {
 
 
     private boolean isHarvestRound(int round) {
-        return round == 4 || round == 7 || round == 9 || round == 11 || round == 13 || round == 14;
+        return round == 1 || round == 4 || round == 7 || round == 9 || round == 11 || round == 13 || round == 14;
     }
 
     private void endRound() {
@@ -721,13 +704,6 @@ public class GameService {
         }
 
         return null;
-    }
-
-
-    private void notifyPlayers(String message) {
-        System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/game", message);
-
     }
 
     public MainBoard getMainBoard() {

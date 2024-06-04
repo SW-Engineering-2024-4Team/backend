@@ -16,7 +16,7 @@ import java.util.Map;
 public class CompressedSoil extends MinorImprovementCard {
 
     public CompressedSoil(int id) {
-        super(id, "다진 흙", "흙 1개를 가져옵니다. 울타리를 칠 때 나무 대신 흙을 낼 수 있습니다.", createPurchaseCost(), null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
+        super(id, "다진 흙", "흙 1개를 가져옵니다. 울타리를 칠 때 나무 대신 흙을 낼 수 있습니다.", null, null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
     }
 
     private static Map<String, Integer> createPurchaseCost() {

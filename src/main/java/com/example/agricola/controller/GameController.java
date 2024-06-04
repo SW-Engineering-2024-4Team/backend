@@ -1,5 +1,6 @@
 package com.example.agricola.controller;
 
+import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -121,14 +122,6 @@ public class GameController {
         gameService.receiveSelectedFencePositions(playerId, fencePositions);
     }
 
-//    @MessageMapping("/playerChoice")
-//    public void receivePlayerChoice(Map<String, Object> payload) {
-//        String playerId = (String) payload.get("playerId");
-//        String choiceType = (String) payload.get("choiceType");
-//        int choice = (int) payload.get("choice");
-//        gameService.receivePlayerChoice(playerId, choiceType, choice);
-//    }
-
     @MessageMapping("/playerChoice")
     public void receivePlayerChoice(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -144,6 +137,15 @@ public class GameController {
         String chosenResource = (String) payload.get("chosenResource");
         gameService.receiveChosenResource(playerId, chosenResource);
     }
+
+    @MessageMapping("/getExchangeableCards")
+    public void getExchangeableCards(Map<String, String> payload) {
+        String playerId = payload.get("playerId");
+        ExchangeTiming timing = ExchangeTiming.valueOf(payload.get("timing"));
+        gameService.sendExchangeableCardsInfoToFrontEnd(playerId, timing);
+    }
+
+
 
 
 
