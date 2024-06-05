@@ -58,7 +58,7 @@ public class Player {
 //        resources.put("beggingCard", 0);
 //        resources.put("sheep", 0);
 
-        // TODO
+//        // TODO
         resources.put("wood", 50);
         resources.put("clay", 50);
         resources.put("stone", 50);
@@ -296,7 +296,7 @@ public class Player {
 
     public List<ExchangeableCard> getExchangeableCards(ExchangeTiming timing) {
         List<ExchangeableCard> exchangeableCards = new ArrayList<>();
-        for (CommonCard card : majorImprovementCards) {
+        for (CommonCard card : activeCards) {
             if (card instanceof ExchangeableCard) {
                 ExchangeableCard exchangeableCard = (ExchangeableCard) card;
                 if (exchangeableCard.canExchange(timing)) {

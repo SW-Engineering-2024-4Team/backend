@@ -14,10 +14,14 @@ public interface ExchangeableCard {
     LinkedHashMap<String, Integer> getExchangeRate();
 
     default void executeExchange(Player player) {
+        System.out.println("in executeExchange");
         LinkedHashMap<String, Integer> exchangeRate = getExchangeRate();
         if (exchangeRate != null && exchangeRate.size() == 2) {
+            System.out.println("in if");
             String fromResource = (String) exchangeRate.keySet().toArray()[0];
+            System.out.println("fromResource = " + fromResource);
             String toResource = (String) exchangeRate.keySet().toArray()[1];
+            System.out.println("toResource = " + toResource);
 
             int fromResourceRate = exchangeRate.get(fromResource);
             int toResourceRate = exchangeRate.get(toResource);
@@ -32,6 +36,7 @@ public interface ExchangeableCard {
             }
 
             int toResourceAmount = toResourceRate * exchangeAmount;
+            System.out.println("toResourceAmount = " + toResourceAmount);
             player.addResource(toResource, toResourceAmount);
         }
     }

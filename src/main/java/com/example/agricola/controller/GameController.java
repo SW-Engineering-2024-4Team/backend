@@ -31,16 +31,31 @@ public class GameController {
         gameService.receivePlayerTurn(playerId, cardId);
     }
 
-    @MessageMapping("/exchangeResources")
-    public void exchangeResources(Map<String, Object> payload) {
+    @MessageMapping("/viewExchangeableCards")
+    public void viewExchangeableCards(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
-        String cardName = (String) payload.get("cardName");
-        String fromResource = (String) payload.get("fromResource");
-        String toResource = (String) payload.get("toResource");
-        int amount = (int) payload.get("amount");
-
-        gameService.handleExchangeRequest(playerId, cardName, fromResource, toResource, amount);
+        gameService.sendExchangeableCardsInfoToFrontEnd(playerId, ExchangeTiming.ANYTIME);
     }
+
+
+    //    @MessageMapping("/exchangeResources")
+//    public void exchangeResources(Map<String, Object> payload) {
+//        String playerId = (String) payload.get("playerId");
+//        String cardName = (String) payload.get("cardName");
+//        String fromResource = (String) payload.get("fromResource");
+//        String toResource = (String) payload.get("toResource");
+//        int amount = (int) payload.get("amount");
+//
+//        gameService.handleExchangeRequest(playerId, cardName, fromResource, toResource, amount);
+//    }
+@MessageMapping("/exchangeResources")
+public void exchangeResources(Map<String, Object> payload) {
+    String playerId = (String) payload.get("playerId");
+    int cardId = (int) payload.get("cardId");
+
+    gameService.handleExchangeRequest(playerId, cardId);
+}
+
 
     @MessageMapping("/placeAnimal")
     public void placeAnimal(Map<String, Object> payload) {
