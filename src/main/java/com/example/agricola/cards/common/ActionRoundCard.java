@@ -18,8 +18,12 @@ public interface ActionRoundCard extends CommonCard {
     boolean isAccumulative(); // 누적 가능한지 여부 확인 메서드
     boolean isOccupied(); // 카드가 점유되었는지 확인
     void setOccupied(boolean occupied); // 카드의 점유 상태 설정
-    String getOccupiedPlayerId();
-    void resetOccupiedPlayer(); //TODO 가족구성원 집에 돌아간후 이 메서드 호출, 게임진행 로직에 추가해야함(중요)
+    default String getOccupiedPlayerId() {
+        return "Default";
+    };
+    default void resetOccupiedPlayer() {
+
+    }; //TODO 가족구성원 집에 돌아간후 이 메서드 호출, 게임진행 로직에 추가해야함(중요)
 
     default void gainResources(Player player, Map<String, Integer> resources) {
         for (Map.Entry<String, Integer> entry : resources.entrySet()) {
