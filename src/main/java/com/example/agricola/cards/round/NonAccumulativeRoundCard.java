@@ -10,6 +10,7 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     private int cycle;
     private boolean revealed;
     private boolean occupied;
+    private String occupiedPlayerId = "null";
 
     public NonAccumulativeRoundCard(int id, String name, String description, int cycle) {
         this.id = id;
@@ -67,5 +68,15 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     @Override
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
+    }
+
+    @Override
+    public String getOccupiedPlayerId() {
+        return this.occupiedPlayerId;
+    }
+    //각카드에 구현필요
+    @Override
+    public void resetOccupiedPlayer() {
+        this.occupiedPlayerId = "null";
     }
 }

@@ -662,5 +662,29 @@ public int placeNewAnimals() {
     public GameService getGameService() {
         return gameService;
     }
+
+    /**
+     * 플레이어의 자원정보를 리스트로 반환하는 함수
+     * 나무, 흙, 돌, 음식, 양, 곡식, 성인, 신생아, 울타리, 외양간 보내줌 -> 엔트리 순서확인(울타리 외양간은 없는거같음) (순서변화필요할시 LinkedHashMap으로처리)
+     * ex) ["나무:3", "흙:2", "돌:0", ....]
+     * @return 플레이어 자원정보 리스트
+     * resources.put("wood", 0);
+     * resources.put("clay", 0);
+     * resources.put("stone", 0);
+     * resources.put("grain", 0);
+     * resources.put("food", 0);
+     * resources.put("beggingCard", 0);
+     * resources.put("sheep", 0);
+     * 자원 보내주는 순서 프론트랑 정해야함.
+     */
+    public List<String> playerResourcesList() {
+        List<String> sendToFront = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+            String key = entry.getKey();
+            int value = entry.getValue();
+            sendToFront.add(key + ":" + String.valueOf(value));
+        }
+        return sendToFront;
+    }
 }
 
