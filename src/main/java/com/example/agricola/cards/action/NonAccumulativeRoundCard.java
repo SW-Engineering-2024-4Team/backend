@@ -6,20 +6,39 @@ import com.example.agricola.models.Player;
 
 import java.util.Map;
 
-public class NonAccumulativeActionCard implements ActionRoundCard {
+public class NonAccumulativeRoundCard implements ActionRoundCard {
     private int id;
     public String name;
     private String description;
     private boolean revealed;
     private boolean occupied;
     private Map<String, Integer> resourcesToGain;
+    private boolean hasResources = false;
+    private String occupiedPlayerId = "null";
 
-    public NonAccumulativeActionCard(int id, String name, String description) {
+    public NonAccumulativeRoundCard(int id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.revealed = false;
         this.occupied = false;
+    }
+
+    public void setHasResources() {
+        hasResources = true;
+    }
+
+    public boolean getHasResources() {
+        return hasResources;
+    }
+
+    public Map<String, Integer> getResourcesToGain() {
+        return resourcesToGain;
+    }
+
+    public Map<String, Integer> createResourcesToGain() {
+        setHasResources();
+        return resourcesToGain;
     }
 
     @Override
@@ -67,6 +86,16 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
     @Override
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
+    }
+
+    @Override
+    public String getOccupiedPlayerId() {
+        return occupiedPlayerId;
+    }
+
+    @Override
+    public void resetOccupiedPlayer() {
+        occupiedPlayerId = "null";
     }
 
 }

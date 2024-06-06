@@ -1,13 +1,13 @@
 package com.example.agricola.cards.factory.imp.action;
 
 
-import com.example.agricola.cards.action.AccumulativeActionCard;
+import com.example.agricola.cards.action.AccumulativeRoundCard;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Bush extends AccumulativeActionCard {
+public class Bush extends AccumulativeRoundCard {
 
     public Bush(int id) {
         super(id, "덤불", "나무 자원 1개를 누적합니다..", createAccumulatedAmounts());

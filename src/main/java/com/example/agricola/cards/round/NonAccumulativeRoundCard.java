@@ -3,6 +3,8 @@ package com.example.agricola.cards.round;
 import com.example.agricola.cards.common.ActionRoundCard;
 import com.example.agricola.models.Player;
 
+import java.util.Map;
+
 public class NonAccumulativeRoundCard implements ActionRoundCard {
     private int id;
     private String name;
@@ -10,7 +12,9 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     private int cycle;
     private boolean revealed;
     private boolean occupied;
+    private Map<String, Integer> resourcesToGain;
     private String occupiedPlayerId = "null";
+    private boolean hasResources = false;
 
     public NonAccumulativeRoundCard(int id, String name, String description, int cycle) {
         this.id = id;
@@ -20,6 +24,19 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
         this.revealed = false;
         this.occupied = false;
     }
+    public void setHasResources() {
+        hasResources = true;
+    }
+
+    public boolean getHasResources() {
+        return hasResources;
+    }
+
+    private Map<String, Integer> createResourcesToGain() {
+        setHasResources();
+        return resourcesToGain;
+    }
+
 
     @Override
     public void execute(Player player) {

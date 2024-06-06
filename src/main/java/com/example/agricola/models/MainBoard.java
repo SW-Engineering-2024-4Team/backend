@@ -1,5 +1,7 @@
 package com.example.agricola.models;
 
+import com.example.agricola.cards.action.AccumulativeRoundCard;
+import com.example.agricola.cards.action.NonAccumulativeRoundCard;
 import com.example.agricola.cards.common.AccumulativeCard;
 import com.example.agricola.cards.common.ActionRoundCard;
 import com.example.agricola.cards.common.CommonCard;
@@ -205,23 +207,27 @@ public class MainBoard {
      * 최종수정 2024.6.6
      */
     public ArrayList<String> sendMainBoardCardInfo(MainBoard mainBoard) {
+        //액션카드
         ArrayList <String> sendToFront = new ArrayList<String>();
         List<ActionRoundCard> actionCards = mainBoard.getActionCards();
         for (ActionRoundCard card : actionCards) {
-            String playerInfo = String.valueOf(card.getId());
             if (card.isRevealed()) {
-                playerInfo = "x" + playerInfo;
+                sendToFront.add("x" + String.valueOf(card.getId()));
             }
-            sendToFront.add(playerInfo);
+            else {
+                sendToFront.add(String.valueOf(card.getId()));
+            }
         }
         //라운드카드
         List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
         for (ActionRoundCard card : roundCards) {
-            String playerInfo = String.valueOf(card.getId());
+            String.valueOf(card.getId());
             if (card.isRevealed()) {
-                playerInfo = "x" + playerInfo;
+                 sendToFront.add("x" + String.valueOf(card.getId()));
             }
-            sendToFront.add(playerInfo);
+            else {
+                sendToFront.add(String.valueOf(card.getId()));
+            }
         }
         return sendToFront;
         //카드마다 플레이어가 놓을수있는지없는지 전달.
@@ -231,7 +237,8 @@ public class MainBoard {
      * 메인보드 위 액션카드위의 플레이어 리스트를 보냄
      * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
      * @return ex) ["1", "2", "null", ...]
-     * 최종수정 2024.6.5
+     * test필요
+     * 최종수정 2024.6.6
      */
     public List<String> mainboardActioncardPlayerList(MainBoard mainBoard) {
         List<ActionRoundCard> actionRoundCards = mainBoard.getActionCards();
@@ -249,12 +256,13 @@ public class MainBoard {
      * 메인보드 위 라운드카드위의 플레이어 리스트를 보냄
      * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
      * @return ex) ["1", "2", "null", ...]
-     * 최종수정 2024.6.5
+     * test필요
+     * 최종수정 2024.6.6
      */
     public List<String> mainboardRoundcardPlayerList(MainBoard mainBoard) {
-        List<ActionRoundCard> RoundCards = mainBoard.getRoundCards();
+        List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
         List<String> sendToFront = new ArrayList<>();
-        for (ActionRoundCard card : RoundCards) {
+        for (ActionRoundCard card : roundCards) {
             if (card.isOccupied()) {
                 sendToFront.add(card.getOccupiedPlayerId());
             } else {
@@ -265,32 +273,87 @@ public class MainBoard {
     }
 
     /**
-     * 메인보드 위 액션카드위의 누적 자원 리스트 를 보냄
+     * 메인보드 위 액션 카드위의 누적 자원 리스트 를 보냄
      * ActionRoundCard에 getPlayerId()구현필요
      * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
-     * @return ex) [["clay:1, "wood:2"] , ["wood:2"] , ["null"] , ...]
-     * 미완성. else if구현필요
+     * @return ex) [["clay:1, wood:2"] , ["wood:2"] , ["null"] , ...]
+     * test필요
      * 최종수정 2024.6.6
      */
 
-    public List<ArrayList<String>> mainboardAccumulateResourceList(MainBoard mainBoard) {
-        List<ActionRoundCard> RoundCards = mainBoard.getRoundCards();
+    public List<ArrayList<String>> mainboardActionCardAccumulateResourceList(MainBoard mainBoard) {
+        List<ActionRoundCard> actionCards = mainBoard.getActionCards();
         List<ArrayList<String>> sendToFront = new ArrayList<>();
-        for (ActionRoundCard card : RoundCards) {
+        for (ActionRoundCard card : actionCards) {
             ArrayList<String> resource = new ArrayList<>();
-            if (card.isAccumulative()) { //축적카드 일때
-                if (card instanceof AccumulativeCard) {
-                    Map<String, Integer> accumResource = ((AccumulativeCard) card).getAccumulatedResources();
-                    for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
-                        resource.add(entry.getKey() + ":" + entry.getValue());
-                    }
+            //자원 축적 카드일때
+            if (card instanceof AccumulativeRoundCard) {
+                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+                for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
+                    resource.add(entry.getKey() + ":" + entry.getValue());
                 }
             }
-            /*else if(is) { //자원축적칸이 아닌 자원축적x칸일때
-                resource.add("null");
-            }*/
-            else {
-                resource.add("null");
+            //자원 축적 카드가 아닐때
+            else { //자원축적칸이 아닌 자원축적x칸일때
+                if (card instanceof NonAccumulativeRoundCard) {
+                    //자원 축적칸이아닌 일반 자원칸
+                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
+                        Map<String, Integer> resources= ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+                            resource.add(entry.getKey() + ":" + entry.getValue());
+                        }
+                    }
+                    else {
+                        resource.add("null");
+                    }
+                }
+                else {
+                    System.out.println("Invalid card type or card type mismatch.");
+                }
+            }
+            sendToFront.add(resource);
+        }
+        return sendToFront;
+    }
+
+    /**
+     * 메인보드 위 라운드 카드 위의 누적 자원 리스트 를 보냄
+     * ActionRoundCard에 getPlayerId()구현필요
+     * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
+     * @return ex) [["clay:1, wood:2"] , ["wood:2"] , ["null"] , ...]
+     * test필요
+     * 최종수정 2024.6.6
+     */
+
+    public List<ArrayList<String>> mainboardRoundCardAccumulateResourceList(MainBoard mainBoard) {
+        List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
+        List<ArrayList<String>> sendToFront = new ArrayList<>();
+        for (ActionRoundCard card : roundCards) {
+            ArrayList<String> resource = new ArrayList<>();
+            //자원 축적 카드일때
+            if (card instanceof AccumulativeRoundCard) {
+                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+                for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
+                    resource.add(entry.getKey() + ":" + entry.getValue());
+                }
+            }
+            //자원 축적 카드가 아닐때
+            else { //자원축적칸이 아닌 자원축적x칸일때
+                if (card instanceof NonAccumulativeRoundCard) {
+                    //자원 축적칸이아닌 일반 자원칸
+                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
+                        Map<String, Integer> resources= ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+                            resource.add(entry.getKey() + ":" + entry.getValue());
+                        }
+                    }
+                    else {
+                        resource.add("null");
+                    }
+                }
+                else {
+                    System.out.println("Invalid card type or card type mismatch.");
+                }
             }
             sendToFront.add(resource);
         }
@@ -301,6 +364,8 @@ public class MainBoard {
      * 구매가능한경우 "id", 불가능한경우 "x" + "id"
      * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
      * @return ex) ["1", "x7", "3".... ]
+     * test필요
+     * 최종수정 2024.6.6
      */
     public ArrayList<String> sendMainBoardMajorImprovementInfo(MainBoard mainBoard) {
         ArrayList <String> sendToFront = new ArrayList<>();
@@ -318,10 +383,12 @@ public class MainBoard {
     }
 
     /**
-     *메인보드의 교환 가능한 카드 목록(주설비, 자우ㅠ)을 ArrayList<String>으로 보내줌.
+     *메인보드의 교환 가능한 카드 목록(주설비)을 ArrayList<String>으로 보내줌.
      *교환 가능 카드인경우 "id", 불가능한경우 "x" + "id"
      * @param mainBoard 현재 진행되고 있는 게임의 Mainboard객체
      * @return ex) ["1", "x7", "3".... ]
+     * test필요
+     * 최종수정 2024.6.6
      */
     public ArrayList<String> sendMainBoardExchangableCardInfo(MainBoard mainBoard, Player player, ExchangeTiming timing) {
         ArrayList <String> sendToFront = new ArrayList<>();

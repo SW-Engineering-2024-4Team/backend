@@ -1,13 +1,13 @@
 package com.example.agricola.cards.factory.imp.action;
 
 
-import com.example.agricola.cards.action.NonAccumulativeActionCard;
+import com.example.agricola.cards.action.NonAccumulativeRoundCard;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Teaching1 extends NonAccumulativeActionCard {
+public class Teaching1 extends NonAccumulativeRoundCard {
 
     public Teaching1(int id) {
         super(id, "교습1", "음식 2개를 지불하고 직업카드를 사용합니다.");

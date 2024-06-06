@@ -6,7 +6,7 @@ import com.example.agricola.models.Player;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AccumulativeActionCard implements AccumulativeCard {
+public class AccumulativeRoundCard implements AccumulativeCard {
     private int id;
     private String name;
     private String description;
@@ -14,8 +14,9 @@ public class AccumulativeActionCard implements AccumulativeCard {
     private boolean occupied;
     private Map<String, Integer> accumulatedResources;
     private Map<String, Integer> accumulatedAmounts;
+    private String occupiedPlayerId = "null";
 
-    public AccumulativeActionCard(int id, String name, String description, Map<String, Integer> accumulatedAmounts) {
+    public AccumulativeRoundCard(int id, String name, String description, Map<String, Integer> accumulatedAmounts) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -102,6 +103,16 @@ public class AccumulativeActionCard implements AccumulativeCard {
     @Override
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
+    }
+
+    @Override
+    public String getOccupiedPlayerId() {
+        return occupiedPlayerId;
+    }
+
+    @Override
+    public void resetOccupiedPlayer() {
+        occupiedPlayerId = "null";
     }
 
     public void setAccumulatedResources(Map<String, Integer> resources) {
