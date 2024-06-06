@@ -196,9 +196,9 @@ public class GameService {
         while (currentRound <= 14) {
             System.out.println("-------------------------------------------------------------------------------");
             System.out.println("Round " + currentRound + " starts.");
-//            prepareRound();
+            prepareRound();
             System.out.println("after preparing round " + currentRound);
-//            playRound();
+            playRound();
             System.out.println("after playing round " + currentRound);
             if (isHarvestRound(currentRound)) {
                 harvestPhase();

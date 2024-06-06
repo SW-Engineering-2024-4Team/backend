@@ -60,10 +60,10 @@ public class FarmExpansion extends NonAccumulativeActionCard {
             action1.run();
             action2.run();
         } else if (choice == 1) {
-            System.out.println("Executing action1: buildHouse");
+            System.out.println("Executing action1: 방만들기");
             action1.run();
         } else if (choice == 2) {
-            System.out.println("Executing action2: buildBarn");
+            System.out.println("Executing action2: 외양간 짓기");
             action2.run();
         } else {
             System.out.println("Invalid choice: " + choice); // 디버깅 메시지 추가
