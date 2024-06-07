@@ -28,17 +28,17 @@ public class GameService {
 
     private void notifyPlayers(Map<String, Object> message) {
         System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/game", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     private void notifyPlayers(String message) {
         System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/game", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void notifyPlayer(Player player, Map<String, Object> message) {
         System.out.println("Sending message to player " + player.getId() + ": " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/game", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
 
@@ -194,7 +194,7 @@ public class GameService {
         System.out.println("playGame method called with gameID: " + gameID); // 디버깅 메시지 추가
 
         while (currentRound <= 14) {
-            System.out.println("-------------------------------------------------------------------------------");
+            System.out.println("-------------------------------------------------------------------------------GameService.playGame");
             System.out.println("Round " + currentRound + " starts.");
             prepareRound();
             System.out.println("after preparing round " + currentRound);
@@ -263,7 +263,7 @@ public class GameService {
         Player player = getPlayerByID(playerId);
         if (player != null) {
             Map<String, Object> exchangeableCardsInfo = getExchangeableCardsInfo(player, timing);
-            simpMessagingTemplate.convertAndSend("/topic/exchangeableCards", exchangeableCardsInfo);
+            simpMessagingTemplate.convertAndSend("/topic/room/1", exchangeableCardsInfo);
         }
     }
 
@@ -860,7 +860,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     public void sendCardListToFrontEnd(List<CommonCard> cards, String playerId) {
         List<Map<String, Object>> cardList = cards.stream().map(CommonCard::toMap).collect(Collectors.toList());
-        simpMessagingTemplate.convertAndSend("/topic/cards/" + playerId, cardList);
+        simpMessagingTemplate.convertAndSend("/topic/room/1" + playerId, cardList);
         System.out.println("Sending card list to frontend for player " + playerId + ": " + cardList);
     }
 
@@ -895,7 +895,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                         .map(pos -> Map.of("x", pos[0], "y", pos[1]))
                         .collect(Collectors.toList())
         );
-        simpMessagingTemplate.convertAndSend("/topic/validPositions", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     private final Map<String, CountDownLatch> latches = new ConcurrentHashMap<>();
@@ -925,7 +925,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 "playerId", playerId,
                 "actionType", "buildFence"
         );
-        simpMessagingTemplate.convertAndSend("/topic/fenceRequest", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void receiveSelectedFencePositions(String playerId, List<int[]> positions) {
@@ -947,7 +947,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 "actionType", "addNewborn",
                 "position", Map.of("x", x, "y", "y")
         );
-        simpMessagingTemplate.convertAndSend("/topic/familyMemberPosition", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void sendRenovationInfo(String playerId, RoomType newType) {
@@ -956,7 +956,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 "actionType", "renovateRooms",
                 "newRoomType", newType.name()
         );
-        simpMessagingTemplate.convertAndSend("/topic/renovationInfo", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void sendTurnOrderInfo(String playerId, List<Player> currentTurnOrder, List<Player> newTurnOrder) {
@@ -970,7 +970,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                         .map(player -> Map.of("id", player.getId(), "name", player.getName()))
                         .collect(Collectors.toList())
         );
-        simpMessagingTemplate.convertAndSend("/topic/turnOrderInfo", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
 
@@ -980,7 +980,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 "placedAnimals", placedAnimals,
                 "remainingCapacity", remainingCapacity
         );
-        simpMessagingTemplate.convertAndSend("/topic/animalPlacement", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void sendChoiceRequestToFrontEnd(String playerId, String choiceType, Map<String, Object> options) {
@@ -989,7 +989,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
         message.put("choiceType", choiceType);
         message.put("options", options);
 
-        simpMessagingTemplate.convertAndSend("/topic/choiceRequest", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     private Map<String, CountDownLatch> playerLatches = new ConcurrentHashMap<>();
@@ -1100,7 +1100,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 "resource2", resource2,
                 "amount", amount
         );
-        simpMessagingTemplate.convertAndSend("/topic/choiceRequest", options);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", options);
         System.out.println("Sending resource choice request to frontend for player " + playerId + ": " + options);
 
     }
@@ -1136,7 +1136,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
         System.out.println("Sending major improvement cards to frontend for player " + player.getId() + ": " + cards);
 
-        simpMessagingTemplate.convertAndSend("/topic/majorImprovementCards", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
 
@@ -1147,7 +1147,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
         System.out.println("Sending player resources to frontend for player " + player.getId() + ": " + player.getResources());
 
-        simpMessagingTemplate.convertAndSend("/topic/playerResources", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void sendActiveCardsListToFrontEnd(Player player) {
@@ -1162,6 +1162,6 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
         System.out.println("Sending active cards to frontend for player " + player.getId() + ": " + cards);
 
-        simpMessagingTemplate.convertAndSend("/topic/activeCards", message);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 }
