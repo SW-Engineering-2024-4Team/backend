@@ -13,7 +13,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,31 +28,23 @@ public class GameController {
     @MessageMapping("/room/{roomId}/actionCardClick")
     @SendTo("/topic/room/{roomId}")
     public GameActionBoardMessage handleAction(String message, @DestinationVariable String roomId) throws JsonProcessingException {
-        // 0: 사람없음, 1~4: 플레이어 -> 14개 카드
         int[] clickedActionCards = {0, 0, 0, 0, 0, 2, 3, 4, 0, 0, 0, 0, 0, 0};
-
-        // 자원누적이 필요한 카드: 1,2,4,6,11,12,13 번
         int[] resourceActionCards = {1,2,3,4,5,6,7,8,9,10,11,12,13,14};
 
         System.out.println("Action performed in room " + roomId);
         System.out.println(message);
 
-
-        // Parse the JSON message
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(message);
         int playerId = jsonNode.get("currentPlayer").asInt();
         int cardId = jsonNode.get("cardNumber").asInt();
 
-        // Log the extracted values
         System.out.println("Player ID: " + playerId);
         System.out.println("Card ID: " + cardId);
 
-        //simpMessagingTemplate.convertAndSend("/topic/room/{roomId}", message);
         gameService.receivePlayerTurn(String.valueOf(playerId), cardId);
         return new GameActionBoardMessage("Action performed in room " + roomId + "!", clickedActionCards, resourceActionCards);
     }
-
 
     @MessageMapping("/room/{roomId}/viewExchangeableCards")
     public void viewExchangeableCards(Map<String, Object> payload) {
@@ -61,25 +52,12 @@ public class GameController {
         gameService.sendExchangeableCardsInfoToFrontEnd(playerId, ExchangeTiming.ANYTIME);
     }
 
-
-    //    @MessageMapping("/exchangeResources")
-//    public void exchangeResources(Map<String, Object> payload) {
-//        String playerId = (String) payload.get("playerId");
-//        String cardName = (String) payload.get("cardName");
-//        String fromResource = (String) payload.get("fromResource");
-//        String toResource = (String) payload.get("toResource");
-//        int amount = (int) payload.get("amount");
-//
-//        gameService.handleExchangeRequest(playerId, cardName, fromResource, toResource, amount);
-//    }
-@MessageMapping("/room/{roomId}/exchangeResources")
-public void exchangeResources(Map<String, Object> payload) {
-    String playerId = (String) payload.get("playerId");
-    int cardId = (int) payload.get("cardId");
-
-    gameService.handleExchangeRequest(playerId, cardId);
-}
-
+    @MessageMapping("/room/{roomId}/exchangeResources")
+    public void exchangeResources(Map<String, Object> payload) {
+        String playerId = (String) payload.get("playerId");
+        int cardId = (int) payload.get("cardId");
+        gameService.handleExchangeRequest(playerId, cardId);
+    }
 
     @MessageMapping("/room/{roomId}/placeAnimal")
     public void placeAnimal(Map<String, Object> payload) {
@@ -87,7 +65,6 @@ public void exchangeResources(Map<String, Object> payload) {
         String animalType = (String) payload.get("animalType");
         int x = (int) payload.get("x");
         int y = (int) payload.get("y");
-
         gameService.receiveAnimalPlacement(playerId, animalType, x, y);
     }
 
@@ -125,7 +102,6 @@ public void exchangeResources(Map<String, Object> payload) {
         gameService.receiveSelectedCard(playerId, cardId);
     }
 
-
     @MessageMapping("/room/{roomId}/receiveSelectedPosition")
     public void receiveSelectedPosition(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -142,13 +118,11 @@ public void exchangeResources(Map<String, Object> payload) {
 
         if (x == null || y == null) {
             System.err.println("Received null coordinates from player: " + playerId);
-            return; // 또는 에러 핸들링 로직 추가
+            return;
         }
 
         gameService.receiveSelectedPosition(playerId, x, y);
     }
-
-
 
     @MessageMapping("/room/{roomId}/receiveSelectedFencePositions")
     public void receiveSelectedFencePositions(Map<String, Object> payload) {
@@ -161,15 +135,13 @@ public void exchangeResources(Map<String, Object> payload) {
         gameService.receiveSelectedFencePositions(playerId, fencePositions);
     }
 
-    //옵션 받기
     @MessageMapping("/room/{roomId}/playerChoice")
     public void receivePlayerChoice(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
         String choiceType = (String) payload.get("choiceType");
-        Object choice = payload.get("choice"); // choice를 Object로 받아서 동적으로 처리
+        Object choice = payload.get("choice");
         gameService.receivePlayerChoice(playerId, choiceType, choice);
     }
-
 
     @MessageMapping("/room/{roomId}/chooseResource")
     public void receiveChosenResource(Map<String, Object> payload) {
@@ -184,9 +156,4 @@ public void exchangeResources(Map<String, Object> payload) {
         ExchangeTiming timing = ExchangeTiming.valueOf(payload.get("timing"));
         gameService.sendExchangeableCardsInfoToFrontEnd(playerId, timing);
     }
-
-
-
-
-
 }

@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             ]
         };
         console.log('Sending startGame message with payload:', payload);
-        stompClient.send('/app/startGame', {}, JSON.stringify(payload));
+        stompClient.send('/app/1/start', {}, JSON.stringify(payload));
     }
 
     function viewExchangeableCards() {
