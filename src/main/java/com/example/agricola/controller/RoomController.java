@@ -49,6 +49,7 @@ package com.example.agricola.controller;
 import com.example.agricola.models.Player;
 import com.example.agricola.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -63,11 +64,11 @@ public class RoomController {
     @Autowired
     private GameService gameService;
 
-    @MessageMapping("/startGame")
+    @MessageMapping("/room/{roomId}/start")
     @SendTo("/topic/game")
-    public Map<String, Object> handleGameStart(Map<String, Object> payload) {
+    public Map<String, Object> handleGameStart(@DestinationVariable String roomId, Map<String, Object> payload) {
         System.out.println("Received startGame message");
-        String roomNumber = (String) payload.get("roomNumber");
+        String roomNumber = roomId;
         List<Map<String, Object>> playersData = (List<Map<String, Object>>) payload.get("players");
 
         List<Player> players = playersData.stream()
@@ -77,6 +78,9 @@ public class RoomController {
         gameService.startGame(roomNumber, players);
 
         System.out.println("Game started with players: " + players);
+
+        // 여기서 playGame 메서드 호출
+        gameService.playGame(roomNumber);
 
         return gameService.getGameState();
     }

@@ -15,9 +15,21 @@ public interface CommonCard {
     void execute(Player player);
 
     // 기능 조합 유틸리티 메서드
-    default void executeAndOr(Player player, Runnable... actions) {
-        for (Runnable action : actions) {
-            action.run();
+    default void executeAndOr(Player player, Runnable action1, Runnable action2) {
+        int choice = player.chooseOptionForAndOr(); // 플레이어가 선택한 옵션 (0, 1, 2 중 하나)
+        switch (choice) {
+            case 0: // action1과 action2 둘 다 실행
+                action1.run();
+                action2.run();
+                break;
+            case 1: // action1만 실행
+                action1.run();
+                break;
+            case 2: // action2만 실행
+                action2.run();
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid choice for executeAndOr");
         }
     }
 
@@ -31,8 +43,13 @@ public interface CommonCard {
     }
 
     default void executeThen(Player player, Runnable action1, Runnable action2) {
-        action1.run();
-        action2.run();
+        boolean choice = player.chooseOptionForThen(); // 플레이어가 선택한 옵션 (true or false)
+        if (choice) {
+            action1.run();
+            action2.run();
+        } else {
+            action1.run();
+        }
     }
 
     // 자원 체크 및 지불 메서드 추가

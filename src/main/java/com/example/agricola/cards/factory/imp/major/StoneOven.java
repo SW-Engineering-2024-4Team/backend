@@ -6,6 +6,7 @@ import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class StoneOven extends MajorImprovementCard {
@@ -32,17 +33,22 @@ public class StoneOven extends MajorImprovementCard {
     }
 
     private static Map<String, Integer> createBreadBakingExchangeRate() {
-        Map<String, Integer> breadBakingExchangeRate = new HashMap<>();
+        LinkedHashMap<String, Integer> breadBakingExchangeRate = new LinkedHashMap<>();
         breadBakingExchangeRate.put("grain", 2);
         breadBakingExchangeRate.put("food", 4);
         return breadBakingExchangeRate;
     }
 
+//    @Override
+//    public void triggerBreadBaking(Player player) {
+//        int grain = player.getResource("grain");
+//        int food = grain * 2;
+//        player.addResource("grain", -grain);
+//        player.addResource("food", food);
+//    }
+
     @Override
-    public void triggerBreadBaking(Player player) {
-        int grain = player.getResource("grain");
-        int food = grain * 2;
-        player.addResource("grain", -grain);
-        player.addResource("food", food);
+    public boolean hasBreadBakingExchangeRate() {
+        return true; // 이 클래스는 항상 빵굽기 교환 비율을 가지고 있음
     }
 }

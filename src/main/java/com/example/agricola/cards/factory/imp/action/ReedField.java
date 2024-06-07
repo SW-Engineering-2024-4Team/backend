@@ -1,13 +1,13 @@
 package com.example.agricola.cards.factory.imp.action;
 
 
-import com.example.agricola.cards.action.AccumulativeRoundCard;
+import com.example.agricola.cards.action.AccumulativeActionCard;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ReedField extends AccumulativeRoundCard {
+public class ReedField extends AccumulativeActionCard {
 
     public ReedField(int id) {
         super(id, "갈대밭", "나무 1개를 누적합니다..", createAccumulatedAmounts());

@@ -1,13 +1,13 @@
 package com.example.agricola.cards.factory.imp.action;
 
 
-import com.example.agricola.cards.action.NonAccumulativeRoundCard;
+import com.example.agricola.cards.action.NonAccumulativeActionCard;
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResourceMarket extends NonAccumulativeRoundCard {
+public class ResourceMarket extends NonAccumulativeActionCard {
     Map<String, Integer> resourcesToGain = new HashMap<String, Integer>();
 
     public ResourceMarket(int id) {

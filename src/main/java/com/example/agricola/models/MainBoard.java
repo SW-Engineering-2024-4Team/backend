@@ -1,7 +1,7 @@
 package com.example.agricola.models;
 
-import com.example.agricola.cards.action.AccumulativeRoundCard;
-import com.example.agricola.cards.action.NonAccumulativeRoundCard;
+import com.example.agricola.cards.action.AccumulativeActionCard;
+import com.example.agricola.cards.action.NonAccumulativeActionCard;
 import com.example.agricola.cards.common.AccumulativeCard;
 import com.example.agricola.cards.common.ActionRoundCard;
 import com.example.agricola.cards.common.CommonCard;
@@ -287,18 +287,18 @@ public class MainBoard {
         for (ActionRoundCard card : actionCards) {
             ArrayList<String> resource = new ArrayList<>();
             //자원 축적 카드일때
-            if (card instanceof AccumulativeRoundCard) {
-                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+            if (card instanceof AccumulativeActionCard) {
+                Map<String, Integer> accumResource = ((AccumulativeActionCard) card).getAccumulatedResources();
                 for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
                     resource.add(entry.getKey() + ":" + entry.getValue());
                 }
             }
             //자원 축적 카드가 아닐때
             else { //자원축적칸이 아닌 자원축적x칸일때
-                if (card instanceof NonAccumulativeRoundCard) {
+                if (card instanceof NonAccumulativeActionCard) {
                     //자원 축적칸이아닌 일반 자원칸
-                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
-                        Map<String, Integer> resources= ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                    if (((NonAccumulativeActionCard) card).getHasResources()) {
+                        Map<String, Integer> resources= ((NonAccumulativeActionCard) card).createResourcesToGain();
                         for (Map.Entry<String, Integer> entry : resources.entrySet()) {
                             resource.add(entry.getKey() + ":" + entry.getValue());
                         }
@@ -331,18 +331,18 @@ public class MainBoard {
         for (ActionRoundCard card : roundCards) {
             ArrayList<String> resource = new ArrayList<>();
             //자원 축적 카드일때
-            if (card instanceof AccumulativeRoundCard) {
-                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+            if (card instanceof AccumulativeActionCard) {
+                Map<String, Integer> accumResource = ((AccumulativeActionCard) card).getAccumulatedResources();
                 for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
                     resource.add(entry.getKey() + ":" + entry.getValue());
                 }
             }
             //자원 축적 카드가 아닐때
             else { //자원축적칸이 아닌 자원축적x칸일때
-                if (card instanceof NonAccumulativeRoundCard) {
+                if (card instanceof NonAccumulativeActionCard) {
                     //자원 축적칸이아닌 일반 자원칸
-                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
-                        Map<String, Integer> resources= ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                    if (((NonAccumulativeActionCard) card).getHasResources()) {
+                        Map<String, Integer> resources= ((NonAccumulativeActionCard) card).createResourcesToGain();
                         for (Map.Entry<String, Integer> entry : resources.entrySet()) {
                             resource.add(entry.getKey() + ":" + entry.getValue());
                         }
@@ -411,4 +411,17 @@ public class MainBoard {
         return sendToFront;
     }
 
+    public ActionRoundCard getCardById(int cardID) {
+        for (ActionRoundCard card : getActionCards()) {
+            if (card.getId() == cardID) {
+                return card;
+            }
+        }
+        for (ActionRoundCard card : getRoundCards()) {
+            if (card.getId() == (cardID)) {
+                return card;
+            }
+        }
+        return null;
+    }
 }

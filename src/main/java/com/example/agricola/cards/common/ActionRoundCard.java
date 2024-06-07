@@ -6,9 +6,11 @@ import com.example.agricola.controller.GameController;
 import com.example.agricola.enums.RoomType;
 import com.example.agricola.models.*;
 import com.example.agricola.service.GameService;
+import com.sun.tools.javac.Main;
 
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 public interface ActionRoundCard extends CommonCard {
@@ -30,14 +32,6 @@ public interface ActionRoundCard extends CommonCard {
             String resource = entry.getKey();
             int amount = entry.getValue();
 
-            // TODO 양 자원
-            // 보드 외부에 먼저 배치가 됨.
-            // 몇 마리 배치해야 하는지
-            // 빈 공간을 알려주시고
-            // 프론트가 어떤 좌표에 플레이어가 배치하고 싶어함.
-            // 플레이어가 어떤 좌표에 동물 배치했는지 알려주시고(배치 할 수 있는지 없는지)
-            // 배치를 못하는 경우
-
             if (resource.equals("sheep")) {
                 System.out.println("양 자원 시작");
                 // 양 자원일 경우
@@ -55,6 +49,7 @@ public interface ActionRoundCard extends CommonCard {
                 player.addResource(resource, amount);
             }
         }
+        player.getGameService().sendPlayerResourcesToFrontEnd(player);
     }
 
 
@@ -63,74 +58,165 @@ public interface ActionRoundCard extends CommonCard {
     * 프론트가 구매한 카드명 보여줌
     * 구매했다는 걸 프론트에게 알려줌
     * */
+// 직업 카드 사용
     // 직업 카드 사용
     default void useOccupationCard(Player player) {
-        // 직업 카드 사용 로직
+        GameService gameService = player.getGameService();
         List<CommonCard> occupationCards = player.getOccupationCards();
         if (!occupationCards.isEmpty()) {
-            // TODO 플레이어가 카드를 선택하는 로직 (예시로 첫 번째 카드를 선택했다고 가정)
-            UnifiedCard selectedCard = (UnifiedCard) occupationCards.get(0);
-            player.useUnifiedCard(selectedCard);
+            gameService.sendCardListToFrontEnd(occupationCards, player.getId());
+
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            UnifiedCard selectedCard = (UnifiedCard) gameService.getSelectedCard(player.getId());
+            if (selectedCard != null) {
+                player.useUnifiedCard(selectedCard);
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+//                gameService.sendActiveCardsListToFrontEnd(player);
+            } else {
+                System.out.println("카드 선택이 취소되었습니다.");
+            }
+        } else {
+            System.out.println("사용할 수 있는 직업 카드가 없습니다.");
         }
     }
+
+
+
+//    // 보조 설비 카드 사용
+//    default void useMinorImprovementCard(Player player) {
+//        // 보조 설비 카드 사용 로직
+//        List<CommonCard> minorImprovementCards = player.getMinorImprovementCards();
+//        if (!minorImprovementCards.isEmpty()) {
+//            UnifiedCard selectedCard = (UnifiedCard) minorImprovementCards.get(0);
+//            player.useUnifiedCard(selectedCard);
+//        }
+//    }
 
     // 보조 설비 카드 사용
     default void useMinorImprovementCard(Player player) {
-        // 보조 설비 카드 사용 로직
+        GameService gameService = player.getGameService();
         List<CommonCard> minorImprovementCards = player.getMinorImprovementCards();
         if (!minorImprovementCards.isEmpty()) {
-            // TODO 플레이어가 카드를 선택하는 로직 (예시로 첫 번째 카드를 선택했다고 가정)
-            UnifiedCard selectedCard = (UnifiedCard) minorImprovementCards.get(0);
-            player.useUnifiedCard(selectedCard);
+            gameService.sendCardListToFrontEnd(minorImprovementCards, player.getId());
+
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            UnifiedCard selectedCard = (UnifiedCard) gameService.getSelectedCard(player.getId());
+            if (selectedCard != null) {
+                System.out.println("보조설비 카드를 사용합니다.");
+                player.useUnifiedCard(selectedCard);
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+                gameService.sendActiveCardsListToFrontEnd(player);
+            } else {
+                System.out.println("카드 선택이 취소되었습니다.");
+            }
+        } else {
+            System.out.println("사용할 수 있는 보조 설비 카드가 없습니다.");
         }
     }
 
-    // 주요 설비 카드 구매
     default void purchaseMajorImprovementCard(Player player) {
-        System.out.println("purchaseMajorImprovemetnCard 속 cardList");
-
         GameService gameService = player.getGameService();
-        MainBoard mainBoard = gameService.getMainBoard();
+        System.out.println("purchaseMajorImprovementCard 속 cardList");
 
-        mainBoard.printCardLists();
+        MainBoard mainBoard = gameService.getMainBoard();
         List<CommonCard> majorImprovementCards = mainBoard.getAvailableMajorImprovementCards();
 
-        // TODO 플레이어가 카드를 선택하는 로직 (예시로 랜덤 선택)
-        MajorImprovementCard selectedCard = null;
         if (!majorImprovementCards.isEmpty()) {
-            selectedCard = (MajorImprovementCard) majorImprovementCards.get(new Random().nextInt(majorImprovementCards.size()));
-        }
+            gameService.sendCardListToFrontEnd(majorImprovementCards, player.getId());
 
-        if (selectedCard != null && player.checkResources(selectedCard.getPurchaseCost())) {
-            player.payResources(selectedCard.getPurchaseCost());
-            player.addMajorImprovementCard(selectedCard);
-            selectedCard.setPurchased(true); // 카드가 구매되었음을 표시
-            System.out.println(selectedCard.getName() + " 카드가 성공적으로 구매되었습니다.");
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            MajorImprovementCard selectedCard = (MajorImprovementCard) gameService.getSelectedCard(player.getId());
+            if (selectedCard != null && player.checkResources(selectedCard.getPurchaseCost())) {
+//                player.payResources(selectedCard.getPurchaseCost());
+                selectedCard.execute(player);
+                player.addMajorImprovementCard(selectedCard);
+                player.addCard(selectedCard, ".");
+                selectedCard.setPurchased(true); // 카드가 구매되었음을 표시
+                player.addCard(selectedCard, "majorimprovementcard");
+                System.out.println(selectedCard.getName() + " 카드가 성공적으로 구매되었습니다.");
+
+                // 자원 차감 후 업데이트된 정보를 프론트엔드로 전송
+                gameService.sendPlayerResourcesToFrontEnd(player);
+
+                // 프론트엔드에 플레이어의 보유 major improvement cards를 전송
+                gameService.sendActiveCardsListToFrontEnd(player);
+            } else {
+                System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
+            }
         } else {
-            System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
+            System.out.println("구매할 수 있는 주요 설비 카드가 없습니다.");
         }
-
     }
+
+
 
     /*
     *
     * */
+    // 빵굽기 트리거
     default void triggerBreadBaking(Player player) {
-        List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
-        List<BakingCard> bakingCards = majorImprovementCards.stream()
-                .filter(card -> card instanceof BakingCard)
+        GameService gameService = player.getGameService();
+        List<CommonCard> majorImprovementCards = player.getActiveCards();
+        List<CommonCard> bakingCards = majorImprovementCards.stream()
+                .filter(card -> card instanceof BakingCard && ((BakingCard) card).hasBreadBakingExchangeRate())
                 .map(card -> (BakingCard) card)
                 .collect(Collectors.toList());
 
         if (!bakingCards.isEmpty()) {
-            // TODO 플레이어가 카드를 선택하는 로직
-            BakingCard selectedCard = player.selectBakingCard(bakingCards);
-            selectedCard.triggerBreadBaking(player);
+            gameService.sendCardListToFrontEnd(bakingCards, player.getId());
+            // CountDownLatch를 사용하여 대기
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(player.getId(), latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            BakingCard selectedCard = (BakingCard) gameService.getSelectedCard(player.getId());
+            if (selectedCard != null) {
+                selectedCard.triggerBreadBaking(player);
+            } else {
+                System.out.println("카드 선택이 취소되었습니다.");
+            }
         } else {
             System.out.println("사용 가능한 설비가 없습니다.");
-            // 빵굽기 가능한 설비가 없다는 메시지 표시
         }
+        player.getGameService().sendPlayerResourcesToFrontEnd(player);
     }
+
 
     // 기물 짓기
 
@@ -150,32 +236,59 @@ public interface ActionRoundCard extends CommonCard {
         // 가능한 좌표를 가져옴
         Set<int[]> validPositions = playerBoard.getValidHousePositions();
 
-        // TODO: 플레이어가 좌표를 선택하는 로직 (예시로 첫 번째 유효한 좌표를 선택했다고 가정)
-        int[] selectedPosition = validPositions.iterator().next();
-        int x = selectedPosition[0];
-        int y = selectedPosition[1];
+        if (!validPositions.isEmpty()) {
+            // 가능한 좌표를 프론트엔드로 전송
+            GameService gameService = player.getGameService();
+            String playerId = player.getId();
+            gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "house");
 
-        // 기존 집의 타입을 가져옴
-        RoomType currentRoomType = playerBoard.getExistingRoomType();
+            // 선택된 좌표를 프론트엔드로부터 받아옴
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
 
-        if (currentRoomType == null) {
-            System.out.println("기존 집 타입을 찾을 수 없습니다.");
-            return;
-        }
-        if (playerBoard.canBuildHouse(x, y, currentRoomType, playerResources)) {
-            Map<String, Integer> cost = player.getHouseResourceCost(currentRoomType);
-            if (player.checkResources(cost)) {
-                player.payResources(cost);
-                player.getPlayerBoard().buildHouse(x, y, currentRoomType);
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            int[] selectedPosition = gameService.getSelectedPosition(playerId);
+            int x = selectedPosition[0];
+            int y = selectedPosition[1];
+
+            System.out.println("Selected position: (" + x + ", " + y + ")");
+
+            // 기존 집의 타입을 가져옴
+            RoomType currentRoomType = playerBoard.getExistingRoomType();
+
+            if (currentRoomType == null) {
+                System.out.println("기존 집 타입을 찾을 수 없습니다.");
+                return;
+            }
+            System.out.println("Current room type: " + currentRoomType);
+
+            if (playerBoard.canBuildHouse(x, y, currentRoomType, playerResources)) {
+                Map<String, Integer> cost = player.getHouseResourceCost(currentRoomType);
+                if (player.checkResources(cost)) {
+                    player.payResources(cost);
+                    player.getPlayerBoard().buildHouse(x, y, currentRoomType);
+                    System.out.println("House built at (" + x + ", " + y + ") with room type: " + currentRoomType);
+
+                } else {
+                    // 자원이 부족하다는 메시지 표시
+                    System.out.println("자원이 부족합니다.");
+                }
             } else {
-                // 자원이 부족하다는 메시지 표시
-                System.out.println("자원이 부족합니다.");
+                // 집을 지을 수 없는 조건이라는 메시지 표시
+                System.out.println("집을 지을 수 없습니다.");
             }
         } else {
-            // 집을 지을 수 없는 조건이라는 메시지 표시
-            System.out.println("집을 지을 수 없습니다.");
+            // 유효한 건축 위치가 없다는 메시지 표시
+            System.out.println("유효한 건축 위치가 없습니다.");
         }
     }
+
+
 
     // 밭 일구기
     default void plowField(Player player) {
@@ -185,132 +298,113 @@ public interface ActionRoundCard extends CommonCard {
         // 가능한 좌표를 가져옴
         Set<int[]> validPositions = playerBoard.getValidPlowPositions();
 
-        // TODO: 플레이어가 좌표를 선택하는 로직 (예시로 첫 번째 유효한 좌표를 선택했다고 가정)
         if (!validPositions.isEmpty()) {
-            int[] selectedPosition = validPositions.iterator().next();
+            // 가능한 좌표를 프론트엔드로 전송
+            GameService gameService = player.getGameService();
+            String playerId = player.getId();
+            gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "plow");
+
+            // 선택된 좌표를 프론트엔드로부터 받아옴
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            int[] selectedPosition = gameService.getSelectedPosition(playerId);
             int x = selectedPosition[0];
             int y = selectedPosition[1];
 
             playerBoard.plowField(x, y);
+            System.out.println("Plowed field at (" + x + ", " + y + ")");
         } else {
             System.out.println("밭을 일굴 수 있는 위치가 없습니다.");
         }
     }
 
+
+
     // 외양간 짓기
     default void buildBarn(Player player) {
-
         PlayerBoard playerBoard = player.getPlayerBoard();
 
         // 가능한 좌표를 가져옴
         Set<int[]> validPositions = playerBoard.getValidBarnPositions();
 
-        // TODO: 플레이어가 좌표를 선택하는 로직 (예시로 첫 번째 유효한 좌표를 선택했다고 가정)
         if (!validPositions.isEmpty()) {
-            int[] selectedPosition = validPositions.iterator().next();
+            // 가능한 좌표를 프론트엔드로 전송
+            GameService gameService = player.getGameService();
+            String playerId = player.getId();
+            gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "barn");
+
+            // 선택된 좌표를 프론트엔드로부터 받아옴
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch); // latch를 gameService에 저장
+
+            System.out.println("프론트엔드에게 좌표 전송");
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            int[] selectedPosition = gameService.getSelectedPosition(playerId);
+            if (selectedPosition == null) {
+                System.out.println("No position selected for barn.");
+                return;
+            }
+            System.out.println("프론트엔드에게 좌표 받음");
+
             int x = selectedPosition[0];
             int y = selectedPosition[1];
 
             if (playerBoard.canBuildBarn(x, y)) {
                 player.buildBarn(x, y);
+                System.out.println("Barn built at (" + x + ", " + y + ")");
             } else {
-                System.out.println("외양간을 지을 수 없습니다.");
+                System.out.println("Cannot build barn at (" + x + ", " + y + ")");
             }
         } else {
-            System.out.println("외양간을 지을 수 있는 위치가 없습니다.");
+            System.out.println("No valid positions for barn.");
         }
     }
 
-//    // 울타리 짓기
-//    // 프론트에게 좌표 요청
-//    // 프론트가 좌표 set (1,1)(1,2)(1,3)
-//    // 그거 갖고 울타리 지으면 됨
-//    default void buildFence(Player player) {
-//        // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
-//        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-//        player.getPlayerBoard().printPlayerBoardWithFences("유효 좌표", validPositions);
-//
-//        // 지을 수 있는 좌표가 없으면 짓지 못함.
-//        if (!validPositions.isEmpty()) {
-//            List<int[]> selectedPositions = new ArrayList<>();
-//
-//            /*
-//             * 프론트엔드가 한 칸의 좌표를 보내줄 때 마다 필요한 자원 계산 및 유효 좌표를 업데이트 하기 위한 변수
-//             * 지을 좌표들을 모으기 위함.
-//             * */
-//
-//            // TODO 좌표 무더기로 들어오면 펜스 짓기로. 하나씩 선택은 프론트에서 하기로
-//            boolean fenceBuildingComplete = false;
-//            while (!fenceBuildingComplete) {
-//                // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
-//                int[] position = validPositions.iterator().next();
-//                selectedPositions.add(position);
-//                validPositions = player.getPlayerBoard().getValidFencePositions();
-//                // 유효 좌표가 없거나, 자원 부족등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
-//                if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
-//                    fenceBuildingComplete = true;
-//                }
-//            }
-//            // 선택된 좌표들의 모음으로 울타리를 지음
-//            player.getPlayerBoard().buildFences(selectedPositions, player);
-//            // 울타리 짓는데 필요한 자원을 차감
-//            player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
-//            System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
-//    }
 
+    // 울타리 짓기
     default void buildFence(Player player) {
         // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
-        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-        player.getPlayerBoard().printPlayerBoardWithFences("유효 좌표", validPositions);
+        PlayerBoard playerBoard = player.getPlayerBoard();
+        GameService gameService = player.getGameService();
+        String playerId = player.getId();
 
-        // 지을 수 있는 좌표가 없으면 짓지 못함.
-        if (!validPositions.isEmpty()) {
-            List<int[]> selectedPositions = new ArrayList<>();
+        // 프론트엔드에 울타리 요청을 보냄
+        gameService.sendFenceRequestToFrontEnd(playerId);
 
-            boolean fenceBuildingComplete = false;
-            while (!fenceBuildingComplete) {
-                // 유효 위치 중 하나를 선택하는 로직 (가정)
-                Iterator<int[]> iterator = validPositions.iterator();
-                if (iterator.hasNext()) {
-                    int[] position = iterator.next();
-                    selectedPositions.add(position);
-                    iterator.remove();  // 선택한 위치를 유효 위치에서 제거
+        // 프론트엔드로부터 선택된 좌표를 받아옴
+        CountDownLatch latch = new CountDownLatch(1);
+        gameService.setLatch(playerId, latch);
 
-                    // 유효 좌표 업데이트
-                    validPositions = player.getPlayerBoard().getValidFencePositions();
-                    validPositions.removeAll(selectedPositions);
+        try {
+            latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-                    // 선택된 좌표와 인접한 타일들만 남기기
-                    validPositions.removeIf(pos -> !isAdjacent(selectedPositions.get(selectedPositions.size() - 1), pos));
+        List<int[]> selectedPositions = gameService.getSelectedFencePositions(playerId);
 
-                    // 유효 좌표가 없거나, 자원 부족 등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
-                    if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
-                        fenceBuildingComplete = true;
-                    }
-                } else {
-                    fenceBuildingComplete = true;
-                }
-            }
-
+        if (selectedPositions != null && !selectedPositions.isEmpty()) {
             // 선택된 좌표들의 모음으로 울타리를 지음
-            player.getPlayerBoard().buildFences(selectedPositions, player);
+            playerBoard.buildFences(selectedPositions, player);
             // 울타리 짓는데 필요한 자원을 차감
-            player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
+            player.payResources(Map.of("wood", playerBoard.calculateRequiredWoodForFences(selectedPositions)));
             System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
         } else {
             System.out.println("울타리를 지을 유효한 위치가 없습니다.");
         }
     }
 
-    // 인접한 좌표인지 확인하는 메서드
-    private boolean isAdjacent(int[] pos1, int[] pos2) {
-        int dx = Math.abs(pos1[0] - pos2[0]);
-        int dy = Math.abs(pos1[1] - pos2[1]);
-        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
-    }
 
 
 
@@ -318,29 +412,50 @@ public interface ActionRoundCard extends CommonCard {
 
 
 
-    // 곡식 심기 // 집, 외양간, 밭과 유사
+    // 곡식 심기
     default void plantField(Player player) {
         PlayerBoard playerBoard = player.getPlayerBoard();
+        GameService gameService = player.getGameService();
+        String playerId = player.getId();
 
-        // TODO: 플레이어가 곡식이나 야채를 선택하는 로직 (예시로 곡식을 선택했다고 가정)
         String cropType = "grain"; // 플레이어 선택에 따라 "grain" 또는 "vegetable"
 
-        // TODO: 플레이어가 밭 위치를 선택하는 로직 (예시로 첫 번째 유효한 밭을 선택했다고 가정)
-        Set<int[]> validFieldPositions = playerBoard.getValidFieldPositions();
-        if (!validFieldPositions.isEmpty()) {
-            int[] selectedPosition = validFieldPositions.iterator().next();
-            int x = selectedPosition[0];
-            int y = selectedPosition[1];
+        // 곡식을 심을 수 있는 유효한 좌표를 가져옴
+        Set<int[]> validPositions = playerBoard.getValidFieldPositions();
 
-            int initialCrops = cropType.equals("grain") ? 3 : 2;
+        if (!validPositions.isEmpty()) {
+            // 프론트엔드에 유효한 좌표를 보냄
+            gameService.sendValidPositionsToFrontEnd(playerId, validPositions, "plantField");
 
-            playerBoard.plantField(x, y, initialCrops, cropType);
-            Map<String, Integer> cost = Collections.singletonMap(cropType, 1);
-            player.payResources(cost);
+            // 프론트엔드로부터 선택된 좌표를 받아옴
+            CountDownLatch latch = new CountDownLatch(1);
+            gameService.setLatch(playerId, latch);
+
+            try {
+                latch.await(); // 프론트엔드에서 신호를 받을 때까지 대기
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            int[] selectedPosition = gameService.getSelectedPosition(playerId);
+
+            if (selectedPosition != null) {
+                int x = selectedPosition[0];
+                int y = selectedPosition[1];
+
+                int initialCrops = cropType.equals("grain") ? 3 : 2;
+
+                playerBoard.plantField(x, y, initialCrops, cropType);
+                Map<String, Integer> cost = Collections.singletonMap(cropType, 1);
+                player.payResources(cost);
+            } else {
+                System.out.println("좌표를 선택하지 않았습니다.");
+            }
         } else {
             System.out.println("곡식이나 야채를 심을 수 있는 위치가 없습니다.");
         }
     }
+
 
     // 선 플레이어 되기
     default void becomeFirstPlayer(Player player) {
@@ -360,10 +475,19 @@ public interface ActionRoundCard extends CommonCard {
         for (int i = 0; i < playerIndex; i++) {
             newTurnOrder.add(turnOrder.get(i));
         }
+        
+        for (Player p : newTurnOrder) {
+            System.out.println("p.getId() = " + p.getId());
+        }
 
         // 게임 컨트롤러에 새로운 턴 오더 설정
         gameService.setNextTurnOrder(newTurnOrder);
+
+        // 프론트엔드에 선 플레이어가 변경되었다는 정보를 전송
+        gameService.sendTurnOrderInfo(player.getId(), turnOrder, newTurnOrder);
     }
+
+
 
 
     // 기물 변경
@@ -373,10 +497,15 @@ public interface ActionRoundCard extends CommonCard {
         RoomType newType = player.chooseRoomTypeForRenovation();
         if (newType != null) {
             player.renovateHouse(newType);
+
+            // 프론트엔드에 방이 업그레이드되었다는 정보를 전송
+            GameService gameService = player.getGameService();
+            gameService.sendRenovationInfo(player.getId(), newType);
         } else {
             System.out.println("더 이상 업그레이드할 수 있는 방이 없습니다.");
         }
     }
+
 
 
     // 객체 추가
@@ -384,12 +513,16 @@ public interface ActionRoundCard extends CommonCard {
     // 1. 가족 구성원 추가
     default boolean addNewborn(Player player) {
         if (player.addFamilyMember()) {
-            // TODO 플레이어가 빈 방에 가족 구성원을 배치하는 로직 추가
             List<int[]> emptyRooms = player.getPlayerBoard().getEmptyRoomPositions();
             if (!emptyRooms.isEmpty()) {
                 int[] selectedRoom = emptyRooms.get(0);
                 FamilyMember newMember = player.getNewFamilyMember();
                 player.placeFamilyMemberInRoom(newMember, selectedRoom[0], selectedRoom[1]);
+
+                // 프론트엔드에 가족 구성원이 추가된 위치를 전송
+                GameService gameService = player.getGameService();
+                gameService.sendFamilyMemberPosition(player.getId(), selectedRoom[0], selectedRoom[1]);
+
                 return true;
             } else {
                 System.out.println("빈 방이 없습니다.");
@@ -397,8 +530,14 @@ public interface ActionRoundCard extends CommonCard {
         } else {
             System.out.println("빈 방이 없습니다.");
         }
+
+        // 프론트엔드에 추가하지 못했다는 메시지를 전송
+        GameService gameService = player.getGameService();
+        gameService.sendFamilyMemberPosition(player.getId(), -1, -1);
+
         return false;
     }
+
 
 
     // 추가 효과 확인 및 적용 메서드

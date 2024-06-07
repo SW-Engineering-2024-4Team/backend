@@ -12,7 +12,7 @@ import java.util.*;
 public class StoneAxe extends MinorImprovementCard {
 
     public StoneAxe(int id) {
-        super(id, "채굴 망치", "집을 고칠 때 외양간을 무료로 지을 수 있습니다.", createPurchaseCost(), null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
+        super(id, "채굴 망치", "집을 고칠 때 외양간을 무료로 지을 수 있습니다.", null, null, createPurchaseCost(), null, ExchangeTiming.NONE, 1);
     }
 
     private static Map<String, Integer> createPurchaseCost() {
@@ -37,6 +37,8 @@ public class StoneAxe extends MinorImprovementCard {
         // 메인보드의 원래 리스트를 업데이트
         mainBoard.setActionCards(newActionCards);
         mainBoard.setRoundCards(newRoundCards);
+
+        player.getGameService().sendDecoratedCardInfo(player, newActionCards, newRoundCards);
     }
 
     private List<ActionRoundCard> wrapWithDecorators(List<ActionRoundCard> cards, Player player) {

@@ -35,7 +35,7 @@ public class Player {
     public Player(String id, String name, GameService gameService) {
         this.id = id;
         this.name = name;
-        this.resources = new LinkedHashMap<>();
+        this.resources = new HashMap<>();
         this.occupationCards = new ArrayList<>();
         this.minorImprovementCards = new ArrayList<>();
         this.majorImprovementCards = new ArrayList<>();
@@ -50,11 +50,20 @@ public class Player {
     }
 
     private void initializeResources() {
-        resources.put("wood", 0);
-        resources.put("clay", 0);
-        resources.put("stone", 0);
-        resources.put("grain", 0);
-        resources.put("food", 0);
+//        resources.put("wood", 0);
+//        resources.put("clay", 0);
+//        resources.put("stone", 0);
+//        resources.put("grain", 0);
+//        resources.put("food", 0);
+//        resources.put("beggingCard", 0);
+//        resources.put("sheep", 0);
+
+//        // TODO
+        resources.put("wood", 50);
+        resources.put("clay", 50);
+        resources.put("stone", 50);
+        resources.put("grain", 50);
+        resources.put("food", 50);
         resources.put("beggingCard", 0);
         resources.put("sheep", 0);
     }
@@ -123,7 +132,7 @@ public class Player {
     }
 
 
-    public void placeFamilyMember(ActionRoundCard card, int x, int y) {
+    public void placeFamilyMember(ActionRoundCard card) { //테스트안돌아가서 @param card, x, y -> @param card로 변경 
         MainBoard mainBoard = gameService.getMainBoard();
 
         // 최신 카드 리스트에서 해당 카드를 찾음
@@ -153,37 +162,37 @@ public class Player {
             return;
         }
 
-//        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
-//        for (int i = 0; i < familyMembers.length; i++) {
-//            for (int j = 0; j < familyMembers[i].length; j++) {
-//                if (familyMembers[i][j] != null && familyMembers[i][j].isAdult() && !familyMembers[i][j].isUsed()) {
-//                    FamilyMember selectedMember = familyMembers[i][j];
-//                    System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
-//
-//                    mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
-//                    latestCard.execute(this); // 카드 실행 로직
-//                    selectedMember.setUsed(true);
-//
-//                    System.out.println("Player " + this.id + " placed a family member on card: " + latestCard.getName());
-//                    System.out.println("Family member used status: " + selectedMember.isUsed());
-//                    return;
-//                }
-//            }
-//        }
-//        System.out.println("No available family member found for player " + this.id);
-        FamilyMember selectedMember = playerBoard.getFamilyMember(x, y);
-        if (selectedMember != null && selectedMember.isAdult() && !selectedMember.isUsed()) {
-            System.out.println("Placing family member at (" + x + ", " + y + ") for player " + this.id);
+        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+        for (int i = 0; i < familyMembers.length; i++) {
+            for (int j = 0; j < familyMembers[i].length; j++) {
+                if (familyMembers[i][j] != null && familyMembers[i][j].isAdult() && !familyMembers[i][j].isUsed()) {
+                    FamilyMember selectedMember = familyMembers[i][j];
+                    System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
 
-            mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
-            latestCard.execute(this); // 카드 실행 로직
-            selectedMember.setUsed(true);
+                    mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
+                    latestCard.execute(this); // 카드 실행 로직
+                    selectedMember.setUsed(true);
 
-            System.out.println("Player " + this.id + " placed a family member on card: " + latestCard.getName());
-            System.out.println("Family member used status: " + selectedMember.isUsed());
-        } else {
-            System.out.println("No available family member found for player " + this.id);
+                    System.out.println("Player " + this.id + " placed a family member on card: " + latestCard.getName());
+                    System.out.println("Family member used status: " + selectedMember.isUsed());
+                    return;
+                }
+            }
         }
+        System.out.println("No available family member found for player " + this.id);
+//        FamilyMember selectedMember = playerBoard.getFamilyMember(x, y);
+//        if (selectedMember != null && selectedMember.isAdult() && !selectedMember.isUsed()) {
+//            System.out.println("Placing family member at (" + x + ", " + y + ") for player " + this.id);
+//
+//            mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
+//            latestCard.execute(this); // 카드 실행 로직
+//            selectedMember.setUsed(true);
+//
+//            System.out.println("Player " + this.id + " placed a family member on card: " + latestCard.getName());
+//            System.out.println("Family member used status: " + selectedMember.isUsed());
+//        } else {
+//            System.out.println("No available family member found for player " + this.id);
+//        }
     }
 
 
@@ -287,7 +296,7 @@ public class Player {
 
     public List<ExchangeableCard> getExchangeableCards(ExchangeTiming timing) {
         List<ExchangeableCard> exchangeableCards = new ArrayList<>();
-        for (CommonCard card : majorImprovementCards) {
+        for (CommonCard card : activeCards) {
             if (card instanceof ExchangeableCard) {
                 ExchangeableCard exchangeableCard = (ExchangeableCard) card;
                 if (exchangeableCard.canExchange(timing)) {
@@ -298,8 +307,12 @@ public class Player {
         return exchangeableCards;
     }
 
-    public void executeExchange(ExchangeableCard card, String fromResource, String toResource, int amount) {
-        card.executeExchange(this, fromResource, toResource, amount);
+//    public void executeExchange(ExchangeableCard card, String fromResource, String toResource, int amount) {
+//        card.executeExchange(this, fromResource, toResource, amount);
+//    }
+
+    public void executeExchange(ExchangeableCard card) {
+        card.executeExchange(this);
     }
 
     public void useBakingCard(BakingCard card) {
@@ -350,8 +363,9 @@ public void payResources(Map<String, Integer> cost) {
     }
 
     public int selectGrainForBaking(int maxAmount) {
-        Random random = new Random();
-        return random.nextInt(maxAmount + 1);
+//        Random random = new Random();
+//        return random.nextInt(maxAmount + 1);
+        return maxAmount;
     }
 
     public void buildHouse(int x, int y, RoomType type) {
@@ -440,7 +454,7 @@ public void payResources(Map<String, Integer> cost) {
 //        List<Animal> animalsToRemove = new ArrayList<>();
 //        Iterator<Animal> iterator = newAnimals.iterator();
 //
-//        // TODO 임의로 좌표를 설정한 것
+//
 //        // 더 배치할 수 없을 경우: 방생
 //        while (iterator.hasNext()) {
 //            Animal animal = iterator.next();
@@ -450,7 +464,7 @@ public void payResources(Map<String, Integer> cost) {
 //                int[] position = validPositions.iterator().next();
 //                System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 //
-//                // TODO 프론트한테 좌표 받아서 배치
+
 //                placeAnimalOnBoard(animal, position[0], position[1]);
 //                placedCount++;
 //                animalsToRemove.add(animal);
@@ -463,12 +477,41 @@ public void payResources(Map<String, Integer> cost) {
 //        newAnimals.removeAll(animalsToRemove);
 //        return placedCount;
 //    }
+//public int placeNewAnimals() {
+//    int placedCount = 0;
+//    List<Animal> animalsToRemove = new ArrayList<>();
+//    List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
+//
+
+//    // 더 배치할 수 없을 경우: 방생
+//    for (Animal animal : newAnimalsCopy) {
+//        Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
+//
+//        if (!validPositions.isEmpty()) {
+//            int[] position = validPositions.iterator().next();
+//            System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
+//
+//            placeAnimalOnBoard(animal, position[0], position[1]);
+//            placedCount++;
+//            animalsToRemove.add(animal);
+//
+//            // 유효한 위치 리스트를 갱신
+//            validPositions = playerBoard.getValidAnimalPositions(animal.getType());
+//        } else {
+//            System.out.println(animal.getType() + " 방생됨.");
+//            animalsToRemove.add(animal);
+//        }
+//    }
+//
+//    newAnimals.removeAll(animalsToRemove);
+//    return placedCount;
+//}
 public int placeNewAnimals() {
     int placedCount = 0;
     List<Animal> animalsToRemove = new ArrayList<>();
     List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
+    List<Map<String, Object>> placedAnimalsInfo = new ArrayList<>(); // List to store placed animal info
 
-    // TODO 임의로 좌표를 설정한 것
     // 더 배치할 수 없을 경우: 방생
     for (Animal animal : newAnimalsCopy) {
         Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
@@ -477,10 +520,16 @@ public int placeNewAnimals() {
             int[] position = validPositions.iterator().next();
             System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 
-            // TODO 프론트한테 좌표 받아서 배치
             placeAnimalOnBoard(animal, position[0], position[1]);
             placedCount++;
             animalsToRemove.add(animal);
+
+            // Add placement info to the list
+            placedAnimalsInfo.add(Map.of(
+                    "x", position[0],
+                    "y", position[1],
+                    "animalType", animal.getType()
+            ));
 
             // 유효한 위치 리스트를 갱신
             validPositions = playerBoard.getValidAnimalPositions(animal.getType());
@@ -491,8 +540,19 @@ public int placeNewAnimals() {
     }
 
     newAnimals.removeAll(animalsToRemove);
+
+    // Send placement info to the frontend
+    GameService gameService = getGameService();
+    if (gameService != null) {
+        gameService.sendAnimalPlacementInfo(this.getId(), placedAnimalsInfo, playerBoard.getAnimalCapacity());
+    }
+
     return placedCount;
 }
+
+    public GameService getGameService() {
+        return gameService;
+    }
 
 
     public void buildBarn(int x, int y) {
@@ -604,13 +664,7 @@ public int placeNewAnimals() {
         return Objects.hash(id);
     }
 
-    public boolean chooseOption() {
-        return chooseOption;
-    }
 
-    public void setChooseOption(boolean chooseOption) {
-        this.chooseOption = chooseOption;
-    }
 
     private boolean woodDiscountActive = false;
     public boolean isWoodDiscountActive() {
@@ -652,16 +706,102 @@ public int placeNewAnimals() {
         this.compressedSoilActive = compressedSoilActive;
     }
 
-    //TODO
-    public boolean chooseResource(String resource1, String resource2, int amount) {
-        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 단순히 흙을 선택하도록 가정합니다.
-        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
-        return getResource(resource2) >= amount;
+//    //TODO
+//    public boolean chooseResource(String resource1, String resource2, int amount) {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 단순히 흙을 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        return getResource(resource2) >= amount;
+//    }
+//
+//    public GameService getGameService() {
+//        return gameService;
+//    }
+//
+//    public boolean chooseOption() {
+//        return chooseOption;
+//    }
+//
+//    public void setChooseOption(boolean chooseOption) {
+//        this.chooseOption = chooseOption;
+//    }
+//
+//    public int chooseOptionForAndOr() {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 랜덤으로 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        Random random = new Random();
+//        return random.nextInt(3); // 0, 1, 2 중 하나를 랜덤으로 반환
+//    }
+//
+//    public boolean chooseOptionForThen() {
+//        // 실제 게임에서는 사용자 입력을 받아 선택하지만, 여기서는 랜덤으로 선택하도록 가정합니다.
+//        // 나중에 실제 사용자 입력 로직으로 대체할 수 있습니다.
+//        Random random = new Random();
+//        return random.nextBoolean(); // true 또는 false 중 하나를 랜덤으로 반환
+//    }
+    private int andOrChoice;
+    private boolean thenChoice;
+    private boolean orChoice;
+
+    public boolean chooseOption() {
+        return chooseOption;
     }
 
-    public GameService getGameService() {
-        return gameService;
+    public void setChooseOption(boolean chooseOption) {
+        this.chooseOption = chooseOption;
     }
+
+    public int chooseOptionForAndOr() {
+        return andOrChoice;
+    }
+
+    public void setAndOrChoice(int choice) {
+        this.andOrChoice = choice;
+    }
+
+    public boolean chooseOptionForThen() {
+        return thenChoice;
+    }
+
+    public void setThenChoice(boolean choice) {
+        this.thenChoice = choice;
+    }
+
+    public boolean chooseOptionForOr() {
+        return orChoice;
+    }
+
+    public void setOrChoice(boolean choice) {
+        this.orChoice = choice;
+    }
+
+    public boolean chooseResource(String resource1, String resource2, int amount) {
+        GameService gameService = this.getGameService();
+        String playerId = this.getId();
+
+        // 프론트엔드에 선택 요청을 보냄
+        gameService.sendResourceChoiceRequestToFrontEnd(playerId, resource1, resource2, amount);
+
+        // 플레이어의 선택 대기
+        String chosenResource = gameService.getChosenResource(playerId);
+
+        return chosenResource.equals(resource2);
+    }
+
+    public void printActiveCardsLists() {
+        System.out.println("Active cards lists:");
+        for (CommonCard card : activeCards) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
+
+        System.out.println("보유 Cards:");
+        for (CommonCard card : getOccupationCards()) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
+        for (CommonCard card : getMinorImprovementCards()) {
+            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+        }
+    }
+
 
     /**
      * 플레이어의 자원정보를 리스트로 반환하는 함수

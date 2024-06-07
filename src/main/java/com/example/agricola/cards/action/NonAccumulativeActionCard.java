@@ -6,7 +6,7 @@ import com.example.agricola.models.Player;
 
 import java.util.Map;
 
-public class NonAccumulativeRoundCard implements ActionRoundCard {
+public class NonAccumulativeActionCard implements ActionRoundCard {
     private int id;
     public String name;
     private String description;
@@ -16,7 +16,7 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     private boolean hasResources = false;
     private String occupiedPlayerId = "null";
 
-    public NonAccumulativeRoundCard(int id, String name, String description) {
+    public NonAccumulativeActionCard(int id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;

@@ -6,6 +6,7 @@ import com.example.agricola.cards.common.UnifiedCard;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Player;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -13,14 +14,14 @@ public class MinorImprovementCard implements UnifiedCard, ExchangeableCard {
     private int id;
     private String name;
     private String description;
-    private Map<String, Integer> exchangeRate;
+    private LinkedHashMap<String, Integer> exchangeRate;
     private Map<String, Integer> gainResources;
     protected Map<String, Integer> cost;
     private Predicate<Player> condition;
     private ExchangeTiming exchangeTiming;
     private int bonusPoints;
 
-    public MinorImprovementCard(int id, String name, String description, Map<String, Integer> exchangeRate, Map<String, Integer> gainResources, Map<String, Integer> cost, Predicate<Player> condition, ExchangeTiming exchangeTiming, int bonusPoints) {
+    public MinorImprovementCard(int id, String name, String description, LinkedHashMap<String, Integer> exchangeRate, Map<String, Integer> gainResources, Map<String, Integer> cost, Predicate<Player> condition, ExchangeTiming exchangeTiming, int bonusPoints) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -81,18 +82,18 @@ public class MinorImprovementCard implements UnifiedCard, ExchangeableCard {
         return exchangeRate != null && this.exchangeTiming == timing;
     }
 
-    @Override
-    // TODO 양 자원 교환시 양을 플레이어 보드에서 제거해줘야 함
-    public void executeExchange(Player player, String fromResource, String toResource, int amount) {
-        if (canExchange(exchangeTiming)) {
-            int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
-            player.addResource(fromResource, -amount);
-            player.addResource(toResource, exchangeAmount);
-        }
-    }
+//    @Override
+//    // TODO 양 자원 교환시 양을 플레이어 보드에서 제거해줘야 함
+//    public void executeExchange(Player player, String fromResource, String toResource, int amount) {
+//        if (canExchange(exchangeTiming)) {
+//            int exchangeAmount = exchangeRate.get(toResource) * amount / exchangeRate.get(fromResource);
+//            player.addResource(fromResource, -amount);
+//            player.addResource(toResource, exchangeAmount);
+//        }
+//    }
 
     @Override
-    public Map<String, Integer> getExchangeRate() {
+    public LinkedHashMap<String, Integer> getExchangeRate() {
         return exchangeRate;
     }
 
