@@ -52,8 +52,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,7 +68,9 @@ public class RoomController {
 
     @MessageMapping("/room/{roomId}/start")
     @SendTo("/topic/game")
-    public Map<String, Object> handleGameStart(@DestinationVariable String roomId, Map<String, Object> payload) {
+    public Map<String, Object> handleGameStart(@DestinationVariable String roomId, Map<String, Object> payload, SimpMessageHeaderAccessor headerAccessor) {
+        //Principal principal = headerAccessor.getUser();
+        //System.out.println(principal.getName());
         System.out.println("Received startGame message");
         String roomNumber = roomId;
         List<Map<String, Object>> playersData = (List<Map<String, Object>>) payload.get("players");
