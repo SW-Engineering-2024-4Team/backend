@@ -35,7 +35,7 @@ public class Player {
     public Player(String id, String name, GameService gameService) {
         this.id = id;
         this.name = name;
-        this.resources = new HashMap<>();
+        this.resources = new LinkedHashMap<>();
         this.occupationCards = new ArrayList<>();
         this.minorImprovementCards = new ArrayList<>();
         this.majorImprovementCards = new ArrayList<>();
@@ -512,6 +512,7 @@ public int placeNewAnimals() {
     List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
     List<Map<String, Object>> placedAnimalsInfo = new ArrayList<>(); // List to store placed animal info
 
+    // TODO 임의로 좌표를 설정한 것
     // 더 배치할 수 없을 경우: 방생
     for (Animal animal : newAnimalsCopy) {
         Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
@@ -520,6 +521,7 @@ public int placeNewAnimals() {
             int[] position = validPositions.iterator().next();
             System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 
+            // TODO 프론트한테 좌표 받아서 배치
             placeAnimalOnBoard(animal, position[0], position[1]);
             placedCount++;
             animalsToRemove.add(animal);
@@ -802,5 +804,30 @@ public int placeNewAnimals() {
         }
     }
 
+    /**
+     * 플레이어의 자원정보를 리스트로 반환하는 함수
+     * 나무, 흙, 돌, 음식, 양, 곡식, 성인, 신생아, 외양간 보내줌 -> 엔트리 순서확인(울타리 외양간은 없는거같음) (순서변화필요할시 LinkedHashMap으로처리)
+     * ex) ["나무:3", "흙:2", "돌:0", ....]
+     * @return 플레이어 자원정보 리스트
+     * resources.put("wood", 0);
+     * resources.put("clay", 0);
+     * resources.put("stone", 0);
+     * resources.put("grain", 0);
+     * resources.put("food", 0);
+     * resources.put("beggingCard", 0);
+     * resources.put("sheep", 0);
+     * 자원 보내주는 순서 프론트랑 정해야함.
+     * 백엔드 테스트결과 구걸, 나무, 곡식, 음식, 양, 점토, 돌 순서 (LinkedHash안쓸때)
+     * 나무, 점토, 돌, 곡식, 음식, 구걸카드, 양 (LinkedHash쓸때)
+     */
+    public ArrayList<String> playerResourcesList() {
+        ArrayList<String> sendToFront = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+            String key = entry.getKey();
+            int value = entry.getValue();
+            sendToFront.add(key + ":" + String.valueOf(value));
+        }
+        return sendToFront;
+    }
 }
 

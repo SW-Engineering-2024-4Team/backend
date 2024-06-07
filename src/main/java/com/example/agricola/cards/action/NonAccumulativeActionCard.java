@@ -13,6 +13,8 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
     private boolean revealed;
     private boolean occupied;
     private Map<String, Integer> resourcesToGain;
+    private boolean hasResources = false;
+    private String occupiedPlayerId = "null";
 
     public NonAccumulativeActionCard(int id, String name, String description) {
         this.id = id;
@@ -20,6 +22,23 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
         this.description = description;
         this.revealed = false;
         this.occupied = false;
+    }
+
+    public void setHasResources() {
+        hasResources = true;
+    }
+
+    public boolean getHasResources() {
+        return hasResources;
+    }
+
+    public Map<String, Integer> getResourcesToGain() {
+        return resourcesToGain;
+    }
+
+    public Map<String, Integer> createResourcesToGain() {
+        setHasResources();
+        return resourcesToGain;
     }
 
     @Override
@@ -67,6 +86,16 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
     @Override
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
+    }
+
+    @Override
+    public String getOccupiedPlayerId() {
+        return occupiedPlayerId;
+    }
+
+    @Override
+    public void resetOccupiedPlayer() {
+        occupiedPlayerId = "null";
     }
 
 }

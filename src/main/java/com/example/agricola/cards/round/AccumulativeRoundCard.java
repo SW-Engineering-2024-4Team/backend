@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AccumulativeRoundCard implements AccumulativeCard {
+
     private int id;
     private String name;
     private String description;
@@ -15,6 +16,7 @@ public class AccumulativeRoundCard implements AccumulativeCard {
     private boolean occupied;
     private Map<String, Integer> accumulatedResources;
     private Map<String, Integer> accumulatedAmounts;
+    private String occupiedPlayerId = "null";
 
     public AccumulativeRoundCard(int id, String name, String description, int cycle, Map<String, Integer> accumulatedAmounts) {
         this.id = id;
@@ -112,5 +114,16 @@ public class AccumulativeRoundCard implements AccumulativeCard {
 
     public void setAccumulatedResources(Map<String, Integer> resources) {
         this.accumulatedResources = resources;
+    }
+
+    @Override
+    public String getOccupiedPlayerId() {
+        return this.occupiedPlayerId;
+    }
+
+    //각카드에 구현필요
+    @Override
+    public void resetOccupiedPlayer() {
+        this.occupiedPlayerId = "null";
     }
 }

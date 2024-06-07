@@ -4,6 +4,8 @@ import com.example.agricola.cards.common.AccumulativeCard;
 import com.example.agricola.cards.factory.imp.major.*;
 import com.example.agricola.cards.factory.imp.minor.HardenedClay;
 import com.example.agricola.cards.factory.imp.occupation.ShepherdCard;
+import com.example.agricola.cards.round.AccumulativeRoundCard;
+import com.example.agricola.cards.round.NonAccumulativeRoundCard;
 import com.example.agricola.controller.CardController;
 import com.example.agricola.models.*;
 import com.example.agricola.cards.common.ActionRoundCard;
@@ -120,8 +122,6 @@ public class GameService {
 //        for (int i = 0; i < 8; i++) {
 //            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
 //        }
-
-        // TODO 테스트 셋업 직업카드:양보행자(ShepherdCard(42) index 7) 보조설비:경질자기(HardenedClay(46) index4)
         // 보조설비 다 갖는걸로
 
         for (Player player : players) {
@@ -134,7 +134,46 @@ public class GameService {
             player.addCard(new Hearth2(33), ".");
             player.addCard(new ClayOven(34), ".");
         }
+
+        // TODO 플레이어 보유 카드 보내주기
+        sendInitCardsToFrontEnd();
     }
+
+    public void sendInitCardsToFrontEnd() {
+        for (Player player : players) {
+            List<CommonCard> activeCards = player.getActiveCards();
+            List<CommonCard> ownCards = new ArrayList<>();
+            ownCards.addAll(player.getOccupationCards());
+            ownCards.addAll(player.getMinorImprovementCards());
+
+            // Create a message object or use appropriate structure to send the cards information
+            CardMessage message = new CardMessage(activeCards, ownCards);
+
+            // Sending the message to the frontend
+            simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        }
+    }
+
+    // Define the CardMessage class to encapsulate the card information
+    private static class CardMessage {
+        private List<CommonCard> activeCards;
+        private List<CommonCard> ownCards;
+
+        public CardMessage(List<CommonCard> activeCards, List<CommonCard> ownCards) {
+            this.activeCards = activeCards;
+            this.ownCards = ownCards;
+        }
+
+        public List<CommonCard> getActiveCards() {
+            return activeCards;
+        }
+
+        public List<CommonCard> getOwnCards() {
+            return ownCards;
+        }
+    }
+
+
 
     private void setupMainBoard() {
         List<ActionRoundCard> actionCards = cardController.getActionRoundCards();
@@ -220,43 +259,43 @@ public class GameService {
         mainBoard.revealRoundCard(currentRound);
         mainBoard.accumulateResources();
 
+        if (nextTurnOrder != null && !nextTurnOrder.isEmpty()) {
+            turnOrder = new ArrayList<>(nextTurnOrder);
+            nextTurnOrder.clear();
+        }
+
         // 현재 라운드 정보 수집
         Map<String, Object> roundInfo = new HashMap<>();
         roundInfo.put("currentRound", currentRound);
 
-        // 오픈된 카드 정보 수집
-        List<Map<String, Object>> openedCards = mainBoard.getRevealedRoundCards().stream()
-                .map(card -> (Map<String, Object>) Map.of(
-                        "id", (Object) card.getId(),
-                        "name", (Object) card.getName()
-//                        "description", (Object) card.getDescription()
-                )).collect(Collectors.toList());
-        roundInfo.put("openedCards", openedCards);
-
-        // 누적된 자원 정보 수집
-        List<Map<String, Object>> accumulatedResources = mainBoard.getActionCards().stream()
-                .filter(card -> card instanceof AccumulativeCard)
-                .map(card -> Map.of(
-                        "id", card.getId(),
-                        "name", card.getName(),
-//                        "description", card.getDescription(),
-                        "accumulatedResources", ((AccumulativeCard) card).getAccumulatedResources()
-                )).collect(Collectors.toList());
-        roundInfo.put("accumulatedResources", accumulatedResources);
+//        // 오픈된 카드 정보 수집
+//        List<Map<String, Object>> openedCards = mainBoard.getRevealedRoundCards().stream()
+//                .map(card -> (Map<String, Object>) Map.of(
+//                        "id", (Object) card.getId(),
+//                        "name", (Object) card.getName()
+////                        "description", (Object) card.getDescription()
+//                )).collect(Collectors.toList());
+//        roundInfo.put("openedCards", openedCards);
+//
+//        // 누적된 자원 정보 수집
+//        List<Map<String, Object>> accumulatedResources = mainBoard.getActionCards().stream()
+//                .filter(card -> card instanceof AccumulativeCard)
+//                .map(card -> Map.of(
+//                        "id", card.getId(),
+//                        "name", card.getName(),
+////                        "description", card.getDescription(),
+//                        "accumulatedResources", ((AccumulativeCard) card).getAccumulatedResources()
+//                )).collect(Collectors.toList());
+//        roundInfo.put("accumulatedResources", accumulatedResources);
 
         // 턴 오더 정보 수집
         List<String> turnOrderInfo = turnOrder.stream()
-                .map(Player::getName)
+                .map(Player::getId)
                 .collect(Collectors.toList());
         roundInfo.put("turnOrder", turnOrderInfo);
 
         // 플레이어에게 알림
         notifyPlayers(roundInfo);
-
-        if (nextTurnOrder != null && !nextTurnOrder.isEmpty()) {
-            turnOrder = new ArrayList<>(nextTurnOrder);
-            nextTurnOrder.clear();
-        }
     }
 
     public void sendExchangeableCardsInfoToFrontEnd(String playerId, ExchangeTiming timing) {
@@ -266,51 +305,6 @@ public class GameService {
             simpMessagingTemplate.convertAndSend("/topic/room/1", exchangeableCardsInfo);
         }
     }
-
-
-//    private Map<String, Object> getExchangeableCardsInfo(Player player, ExchangeTiming timing) {
-//        List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(timing);
-//        return Map.of(
-//                "playerId", player.getId(),
-//                "exchangeableCards", exchangeableCards.stream()
-//                        .filter(card -> {
-//                            // 자원이 충분한지 확인
-//                            Map<String, Integer> exchangeRate = card.getExchangeRate();
-//                            if (exchangeRate == null) {
-//                                return false;
-//                            }
-//                            for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-//                                if (player.getResource(entry.getKey()) < entry.getValue()) {
-//                                    return false;
-//                                }
-//                            }
-//                            return true;
-//                        })
-//                        .map(card -> {
-//                            if (card instanceof CommonCard) {
-//                                CommonCard commonCard = (CommonCard) card;
-//                                // 교환 가능한 최대 값 계산
-//                                Map<String, Integer> exchangeRate = card.getExchangeRate();
-//                                int maxExchangeAmount = Integer.MAX_VALUE;
-//                                if (exchangeRate != null) {
-//                                    for (Map.Entry<String, Integer> entry : exchangeRate.entrySet()) {
-//                                        int availableAmount = player.getResource(entry.getKey()) / entry.getValue();
-//                                        maxExchangeAmount = Math.min(maxExchangeAmount, availableAmount);
-//                                    }
-//                                }
-//                                return Map.of(
-//                                        "id", commonCard.getId(),
-//                                        "name", commonCard.getName(),
-//                                        "exchangeRate", exchangeRate,
-//                                        "maxExchangeAmount", maxExchangeAmount
-//                                );
-//                            } else {
-//                                return Map.of(); // 기본값
-//                            }
-//                        })
-//                        .collect(Collectors.toList())
-//        );
-//    }
 
     private Map<String, Object> getExchangeableCardsInfo(Player player, ExchangeTiming timing) {
         List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(timing);
@@ -344,8 +338,8 @@ public class GameService {
                                 }
                                 return Map.of(
                                         "id", commonCard.getId(),
-                                        "name", commonCard.getName(),
-                                        "exchangeRate", exchangeRate,
+//                                        "name", commonCard.getName(),
+//                                        "exchangeRate", exchangeRate,
                                         "maxExchangeAmount", maxExchangeAmount
                                 );
                             } else {
@@ -377,7 +371,7 @@ public class GameService {
                         // 플레이어 턴 진행
                         playerTurn(player.getId(), availableCards);
                         printFamilyMembersOnBoard();
-                        player.getActiveCards();
+//                        player.getActiveCards();
                     }
                 }
             }
@@ -404,24 +398,69 @@ public class GameService {
 
 
 
+//    private void playerTurn(String playerID, List<ActionRoundCard> availableCards) {
+//        Player player = getPlayerByID(playerID);
+//
+//        if (player != null) {
+//            sendExchangeableCardsInfoToFrontEnd(playerID, ExchangeTiming.ANYTIME);
+////            player.printActiveCardsLists();
+//            // 플레이어에게 턴 정보를 프론트엔드로 전송
+//            Map<String, Object> playerTurnInfo = Map.of(
+//                    "playerId", player.getId(),
+//                    "availableCards", availableCards.stream()
+//                            .map(card -> Map.of(
+//                                    "id", card.getId(),
+//                                    "name", card.getName()
+////                                    "description", card.getDescription()
+//                            ))
+//                            .collect(Collectors.toList()),
+//                    "message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
+//            );
+//            MainBoard mainboard = getMainBoard();
+//            List<ArrayList<String>> sendToFrontActionInfo = mainboard.mainboardActionCardAccumulateResourceList(mainboard);
+//            List<ArrayList<String>> sendToFrontRoundInfo = mainBoard.mainboardRoundCardAccumulateResourceList(mainBoard);
+//
+//
+//            notifyPlayer(player, playerTurnInfo);
+//
+//            // 플레이어의 턴을 기다림
+//            synchronized (this) {
+//                try {
+//                    wait(); // 프론트엔드에서 신호를 받을 때까지 대기
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            player.printActiveCardsLists();
+//
+//        }
+//    }
+
     private void playerTurn(String playerID, List<ActionRoundCard> availableCards) {
         Player player = getPlayerByID(playerID);
 
         if (player != null) {
             sendExchangeableCardsInfoToFrontEnd(playerID, ExchangeTiming.ANYTIME);
-            player.printActiveCardsLists();
+
             // 플레이어에게 턴 정보를 프론트엔드로 전송
-            Map<String, Object> playerTurnInfo = Map.of(
-                    "playerId", player.getId(),
-                    "availableCards", availableCards.stream()
-                            .map(card -> Map.of(
-                                    "id", card.getId(),
-                                    "name", card.getName()
-//                                    "description", card.getDescription()
-                            ))
-                            .collect(Collectors.toList()),
-                    "message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
-            );
+            Map<String, Object> playerTurnInfo = new HashMap<>();
+            playerTurnInfo.put("playerId", player.getId());
+//            playerTurnInfo.put("availableCards", availableCards.stream()
+//                    .map(card -> Map.of(
+//                            "id", card.getId(),
+//                            "name", card.getName()
+////                            "description", card.getDescription()
+//                    ))
+//                    .collect(Collectors.toList()));
+//            playerTurnInfo.put("message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\"");
+
+            // 메인보드 위 라운드 카드와 액션 카드의 누적 자원 리스트 추가
+            List<ArrayList<String>> sendToFrontActionInfo = mainboardActionCardAccumulateResourceList(mainBoard);
+            List<ArrayList<String>> sendToFrontRoundInfo = mainboardRoundCardAccumulateResourceList(mainBoard);
+
+            playerTurnInfo.put("actionCardResources", sendToFrontActionInfo);
+            playerTurnInfo.put("roundCardResources", sendToFrontRoundInfo);
+
             notifyPlayer(player, playerTurnInfo);
 
             // 플레이어의 턴을 기다림
@@ -432,9 +471,100 @@ public class GameService {
                     e.printStackTrace();
                 }
             }
-            player.printActiveCardsLists();
+
+            playerTurnInfo = new HashMap<>();
+            playerTurnInfo.put("playerId", player.getId());
+
+            // 개인 자원
+            List<String> resources = player.playerResourcesList();
+            playerTurnInfo.put("playerResources", resources);
+
+            // 개인 보드
+            Map<String, Object> playerBoardInfo = new HashMap<>();
+            playerBoardInfo.put("tiles", player.getPlayerBoard().getTiles());
+            playerBoardInfo.put("fences", player.getPlayerBoard().getFences());
+            playerBoardInfo.put("familyMembers", player.getPlayerBoard().getFamilyMembers());
+            playerBoardInfo.put("animals", player.getPlayerBoard().getAnimals());
+            playerBoardInfo.put("fenceAreas", player.getPlayerBoard().getManagedFenceAreas().stream().map(FenceArea::toMap).collect(Collectors.toList()));
+            playerTurnInfo.put("playerBoard", playerBoardInfo);
+
+
+            // 카드 리스트: 보유 리스트, 발동 리스트
+            playerTurnInfo.put("occupationCards", player.getOccupationCards().stream().map(CommonCard::toMap).collect(Collectors.toList()));
+            playerTurnInfo.put("minorImprovementCards", player.getMinorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList()));
+            playerTurnInfo.put("activeCards", player.getActiveCards().stream().map(CommonCard::toMap).collect(Collectors.toList()));
+
+            notifyPlayer(player, playerTurnInfo);
+
+
 
         }
+    }
+
+    public List<ArrayList<String>> mainboardActionCardAccumulateResourceList(MainBoard mainBoard) {
+        List<ActionRoundCard> actionCards = mainBoard.getActionCards();
+        List<ArrayList<String>> sendToFront = new ArrayList<>();
+        for (ActionRoundCard card : actionCards) {
+            ArrayList<String> resource = new ArrayList<>();
+            // 자원 축적 카드일때
+            if (card instanceof AccumulativeRoundCard) {
+                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+                for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
+                    resource.add(entry.getKey() + ":" + entry.getValue());
+                }
+            }
+            // 자원 축적 카드가 아닐때
+            else { // 자원 축적칸이 아닌 자원축적x칸일때
+                if (card instanceof NonAccumulativeRoundCard) {
+                    // 자원 축적칸이아닌 일반 자원칸
+                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
+                        Map<String, Integer> resources = ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+                            resource.add(entry.getKey() + ":" + entry.getValue());
+                        }
+                    } else {
+                        resource.add("null");
+                    }
+                } else {
+                    System.out.println("Invalid card type or card type mismatch.");
+                }
+            }
+            sendToFront.add(resource);
+        }
+        return sendToFront;
+    }
+
+    public List<ArrayList<String>> mainboardRoundCardAccumulateResourceList(MainBoard mainBoard) {
+        List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
+        List<ArrayList<String>> sendToFront = new ArrayList<>();
+        for (ActionRoundCard card : roundCards) {
+            ArrayList<String> resource = new ArrayList<>();
+            // 자원 축적 카드일때
+            if (card instanceof AccumulativeRoundCard) {
+                Map<String, Integer> accumResource = ((AccumulativeRoundCard) card).getAccumulatedResources();
+                for (Map.Entry<String, Integer> entry : accumResource.entrySet()) {
+                    resource.add(entry.getKey() + ":" + entry.getValue());
+                }
+            }
+            // 자원 축적 카드가 아닐때
+            else { // 자원축적칸이 아닌 자원축적x칸일때
+                if (card instanceof NonAccumulativeRoundCard) {
+                    // 자원 축적칸이아닌 일반 자원칸
+                    if (((NonAccumulativeRoundCard) card).getHasResources()) {
+                        Map<String, Integer> resources = ((NonAccumulativeRoundCard) card).createResourcesToGain();
+                        for (Map.Entry<String, Integer> entry : resources.entrySet()) {
+                            resource.add(entry.getKey() + ":" + entry.getValue());
+                        }
+                    } else {
+                        resource.add("null");
+                    }
+                } else {
+                    System.out.println("Invalid card type or card type mismatch.");
+                }
+            }
+            sendToFront.add(resource);
+        }
+        return sendToFront;
     }
 
 //    // 프론트엔드에서 플레이어의 턴 정보를 받아오는 메서드
@@ -871,6 +1001,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
             CommonCard selectedCard = getCardById(player, cardId);
             if (selectedCard != null) {
                 selectedCards.put(playerId, selectedCard);
+
                 System.out.println("Received selected card from player: " + playerId + " with cardId: " + cardId);
             }
         }
