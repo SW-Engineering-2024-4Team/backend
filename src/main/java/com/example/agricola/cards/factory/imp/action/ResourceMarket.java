@@ -14,10 +14,10 @@ public class ResourceMarket extends NonAccumulativeActionCard {
         super(id, "자원시장", "돌, 음식 자원을 1개씩 획득합니다.");
         resourcesToGain.put("stone", 1); // 돌 1개 획득
         resourcesToGain.put("food", 1);// 음식 1개 획득
+        super.setHasResources();
     }
     @Override
     public Map<String, Integer> createResourcesToGain() {
-        super.setHasResources();
         return resourcesToGain;
     }
 

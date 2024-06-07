@@ -15,6 +15,11 @@ public class RenovateRoomsDecorator extends UnifiedDecoratorNon {
     }
 
     @Override
+    public void setOccupiedPlayerId(String id) {
+
+    }
+
+    @Override
     public void renovateRooms(Player player) {
         super.renovateRooms(player);
         if (player.equals(appliedPlayer)) {

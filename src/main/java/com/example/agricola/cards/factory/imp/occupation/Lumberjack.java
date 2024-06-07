@@ -52,6 +52,11 @@ public class Lumberjack extends OccupationCard {
         }
 
         @Override
+        public void setOccupiedPlayerId(String id) {
+
+        }
+
+        @Override
         public void gainResources(Player player, Map<String, Integer> resources) {
             super.gainResources(player, resources);
             if (player.equals(appliedPlayer) && resources.containsKey("wood")) {

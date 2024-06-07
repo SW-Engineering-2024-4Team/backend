@@ -32,7 +32,7 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
         return hasResources;
     }
 
-    private Map<String, Integer> createResourcesToGain() {
+    public Map<String, Integer> createResourcesToGain() {
         setHasResources();
         return resourcesToGain;
     }
@@ -85,6 +85,11 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     @Override
     public void setOccupied(boolean occupied) {
         this.occupied = occupied;
+    }
+
+    @Override
+    public void setOccupiedPlayerId(String id) {
+        occupiedPlayerId = id;
     }
 
     @Override

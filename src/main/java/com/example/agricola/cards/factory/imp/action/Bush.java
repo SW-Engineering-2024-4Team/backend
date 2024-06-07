@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Bush extends AccumulativeActionCard {
-
+    //Map<String, Integer> accumulatedResources =
     public Bush(int id) {
         super(id, "덤불", "나무 자원 1개를 누적합니다..", createAccumulatedAmounts());
     }
@@ -26,4 +26,9 @@ public class Bush extends AccumulativeActionCard {
         // 카드를 점유 상태로 설정
         clearAccumulatedResources();
     }
+
+   // @Override
+   // public Map<String, Integer> getAccumulatedResources() {
+     //   return accumulatedResources;
+    //}
 }

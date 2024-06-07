@@ -95,6 +95,11 @@ public class BuildFenceDecorator extends UnifiedDecoratorNon {
     }
 
     @Override
+    public void setOccupiedPlayerId(String id) {
+
+    }
+
+    @Override
     public void buildFence(Player player) {
         if (player.equals(appliedPlayer) && player.isCompressedSoilActive()) {
             GameService gameService = player.getGameService();

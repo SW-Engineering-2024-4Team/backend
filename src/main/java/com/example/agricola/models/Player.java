@@ -170,6 +170,7 @@ public class Player {
                     System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
 
                     mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
+                    latestCard.setOccupiedPlayerId(this.getId()); //카드에 점유중인 플레이어 id정보추가
                     latestCard.execute(this); // 카드 실행 로직
                     selectedMember.setUsed(true);
 

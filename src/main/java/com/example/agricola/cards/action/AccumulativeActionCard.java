@@ -106,9 +106,15 @@ public class AccumulativeActionCard implements AccumulativeCard {
     }
 
     @Override
+    public void setOccupiedPlayerId(String id) {
+        occupiedPlayerId = id;
+    }
+
+    @Override
     public String getOccupiedPlayerId() {
         return occupiedPlayerId;
     }
+
 
     @Override
     public void resetOccupiedPlayer() {

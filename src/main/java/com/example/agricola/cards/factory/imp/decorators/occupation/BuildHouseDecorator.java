@@ -15,6 +15,11 @@ public class BuildHouseDecorator extends UnifiedDecoratorNon {
     }
 
     @Override
+    public void setOccupiedPlayerId(String id) {
+
+    }
+
+    @Override
     public void buildHouse(Player player) {
         super.buildHouse(player);
         if (player.equals(appliedPlayer)) {
