@@ -790,15 +790,15 @@ public int placeNewAnimals() {
     public void printActiveCardsLists() {
         System.out.println("Active cards lists:");
         for (CommonCard card : activeCards) {
-            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+//            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
 
         System.out.println("보유 Cards:");
         for (CommonCard card : getOccupationCards()) {
-            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+//            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
         for (CommonCard card : getMinorImprovementCards()) {
-            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
+//            System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
     }
 

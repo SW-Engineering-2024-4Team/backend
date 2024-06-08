@@ -38,16 +38,7 @@ public class GameController {
     }
 
 
-    //    @MessageMapping("/exchangeResources")
-//    public void exchangeResources(Map<String, Object> payload) {
-//        String playerId = (String) payload.get("playerId");
-//        String cardName = (String) payload.get("cardName");
-//        String fromResource = (String) payload.get("fromResource");
-//        String toResource = (String) payload.get("toResource");
-//        int amount = (int) payload.get("amount");
-//
-//        gameService.handleExchangeRequest(playerId, cardName, fromResource, toResource, amount);
-//    }
+
 @MessageMapping("/exchangeResources")
 public void exchangeResources(Map<String, Object> payload) {
     String playerId = (String) payload.get("playerId");

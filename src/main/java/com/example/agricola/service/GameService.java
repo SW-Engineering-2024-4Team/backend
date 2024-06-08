@@ -113,27 +113,17 @@ public class GameService {
 
         int numPlayers = players.size();
 
-//        for (int i = 0; i < 8; i++) {
-//            players.get(i % numPlayers).addCard(occupationDeck.get(i), "occupation");
-//        }
-//
-//        for (int i = 0; i < 8; i++) {
-//            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
-//        }
+        for (int i = 0; i < 8; i++) {
+            players.get(i % numPlayers).addCard(occupationDeck.get(i), "occupation");
+        }
+
+        for (int i = 0; i < 8; i++) {
+            players.get(i % numPlayers).addCard(minorImprovementDeck.get(i), "minorImprovement");
+        }
 
         // TODO 테스트 셋업 직업카드:양보행자(ShepherdCard(42) index 7) 보조설비:경질자기(HardenedClay(46) index4)
         // 보조설비 다 갖는걸로
 
-        for (Player player : players) {
-            player.addCard(new ShepherdCard(42), ".");
-            player.addCard(new HardenedClay(46), ".");
-            player.addCard(new PotteryWorkshop(29), ".");
-            player.addCard(new Hearth1(30), ".");
-            player.addCard(new FurnitureWorkshop(31), ".");
-            player.addCard(new StoneOven(32), ".");
-            player.addCard(new Hearth2(33), ".");
-            player.addCard(new ClayOven(34), ".");
-        }
     }
 
     private void setupMainBoard() {
@@ -181,6 +171,64 @@ public class GameService {
         );
     }
 
+    public void sendPlayerBoardInfo(Player player) {
+        PlayerBoard playerBoard = player.getPlayerBoard();
+        Map<String, Object> boardInfo = new HashMap<>();
+
+        Tile[][] tiles = playerBoard.getTiles();
+        boolean[][][] fences = playerBoard.getFences();
+        FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
+        Animal[][] animals = playerBoard.getAnimals();
+
+        for (int x = 0; x < tiles.length; x++) {
+            for (int y = 0; y < tiles[0].length; y++) {
+                Map<String, Object> tileInfo = new HashMap<>();
+                Tile tile = tiles[x][y];
+                FamilyMember familyMember = familyMembers[x][y];
+                Animal animal = animals[x][y];
+
+                if (tile != null) {
+                    tileInfo.put("tileType", tile.getClass().getSimpleName());
+                    if (tile instanceof Room) {
+                        tileInfo.put("roomType", ((Room) tile).getType().name());
+                    } else if (tile instanceof Barn) {
+                        tileInfo.put("hasAnimal", ((Barn) tile).hasAnimal());
+                    } else if (tile instanceof FieldTile) {
+                        tileInfo.put("crops", ((FieldTile) tile).getCrops());
+                        tileInfo.put("cropType", ((FieldTile) tile).getCropType());
+                    }
+                } else {
+                    tileInfo.put("tileType", "Empty");
+                }
+
+                if (familyMember != null) {
+                    tileInfo.put("familyMember", familyMember.isAdult() ? "Adult" : "Child");
+                }
+
+                if (animal != null) {
+                    tileInfo.put("animalType", animal.getType());
+                }
+
+                tileInfo.put("fences", new boolean[]{
+                        fences[x][y][0], // 상단 울타리
+                        fences[x][y][1], // 하단 울타리
+                        fences[x][y][2], // 좌측 울타리
+                        fences[x][y][3]  // 우측 울타리
+                });
+
+                boardInfo.put("tile_" + x + "_" + y, tileInfo);
+            }
+        }
+
+        Map<String, Object> message = new HashMap<>();
+        message.put("playerId", player.getId());
+        message.put("playerBoard", boardInfo);
+
+        System.out.println("Sending player board info to frontend for player " + player.getId() + ": " + boardInfo);
+        simpMessagingTemplate.convertAndSend("/topic/playerBoard", message);
+    }
+
+
     public void setNextTurnOrder(List<Player> nextTurnOrder) {
         System.out.println("nextturnorder 호출됨");
         this.nextTurnOrder = nextTurnOrder;
@@ -196,9 +244,9 @@ public class GameService {
         while (currentRound <= 14) {
             System.out.println("-------------------------------------------------------------------------------");
             System.out.println("Round " + currentRound + " starts.");
-//            prepareRound();
+            prepareRound();
             System.out.println("after preparing round " + currentRound);
-//            playRound();
+            playRound();
             System.out.println("after playing round " + currentRound);
             if (isHarvestRound(currentRound)) {
                 harvestPhase();
@@ -408,8 +456,13 @@ public class GameService {
         Player player = getPlayerByID(playerID);
 
         if (player != null) {
+            sendPlayerResourcesToFrontEnd(player);
+            sendPlayerBoardInfo(player);
+            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
+            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
+            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
             sendExchangeableCardsInfoToFrontEnd(playerID, ExchangeTiming.ANYTIME);
-            player.printActiveCardsLists();
+//            player.printActiveCardsLists();
             // 플레이어에게 턴 정보를 프론트엔드로 전송
             Map<String, Object> playerTurnInfo = Map.of(
                     "playerId", player.getId(),
@@ -432,6 +485,11 @@ public class GameService {
                     e.printStackTrace();
                 }
             }
+            sendPlayerResourcesToFrontEnd(player);
+            sendPlayerBoardInfo(player);
+            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
+            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
+            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
             player.printActiveCardsLists();
 
         }
@@ -452,24 +510,23 @@ public void receivePlayerTurn(String playerID, int cardID) {
     Player player = getPlayerByID(playerID);
     ActionRoundCard selectedCard = (ActionRoundCard) mainBoard.getCardById(cardID);
     player.placeFamilyMember(selectedCard);
-    updatePlayerPositions(playerID, cardID);
     synchronized (this) {
         notify(); // 플레이어 턴 진행 후 대기 중인 스레드 깨움
     }
 }
 
-    private void updatePlayerPositions(String playerID, int cardID) {
-        int cardIndex = cardID - 1;
-
-
-        playerPositions.set(cardIndex, Integer.parseInt(playerID));
-
-        // 프론트엔드에 업데이트된 정보를 알림
-        Map<String, Object> playerPositionInfo = new HashMap<>();
-        playerPositionInfo.put("playerPositions", playerPositions);
-
-        notifyPlayers(playerPositionInfo);
-    }
+//    private void updatePlayerPositions(String playerID, int cardID) {
+//        int cardIndex = cardID - 1;
+//
+//
+//        playerPositions.set(cardIndex, Integer.parseInt(playerID));
+//
+//        // 프론트엔드에 업데이트된 정보를 알림
+//        Map<String, Object> playerPositionInfo = new HashMap<>();
+//        playerPositionInfo.put("playerPositions", playerPositions);
+//
+//        notifyPlayers(playerPositionInfo);
+//    }
 
 
 
@@ -493,8 +550,8 @@ public void receivePlayerTurn(String playerID, int cardID) {
         notifyPlayers(Map.of("message", "농장 단계가 시작되었습니다."));
 
         for (Player player : players) {
-            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.HARVEST);
-            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
+//            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.HARVEST);
+//            sendExchangeableCardsInfoToFrontEnd(player.getId(), ExchangeTiming.ANYTIME);
             PlayerBoard board = player.getPlayerBoard();
             for (Tile[] row : board.getTiles()) {
                 for (Tile tile : row) {
@@ -508,13 +565,13 @@ public void receivePlayerTurn(String playerID, int cardID) {
                 }
             }
 
-            synchronized (this) {
-                try {
-                    wait(); // 프론트엔드에서 신호를 받을 때까지 대기
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+//            synchronized (this) {
+//                try {
+//                    wait(); // 프론트엔드에서 신호를 받을 때까지 대기
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
         }
     }
 
@@ -539,12 +596,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
             }
         }
 
-        // 5초 동안 대기 후 단계 종료
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        // 5초 동안 대기 후 단계 종료
+//        try {
+//            Thread.sleep(3000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         notifyPlayers(Map.of("message", "가족 먹여살리기 단계가 종료되었습니다."));
     }
 
@@ -570,12 +627,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
             }
 
             // 유효한 동물 배치 위치를 프론트엔드로 전송
-            Set<int[]> validPositions = player.getPlayerBoard().getValidAnimalPositions(newAnimal.getType());
-            if (validPositions.isEmpty()) {
-                System.out.println(newAnimal.getType() + " 방생됨.");
-                continue;
-            }
-
+//            Set<int[]> validPositions = player.getPlayerBoard().getValidAnimalPositions(newAnimal.getType());
+//            if (validPositions.isEmpty()) {
+//                System.out.println(newAnimal.getType() + " 방생됨.");
+//                continue;
+//            }
+//
 //            Map<String, Object> animalPlacementInfo = Map.of(
 //                    "playerId", player.getId(),
 //                    "animalType", newAnimal.getType(),

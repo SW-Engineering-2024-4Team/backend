@@ -1,8 +1,17 @@
+
 // document.addEventListener('DOMContentLoaded', (event) => {
 //     const startGameButton = document.getElementById('startGameButton');
+//     const viewExCardsButton = document.getElementById('viewExCardsButton');
 //     const gameStateDiv = document.getElementById('gameState');
 //     const cardIdInput = document.getElementById('cardIdInput');
 //     const sendCardIdButton = document.getElementById('sendCardIdButton');
+//     const exchangePopup = document.getElementById('exchangePopup');
+//     const exchangeButtons = document.getElementById('exchangeButtons');
+//     const closePopupButton = document.getElementById('closePopupButton');
+//
+//     closePopupButton.addEventListener('click', () => {
+//         exchangePopup.style.display = 'none';
+//     });
 //
 //     let stompClient = null;
 //     let gameID = '1234'; // Example game ID
@@ -37,6 +46,7 @@
 //                 console.log('Received major improvement cards: ' + message.body);
 //                 handleMajorImprovementCards(JSON.parse(message.body));
 //             });
+//
 //             // 플레이어 자원 업데이트를 받는 부분 추가
 //             stompClient.subscribe('/topic/playerResources', (message) => {
 //                 console.log('Received player resources: ' + message.body);
@@ -48,8 +58,18 @@
 //                 handleActiveCards(JSON.parse(message.body));
 //             });
 //
+//             // 교환 가능 카드 정보를 받는 부분 추가
+//             stompClient.subscribe('/topic/exchangeableCards', (message) => {
+//                 console.log('Received exchangeable cards info: ' + message.body);
+//                 handleExchangeableCards(JSON.parse(message.body));
+//             });
+//
 //             startGameButton.addEventListener('click', () => {
 //                 startGame();
+//             });
+//
+//             viewExCardsButton.addEventListener('click', () => {
+//                 viewExchangeableCards();
 //             });
 //
 //             sendCardIdButton.addEventListener('click', () => {
@@ -72,6 +92,41 @@
 //         stompClient.send('/app/startGame', {}, JSON.stringify(payload));
 //     }
 //
+//     function viewExchangeableCards() {
+//         const payload = {
+//             playerId: currentPlayerID
+//         };
+//         console.log('Requesting exchangeable cards for player:', currentPlayerID);
+//         stompClient.send('/app/viewExchangeableCards', {}, JSON.stringify(payload));
+//     }
+//
+//     // function handleGameState(gameState) {
+//     //     if (gameState.message) {
+//     //         gameStateDiv.innerHTML += `<p>${gameState.message}</p>`;
+//     //     }
+//     //
+//     //     if (gameState.currentRound) {
+//     //         const players = gameState.players.map(player => formatPlayer(player)).join('\n\n');
+//     //         const mainBoard = formatMainBoard(gameState.mainBoard);
+//     //         const gameInfo = `Game ID: ${gameState.gameID}\nCurrent Round: ${gameState.currentRound}`;
+//     //
+//     //         gameStateDiv.innerHTML += `<div class="section-title">Game Info</div>\n${gameInfo}\n\n<div class="section-title">Players</div>\n${players}\n\n<div class="section-title">Main Board</div>\n${mainBoard}`;
+//     //     }
+//     //
+//     //     if (gameState.playerId && gameState.availableCards) {
+//     //         currentPlayerID = gameState.playerId;
+//     //         handlePlayerTurn(gameState.playerId, gameState.availableCards);
+//     //
+//     //         stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
+//     //             console.log('Received card options: ' + message.body);
+//     //             handleCardOptions(JSON.parse(message.body));
+//     //         });
+//     //     }
+//     //
+//     //     if (gameState.playerId && gameState.exchangeableCards) {
+//     //         handleExchangeableCards(gameState.playerId, gameState.exchangeableCards);
+//     //     }
+//     // }
 //     function handleGameState(gameState) {
 //         if (gameState.message) {
 //             gameStateDiv.innerHTML += `<p>${gameState.message}</p>`;
@@ -86,7 +141,7 @@
 //         }
 //
 //         if (gameState.playerId && gameState.availableCards) {
-//             currentPlayerID = gameState.playerId;
+//             currentPlayerID = gameState.playerId; // Ensure currentPlayerID is set
 //             handlePlayerTurn(gameState.playerId, gameState.availableCards);
 //
 //             stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
@@ -99,6 +154,8 @@
 //             handleExchangeableCards(gameState.playerId, gameState.exchangeableCards);
 //         }
 //     }
+//
+//
 //
 //     function handlePlayerTurn(playerId, availableCards) {
 //         if (playerId === currentPlayerID) {
@@ -149,9 +206,29 @@
 //         }
 //     }
 //
-//     function exchangeCard(cardId) {
-//         // Implement the exchange card logic
+//     window.exchangeCard = function(cardId) {
+//         const payload = {
+//             playerId: currentPlayerID,
+//             cardId: cardId
+//         };
+//         console.log('Exchanging card with ID:', cardId);
+//         stompClient.send('/app/exchangeResources', {}, JSON.stringify(payload));
 //     }
+//
+//
+//     function viewExchangeableCards() {
+//         if (currentPlayerID !== null) { // Ensure currentPlayerID is not null
+//             const payload = {
+//                 playerId: currentPlayerID
+//             };
+//             console.log('Requesting exchangeable cards for player:', currentPlayerID);
+//             stompClient.send('/app/viewExchangeableCards', {}, JSON.stringify(payload));
+//         } else {
+//             console.log('Current player ID is null');
+//         }
+//     }
+//
+//
 //
 //     function formatPlayer(player) {
 //         return `Player ID: ${player.id}\nName: ${player.name}\nResources: ${JSON.stringify(player.resources, null, 2)}\nOccupation Cards: ${formatCards(player.occupationCards)}\nMinor Improvement Cards: ${formatCards(player.minorImprovementCards)}\nActive Cards: ${formatCards(player.activeCards)}\nPlayer Board:\n${formatPlayerBoard(player.playerBoard)}`;
@@ -222,8 +299,6 @@
 //         }
 //     }
 //
-//
-//
 //     function selectPosition(x, y) {
 //         const payload = {
 //             playerId: currentPlayerID,
@@ -278,6 +353,16 @@
 //         stompClient.send('/app/playerChoice', {}, JSON.stringify(payload));
 //     }
 //
+//     function handleExchangeableCards(exchangeableCardsInfo) {
+//         const { playerId, exchangeableCards } = exchangeableCardsInfo;
+//         if (playerId === currentPlayerID) {
+//             exchangeButtons.innerHTML = exchangeableCards.map(card =>
+//                 `<button class="card-button" onclick="exchangeCard(${card.id})">${card.name} (Max: ${card.maxExchangeAmount})</button>`).join('');
+//             exchangePopup.style.display = 'block';
+//         }
+//     }
+//
+//
 //     // 활성 카드 목록 처리 및 표시 함수
 //     function handleActiveCards(message) {
 //         const { playerId, majorImprovementCards } = message;
@@ -290,9 +375,6 @@
 //             console.log('Received active cards for player: ', playerId, majorImprovementCards);
 //         }
 //     }
-//
-//
-//
 //
 //     window.selectCard = selectCard;
 //     window.selectPosition = selectPosition;
@@ -349,7 +431,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 handleMajorImprovementCards(JSON.parse(message.body));
             });
 
-            // 플레이어 자원 업데이트를 받는 부분 추가
             stompClient.subscribe('/topic/playerResources', (message) => {
                 console.log('Received player resources: ' + message.body);
                 handlePlayerResources(JSON.parse(message.body));
@@ -360,10 +441,19 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 handleActiveCards(JSON.parse(message.body));
             });
 
-            // 교환 가능 카드 정보를 받는 부분 추가
             stompClient.subscribe('/topic/exchangeableCards', (message) => {
                 console.log('Received exchangeable cards info: ' + message.body);
                 handleExchangeableCards(JSON.parse(message.body));
+            });
+
+            stompClient.subscribe('/topic/playerBoard', (message) => {
+                console.log('Received player board info: ' + message.body);
+                handlePlayerBoard(JSON.parse(message.body));
+            });
+
+            stompClient.subscribe('/topic/activeCards/' + currentPlayerID, (message) => {
+                console.log('Received active card list: ' + message.body);
+                handleActiveCardList(JSON.parse(message.body));
             });
 
             startGameButton.addEventListener('click', () => {
@@ -402,33 +492,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         stompClient.send('/app/viewExchangeableCards', {}, JSON.stringify(payload));
     }
 
-    // function handleGameState(gameState) {
-    //     if (gameState.message) {
-    //         gameStateDiv.innerHTML += `<p>${gameState.message}</p>`;
-    //     }
-    //
-    //     if (gameState.currentRound) {
-    //         const players = gameState.players.map(player => formatPlayer(player)).join('\n\n');
-    //         const mainBoard = formatMainBoard(gameState.mainBoard);
-    //         const gameInfo = `Game ID: ${gameState.gameID}\nCurrent Round: ${gameState.currentRound}`;
-    //
-    //         gameStateDiv.innerHTML += `<div class="section-title">Game Info</div>\n${gameInfo}\n\n<div class="section-title">Players</div>\n${players}\n\n<div class="section-title">Main Board</div>\n${mainBoard}`;
-    //     }
-    //
-    //     if (gameState.playerId && gameState.availableCards) {
-    //         currentPlayerID = gameState.playerId;
-    //         handlePlayerTurn(gameState.playerId, gameState.availableCards);
-    //
-    //         stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
-    //             console.log('Received card options: ' + message.body);
-    //             handleCardOptions(JSON.parse(message.body));
-    //         });
-    //     }
-    //
-    //     if (gameState.playerId && gameState.exchangeableCards) {
-    //         handleExchangeableCards(gameState.playerId, gameState.exchangeableCards);
-    //     }
-    // }
     function handleGameState(gameState) {
         if (gameState.message) {
             gameStateDiv.innerHTML += `<p>${gameState.message}</p>`;
@@ -443,7 +506,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
 
         if (gameState.playerId && gameState.availableCards) {
-            currentPlayerID = gameState.playerId; // Ensure currentPlayerID is set
+            currentPlayerID = gameState.playerId;
             handlePlayerTurn(gameState.playerId, gameState.availableCards);
 
             stompClient.subscribe('/topic/cards/' + currentPlayerID, (message) => {
@@ -456,8 +519,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
             handleExchangeableCards(gameState.playerId, gameState.exchangeableCards);
         }
     }
-
-
 
     function handlePlayerTurn(playerId, availableCards) {
         if (playerId === currentPlayerID) {
@@ -516,21 +577,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         console.log('Exchanging card with ID:', cardId);
         stompClient.send('/app/exchangeResources', {}, JSON.stringify(payload));
     }
-
-
-    function viewExchangeableCards() {
-        if (currentPlayerID !== null) { // Ensure currentPlayerID is not null
-            const payload = {
-                playerId: currentPlayerID
-            };
-            console.log('Requesting exchangeable cards for player:', currentPlayerID);
-            stompClient.send('/app/viewExchangeableCards', {}, JSON.stringify(payload));
-        } else {
-            console.log('Current player ID is null');
-        }
-    }
-
-
 
     function formatPlayer(player) {
         return `Player ID: ${player.id}\nName: ${player.name}\nResources: ${JSON.stringify(player.resources, null, 2)}\nOccupation Cards: ${formatCards(player.occupationCards)}\nMinor Improvement Cards: ${formatCards(player.minorImprovementCards)}\nActive Cards: ${formatCards(player.activeCards)}\nPlayer Board:\n${formatPlayerBoard(player.playerBoard)}`;
@@ -664,11 +710,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
         }
     }
 
+    function handlePlayerBoard(playerBoardInfo) {
+        const { playerId, playerBoard } = playerBoardInfo;
+        if (playerId === currentPlayerID) {
+            let boardHtml = formatPlayerBoard(playerBoard);
+            gameStateDiv.innerHTML += `<div class="section-title">Your Player Board</div>\n${boardHtml}`;
+        }
+    }
 
-    // 활성 카드 목록 처리 및 표시 함수
     function handleActiveCards(message) {
         const { playerId, majorImprovementCards } = message;
-
         if (playerId === currentPlayerID) {
             let cardListHtml = majorImprovementCards.map(card => `<li>${card.name}: ${card.description}</li>`).join('');
             gameStateDiv.innerHTML += `<div class="section-title">Your Active Cards</div>\n<ul>${cardListHtml}</ul>`;
@@ -684,4 +735,3 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     connect();
 });
-
