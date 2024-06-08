@@ -44,6 +44,39 @@ class MainBoardTest {
 
 
     @Test
+    void mainBoardAccumulatedResourcesList() {
+        sheepMarket.reveal();
+        bush.accumulateResources();
+        bush.accumulateResources();
+        bush2.accumulateResources();
+        bush2.accumulateResources();
+        bush2.accumulateResources();
+        clayMine.accumulateResources();
+        clayMine2.accumulateResources();
+        clayMine2.accumulateResources();
+        clayMine2.accumulateResources();
+        clayMine2.accumulateResources();
+        sheepMarket.accumulateResources();
+        sheepMarket.accumulateResources();
+        sheepMarket.accumulateResources();
+        gs.setMainBoard(mainBoard);
+        actionCards.add(bush);
+        actionCards.add(bush2);
+        actionCards.add(clayMine);
+        actionCards.add(clayMine2);
+        actionCards.add(resourceMarket);
+        roundCards.add(addFamilyMembe);
+        roundCards.add(buildFence);
+        roundCards.add(plantSeed);
+        roundCards.add(purchaseMajor);
+        roundCards.add(sheepMarket);
+        mainBoard.setActionCards(actionCards);
+        mainBoard.setRoundCards(roundCards);
+        mainBoard.mainBoardAccumulatedResourcesList(mainBoard);
+
+    }
+
+    @Test
     void mainboardActioncardPlayerList() { //test진행시 GameService sendPlayerResourcesToFrontEnd메서드 simpMessagingTemplate.convertAndSend("/topic/room/1", message);주석처리
         gs.setMainBoard(mainBoard);
         actionCards.add(bush);
