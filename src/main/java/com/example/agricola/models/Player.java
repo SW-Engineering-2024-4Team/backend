@@ -35,7 +35,7 @@ public class Player {
     public Player(String id, String name, GameService gameService) {
         this.id = id;
         this.name = name;
-        this.resources = new HashMap<>();
+        this.resources = new LinkedHashMap<>();
         this.occupationCards = new ArrayList<>();
         this.minorImprovementCards = new ArrayList<>();
         this.majorImprovementCards = new ArrayList<>();
@@ -132,7 +132,7 @@ public class Player {
     }
 
 
-    public void placeFamilyMember(ActionRoundCard card) { //테스트안돌아가서 @param card, x, y -> @param card로 변경 
+    public void placeFamilyMember(ActionRoundCard card) { //테스트안돌아가서 @param card, x, y -> @param card로 변경
         MainBoard mainBoard = gameService.getMainBoard();
 
         // 최신 카드 리스트에서 해당 카드를 찾음
@@ -513,6 +513,7 @@ public int placeNewAnimals() {
     List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over
     List<Map<String, Object>> placedAnimalsInfo = new ArrayList<>(); // List to store placed animal info
 
+    // TODO 임의로 좌표를 설정한 것
     // 더 배치할 수 없을 경우: 방생
     for (Animal animal : newAnimalsCopy) {
         Set<int[]> validPositions = playerBoard.getValidAnimalPositions(animal.getType());
@@ -521,6 +522,7 @@ public int placeNewAnimals() {
             int[] position = validPositions.iterator().next();
             System.out.println("동물 배치 위치: (" + position[0] + ", " + position[1] + ")");
 
+            // TODO 프론트한테 좌표 받아서 배치
             placeAnimalOnBoard(animal, position[0], position[1]);
             placedCount++;
             animalsToRemove.add(animal);
