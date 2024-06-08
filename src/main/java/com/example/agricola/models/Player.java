@@ -132,7 +132,7 @@ public class Player {
     }
 
 
-    public void placeFamilyMember(ActionRoundCard card) {
+    public void placeFamilyMember(ActionRoundCard card) { //테스트안돌아가서 @param card, x, y -> @param card로 변경
         MainBoard mainBoard = gameService.getMainBoard();
 
         // 최신 카드 리스트에서 해당 카드를 찾음
@@ -170,6 +170,7 @@ public class Player {
                     System.out.println("Placing family member at (" + i + ", " + j + ") for player " + this.id);
 
                     mainBoard.placeFamilyMember(latestCard); // 점유 상태로 먼저 설정
+                    latestCard.setOccupiedPlayerId(this.getId()); //카드에 점유중인 플레이어 id정보추가
                     latestCard.execute(this); // 카드 실행 로직
                     selectedMember.setUsed(true);
 
@@ -803,6 +804,7 @@ public int placeNewAnimals() {
             System.out.println("- " + card.getName() + " (hashCode: " + card.hashCode() + ")");
         }
     }
+
 
     /**
      * 플레이어의 자원정보를 리스트로 반환하는 함수

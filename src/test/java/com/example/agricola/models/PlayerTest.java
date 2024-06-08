@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlayerTest {
 
-    @Test
+    @Test//test진행시 GameServices sendPlayerResourcesToFrontEnd메서드 simpMessagingTemplate.convertAndSend("/topic/playerResources", message);주석처리
     void playerResourcesList() {
         RoomController rm = new RoomController();
         List<Player> players = List.of();

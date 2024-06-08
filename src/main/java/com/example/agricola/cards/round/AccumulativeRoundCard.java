@@ -112,6 +112,11 @@ public class AccumulativeRoundCard implements AccumulativeCard {
         this.occupied = occupied;
     }
 
+    @Override
+    public void setOccupiedPlayerId(String id) {
+        occupiedPlayerId = id;
+    }
+
     public void setAccumulatedResources(Map<String, Integer> resources) {
         this.accumulatedResources = resources;
     }

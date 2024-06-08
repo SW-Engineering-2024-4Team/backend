@@ -20,6 +20,8 @@ public interface ActionRoundCard extends CommonCard {
     boolean isAccumulative(); // 누적 가능한지 여부 확인 메서드
     boolean isOccupied(); // 카드가 점유되었는지 확인
     void setOccupied(boolean occupied); // 카드의 점유 상태 설정
+    void setOccupiedPlayerId(String id);
+
     default String getOccupiedPlayerId() {
         return "Default";
     };

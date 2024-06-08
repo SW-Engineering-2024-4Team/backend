@@ -2,7 +2,6 @@ package com.example.agricola.cards.factory.imp.action;
 
 
 import com.example.agricola.cards.action.AccumulativeActionCard;
-
 import com.example.agricola.models.Player;
 
 import java.util.HashMap;

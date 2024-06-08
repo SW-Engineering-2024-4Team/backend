@@ -111,5 +111,10 @@ public class StoneAxe extends MinorImprovementCard {
             }
             return null;
         }
+
+        @Override
+        public void setOccupiedPlayerId(String id) {
+
+        }
     }
 }

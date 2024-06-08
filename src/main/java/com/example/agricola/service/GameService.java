@@ -755,6 +755,15 @@ public void receivePlayerTurn(String playerID, int cardID) {
             player.convertBabiesToAdults();
         }
         calculateAndRecordScores();
+        //카드가 가지고있는 사용중인 플레이어 id 초기화
+        List<ActionRoundCard> actionCards = mainBoard.getActionCards();
+        List<ActionRoundCard> roundCards = mainBoard.getRoundCards();
+        for (ActionRoundCard actionCard : actionCards) {
+            actionCard.resetOccupiedPlayer();
+        }
+        for (ActionRoundCard roundCard : roundCards) {
+            roundCard.resetOccupiedPlayer();
+        }
     }
 
     private void calculateAndRecordScores() {
@@ -1120,7 +1129,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
         message.put("choiceType", choiceType);
         message.put("options", options);
 
-        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        //simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     private Map<String, CountDownLatch> playerLatches = new ConcurrentHashMap<>();
@@ -1278,7 +1287,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
         System.out.println("Sending player resources to frontend for player " + player.getId() + ": " + player.getResources());
 
-        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        //simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
     public void sendActiveCardsListToFrontEnd(Player player) {

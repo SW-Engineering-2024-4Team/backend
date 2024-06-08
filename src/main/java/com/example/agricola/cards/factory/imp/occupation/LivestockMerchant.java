@@ -76,5 +76,9 @@ public class LivestockMerchant extends OccupationCard {
             }
         }
 
+        @Override
+        public void setOccupiedPlayerId(String id) {
+
+        }
     }
 }

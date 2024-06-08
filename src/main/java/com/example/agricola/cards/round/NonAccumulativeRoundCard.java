@@ -88,6 +88,11 @@ public class NonAccumulativeRoundCard implements ActionRoundCard {
     }
 
     @Override
+    public void setOccupiedPlayerId(String id) {
+        occupiedPlayerId = id;
+    }
+
+    @Override
     public String getOccupiedPlayerId() {
         return this.occupiedPlayerId;
     }
