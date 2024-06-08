@@ -164,6 +164,7 @@ public void exchangeResources(Map<String, Object> payload) {
     //옵션 받기
     @MessageMapping("/room/{roomId}/playerChoice")
     public void receivePlayerChoice(Map<String, Object> payload) {
+        System.out.println(payload);
         String playerId = (String) payload.get("playerId");
         String choiceType = (String) payload.get("choiceType");
         Object choice = payload.get("choice"); // choice를 Object로 받아서 동적으로 처리
