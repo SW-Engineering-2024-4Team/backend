@@ -131,6 +131,7 @@ public class GameService {
         this.nextTurnOrder = null;
         this.mainBoard = null;
         this.currentRound = 0;
+        calculateAndRecordScores(); //게임종료시만 점수계산
     }
 
     public void initializeGame() {
@@ -662,14 +663,14 @@ public class GameService {
                     }
                 }
             }
-
+            /* 싱크없이 자동으로 백에서 진행되도록 주석처리
             synchronized (this) {
                 try {
                     wait(); // 프론트엔드에서 신호를 받을 때까지 대기
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
         }
     }
 
@@ -807,7 +808,7 @@ public class GameService {
         for (Player player : players) {
             player.convertBabiesToAdults();
         }
-        calculateAndRecordScores();
+        //calculateAndRecordScores(); 게임종료시에만 점수계산하게 주석처리
     }
 
     /**
