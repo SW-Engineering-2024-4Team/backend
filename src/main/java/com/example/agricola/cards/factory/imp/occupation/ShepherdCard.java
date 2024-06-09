@@ -4,9 +4,7 @@ package com.example.agricola.cards.factory.imp.occupation;
 import com.example.agricola.cards.occupation.OccupationCard;
 import com.example.agricola.enums.ExchangeTiming;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class ShepherdCard extends OccupationCard {
 

@@ -5,7 +5,6 @@ import com.example.agricola.cards.occupation.OccupationCard;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.models.Animal;
 import com.example.agricola.models.Player;
-import com.example.agricola.service.GameService;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -3,12 +3,12 @@ package com.example.agricola.models;
 
 import com.example.agricola.enums.RoomType;
 
-public class Room implements Tile {
+public class Room implements com.example.agricola.models.Tile {
     private RoomType type;
     private final int x;
     private final int y;
-    private FamilyMember familyMember;
-    private Animal animal;
+    private com.example.agricola.models.FamilyMember familyMember;
+    private com.example.agricola.models.Animal animal;
 
     public Room(RoomType type, int x, int y) {
         this.type = type;
@@ -32,19 +32,19 @@ public class Room implements Tile {
         return y;
     }
 
-    public FamilyMember getFamilyMember() {
+    public com.example.agricola.models.FamilyMember getFamilyMember() {
         return familyMember;
     }
 
-    public void setFamilyMember(FamilyMember familyMember) {
+    public void setFamilyMember(com.example.agricola.models.FamilyMember familyMember) {
         this.familyMember = familyMember;
     }
 
-    public Animal getAnimal() {
+    public com.example.agricola.models.Animal getAnimal() {
         return animal;
     }
 
-    public void setAnimal(Animal animal) {
+    public void setAnimal(com.example.agricola.models.Animal animal) {
         this.animal = animal;
     }
 

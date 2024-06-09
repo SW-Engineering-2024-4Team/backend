@@ -1,9 +1,9 @@
 package com.example.agricola.models;
 
-public class Barn implements Tile {
+public class Barn implements com.example.agricola.models.Tile {
     private final int x;
     private final int y;
-    private Animal animal;
+    private com.example.agricola.models.Animal animal;
 
     public Barn(int x, int y) {
         this.x = x;
@@ -11,11 +11,11 @@ public class Barn implements Tile {
         this.animal = null;
     }
 
-    public Animal getAnimal() {
+    public com.example.agricola.models.Animal getAnimal() {
         return animal;
     }
 
-    public void setAnimal(Animal animal) {
+    public void setAnimal(com.example.agricola.models.Animal animal) {
         this.animal = animal;
     }
 

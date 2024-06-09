@@ -1,7 +1,5 @@
 package com.example.agricola.message;
 
-import java.util.List;
-
 public class GameActionBoardMessage {
     private String message;
     private int[] clickedActionCards;

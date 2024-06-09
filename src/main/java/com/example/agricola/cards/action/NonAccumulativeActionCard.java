@@ -3,7 +3,6 @@ package com.example.agricola.cards.action;
 import com.example.agricola.cards.common.ActionRoundCard;
 import com.example.agricola.models.Player;
 
-
 import java.util.Map;
 
 public class NonAccumulativeActionCard implements ActionRoundCard {

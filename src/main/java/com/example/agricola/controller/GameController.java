@@ -14,7 +14,6 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

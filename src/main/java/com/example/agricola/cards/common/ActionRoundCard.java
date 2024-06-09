@@ -2,12 +2,9 @@ package com.example.agricola.cards.common;
 
 
 import com.example.agricola.cards.majorimprovement.MajorImprovementCard;
-import com.example.agricola.controller.GameController;
 import com.example.agricola.enums.RoomType;
 import com.example.agricola.models.*;
 import com.example.agricola.service.GameService;
-import com.sun.tools.javac.Main;
-
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;

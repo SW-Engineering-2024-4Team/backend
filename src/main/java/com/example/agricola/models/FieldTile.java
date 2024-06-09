@@ -1,6 +1,6 @@
 package com.example.agricola.models;
 
-public class FieldTile implements Tile {
+public class FieldTile implements com.example.agricola.models.Tile {
     private int crops;
     private String cropType;
     private final int x;

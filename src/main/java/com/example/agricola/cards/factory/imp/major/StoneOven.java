@@ -3,7 +3,6 @@ package com.example.agricola.cards.factory.imp.major;
 
 import com.example.agricola.cards.majorimprovement.MajorImprovementCard;
 import com.example.agricola.enums.ExchangeTiming;
-import com.example.agricola.models.Player;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

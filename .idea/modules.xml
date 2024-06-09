@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/agricola.iml" filepath="$PROJECT_DIR$/.idea/modules/agricola.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/agricola.main.iml" filepath="$PROJECT_DIR$/.idea/modules/agricola.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/agricola.test.iml" filepath="$PROJECT_DIR$/.idea/modules/agricola.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/agricola1.iml" filepath="$PROJECT_DIR$/agricola1.iml" />
     </modules>
   </component>

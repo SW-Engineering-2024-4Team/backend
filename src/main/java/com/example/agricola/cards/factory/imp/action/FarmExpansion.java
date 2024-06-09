@@ -1,14 +1,11 @@
 package com.example.agricola.cards.factory.imp.action;
 
 import com.example.agricola.cards.action.NonAccumulativeActionCard;
-import com.example.agricola.enums.RoomType;
 import com.example.agricola.models.Player;
-import com.example.agricola.models.PlayerBoard;
 import com.example.agricola.service.GameService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class FarmExpansion extends NonAccumulativeActionCard {
 

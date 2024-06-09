@@ -1,14 +1,12 @@
 package com.example.agricola.models;
 
-import com.example.agricola.models.Player;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FenceArea {
     private Set<int[]> tiles;
-    private Set<Barn> barns;
-    private List<Animal> animals;
+    private Set<com.example.agricola.models.Barn> barns;
+    private List<com.example.agricola.models.Animal> animals;
     private int remainingCapacity;
     private int initalCapacity;
     private String animalType; // 울타리 영역 내 동물 종류를 관리하는 필드
@@ -44,7 +42,7 @@ public class FenceArea {
         }
     }
 
-    public void addTile(int x, int y, Tile tile) {
+    public void addTile(int x, int y, com.example.agricola.models.Tile tile) {
         // 타일이 이미 존재하는지 확인
         boolean tileExists = false;
         for (int[] pos : tiles) {
@@ -60,10 +58,10 @@ public class FenceArea {
         }
 
         // 타일이 외양간이면 외양간 목록에 추가
-        if (tile instanceof Barn) {
-            barns.add((Barn) tile);
+        if (tile instanceof com.example.agricola.models.Barn) {
+            barns.add((com.example.agricola.models.Barn) tile);
             // 외양간에 동물이 있는 경우, 울타리 영역에 동물을 추가
-            Barn barn = (Barn) tile;
+            com.example.agricola.models.Barn barn = (com.example.agricola.models.Barn) tile;
             if (barn.hasAnimal()) {
                 addAnimal(barn.getAnimal());
                 barn.setAnimal(null); // 외양간에서 동물 제거
@@ -84,7 +82,7 @@ public class FenceArea {
 
 
     public boolean containsBarn(int x, int y) {
-        for (Barn barn : barns) {
+        for (com.example.agricola.models.Barn barn : barns) {
             if (barn.getX() == x && barn.getY() == y) {
                 return true;
             }
@@ -95,7 +93,7 @@ public class FenceArea {
     public int calculateInitialCapacity() {
         int capacity = (int) Math.pow(2, tiles.size()); // 기본 수용량: 타일 한 칸당 2배
         int numTiles = tiles.size();
-        for (Barn barn : barns) {
+        for (com.example.agricola.models.Barn barn : barns) {
             capacity *= 2; // 외양간이 있으면 타일당 수용량 2배
         }
         if (hasWaterTrough) {
@@ -106,7 +104,7 @@ public class FenceArea {
 
     public int countAnimalsByType(String animalType) {
         int count = 0;
-        for (Animal animal : animals) {
+        for (com.example.agricola.models.Animal animal : animals) {
             if (animal.getType().equals(animalType)) {
                 count++;
             }
@@ -114,7 +112,7 @@ public class FenceArea {
         return count;
     }
 
-    public void addAnimal(Animal animal) {
+    public void addAnimal(com.example.agricola.models.Animal animal) {
         if (animalType == null) {
             animalType = animal.getType(); // 처음 추가된 동물의 종류를 설정
         }
@@ -129,24 +127,24 @@ public class FenceArea {
 
     public Map<String, Integer> countAnimals() {
         Map<String, Integer> animalCounts = new HashMap<>();
-        for (Animal animal : animals) {
+        for (com.example.agricola.models.Animal animal : animals) {
             animalCounts.put(animal.getType(), animalCounts.getOrDefault(animal.getType(), 0) + 1);
         }
         return animalCounts;
     }
 
-    public List<Animal> breedAnimals() {
-        List<Animal> newAnimals = new ArrayList<>();
+    public List<com.example.agricola.models.Animal> breedAnimals() {
+        List<com.example.agricola.models.Animal> newAnimals = new ArrayList<>();
         Map<String, Integer> animalCounts = countAnimals();
         for (Map.Entry<String, Integer> entry : animalCounts.entrySet()) {
             if (entry.getValue() >= 2) {
-                newAnimals.add(new Animal(-1, -1, entry.getKey())); // 새끼 동물 추가
+                newAnimals.add(new com.example.agricola.models.Animal(-1, -1, entry.getKey())); // 새끼 동물 추가
             }
         }
         return newAnimals;
     }
 
-    public List<Animal> getAnimals() {
+    public List<com.example.agricola.models.Animal> getAnimals() {
         return animals;
     }
 
@@ -160,7 +158,7 @@ public class FenceArea {
         }
         return false;
     }
-    public void addBarn(Barn barn) {
+    public void addBarn(com.example.agricola.models.Barn barn) {
         barns.add(barn);
         updateRemainingCapacity();
     }
@@ -182,13 +180,13 @@ public class FenceArea {
 
         // 펜스 안에 존재하는 외양간을 출력
         System.out.println("Barns:");
-        for (Barn barn : barns) {
+        for (com.example.agricola.models.Barn barn : barns) {
             System.out.println("Barn at (" + barn.getX() + ", " + barn.getY() + ")");
         }
 
         // 펜스 안에 존재하는 동물을 출력
         System.out.println("Animals:");
-        for (Animal animal : animals) {
+        for (com.example.agricola.models.Animal animal : animals) {
             System.out.println("Animal: " + animal.getType() + " at (" + animal.getX() + ", " + animal.getY() + ")");
         }
         System.out.println("Remaining Capacity: " + getRemainingCapacity());
@@ -204,7 +202,7 @@ public class FenceArea {
     }
 
     // 타일을 울타리 영역에서 제거하는 메서드
-    public void removeTile(int x, int y, Tile tile) {
+    public void removeTile(int x, int y, com.example.agricola.models.Tile tile) {
         // 타일을 제거
         Iterator<int[]> iterator = tiles.iterator();
         while (iterator.hasNext()) {
