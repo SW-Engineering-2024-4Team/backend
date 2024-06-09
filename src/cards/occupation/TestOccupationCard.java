@@ -1,10 +1,10 @@
 package cards.occupation;
 
+import models.Effect;
 import models.Player;
 import cards.common.UnifiedCard;
 import cards.common.ExchangeableCard;
 import enums.ExchangeTiming;
-import models.Effect;
 
 import java.util.Map;
 

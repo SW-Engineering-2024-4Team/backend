@@ -10,6 +10,7 @@ public class RoomController {
     public void handleGameStart(String roomNumber, List<Player> players) {
         gameController = new GameController(roomNumber, this, players);
         gameController.initializeGame();
+//        gameController.startGame();
     }
 
     public GameController getGameController() {

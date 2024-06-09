@@ -8,6 +8,11 @@ import models.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 인터페이스 `ActionRoundCard`는 `CommonCard`를 확장하여 액션카드, 라운드 카드의 액션을 정의합니다.
+ * 이 인터페이스는 라운드 카드와 액션 카드의 공통 기능을 제공하며,
+ * 각 카드의 상태 및 플레이어와의 상호 작용을 관리합니다.
+ */
 public interface ActionRoundCard extends CommonCard {
 
     boolean isRevealed(); // RoundCard와 ActionCard 구분을 위해 추가
@@ -49,7 +54,7 @@ public interface ActionRoundCard extends CommonCard {
     }
 
 
-    /*
+    /**
     * 프론트에게 사용 가능한 카드 목록 보여줌
     * 프론트가 구매한 카드명 보여줌
     * 구매했다는 걸 프론트에게 알려줌
@@ -99,7 +104,6 @@ public interface ActionRoundCard extends CommonCard {
         } else {
             System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
         }
-
     }
 
     /*
@@ -210,46 +214,6 @@ public interface ActionRoundCard extends CommonCard {
             System.out.println("외양간을 지을 수 있는 위치가 없습니다.");
         }
     }
-
-//    // 울타리 짓기
-//    // 프론트에게 좌표 요청
-//    // 프론트가 좌표 set (1,1)(1,2)(1,3)
-//    // 그거 갖고 울타리 지으면 됨
-//    default void buildFence(Player player) {
-//        // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
-//        Set<int[]> validPositions = player.getPlayerBoard().getValidFencePositions();
-//        player.getPlayerBoard().printPlayerBoardWithFences("유효 좌표", validPositions);
-//
-//        // 지을 수 있는 좌표가 없으면 짓지 못함.
-//        if (!validPositions.isEmpty()) {
-//            List<int[]> selectedPositions = new ArrayList<>();
-//
-//            /*
-//             * 프론트엔드가 한 칸의 좌표를 보내줄 때 마다 필요한 자원 계산 및 유효 좌표를 업데이트 하기 위한 변수
-//             * 지을 좌표들을 모으기 위함.
-//             * */
-//
-//            // TODO 좌표 무더기로 들어오면 펜스 짓기로. 하나씩 선택은 프론트에서 하기로
-//            boolean fenceBuildingComplete = false;
-//            while (!fenceBuildingComplete) {
-//                // TODO 플레이어 좌표 입력 로직 (여기서는 유효 위치 중 하나를 선택하는 것으로 가정)
-//                int[] position = validPositions.iterator().next();
-//                selectedPositions.add(position);
-//                validPositions = player.getPlayerBoard().getValidFencePositions();
-//                // 유효 좌표가 없거나, 자원 부족등의 이유로 짓지 못하면 해당 좌표까지만 울타리를 지음
-//                if (validPositions.isEmpty() || !player.canContinueFenceBuilding()) {
-//                    fenceBuildingComplete = true;
-//                }
-//            }
-//            // 선택된 좌표들의 모음으로 울타리를 지음
-//            player.getPlayerBoard().buildFences(selectedPositions, player);
-//            // 울타리 짓는데 필요한 자원을 차감
-//            player.payResources(Map.of("wood", player.getPlayerBoard().calculateRequiredWoodForFences(selectedPositions)));
-//            System.out.println("Fences built at: " + selectedPositions.stream().map(Arrays::toString).collect(Collectors.joining(", ")));
-//        } else {
-//            System.out.println("울타리를 지을 유효한 위치가 없습니다.");
-//        }
-//    }
 
     default void buildFence(Player player) {
         // 플레이어가 울타리를 지을 수 있는 유효한 좌표를 가져옴.
@@ -394,30 +358,6 @@ public interface ActionRoundCard extends CommonCard {
     // 추가 효과 확인 및 적용 메서드
     default void applyAdditionalEffects(Player player) {
         // 추가 효과가 필요한 경우 오버라이드하여 구현
-    }
-
-    public default boolean executesBuildOrRenovate() {
-        boolean[] result = {false};
-
-        // 기존 메서드들을 래핑하여 buildHouse 또는 renovateRooms 호출 여부 확인
-        executeThen(new Player("dummy", "dummy", null),
-                () -> { result[0] = true; },
-                () -> {}
-        );
-
-        executeAndOr(new Player("dummy", "dummy", null),
-                () -> { result[0] = true; },
-                () -> {}
-        );
-
-        executeOr(new Player("dummy", "dummy", null),
-                () -> { result[0] = true; },
-                () -> {}
-        );
-
-        execute(new Player("dummy", "dummy", null));
-
-        return result[0];
     }
 
 }

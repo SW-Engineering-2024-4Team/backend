@@ -24,9 +24,6 @@ public class NonAccumulativeActionCard implements ActionRoundCard {
 
     @Override
     public void execute(Player player) {
-//        // 액션 카드 실행 로직
-//        gainResources(player, resourcesToGain);
-//        setOccupied(true);
     }
 
     @Override

@@ -782,6 +782,7 @@ public class Player {
         MainBoard mainBoard = gameController.getMainBoard();
 
         // 최신 카드 리스트에서 해당 카드를 찾음
+        // 해당 액션, 라운드 카드에 데코레이션 기능이 적용된 카드가 있다면 null이 아님.
         ActionRoundCard latestCard = null;
         for (ActionRoundCard actionCard : mainBoard.getActionCards()) {
             if (actionCard.getId() == card.getId()) {
@@ -789,6 +790,7 @@ public class Player {
                 break;
             }
         }
+
         if (latestCard == null) {
             for (ActionRoundCard roundCard : mainBoard.getRoundCards()) {
                 if (roundCard.getId() == card.getId()) {
@@ -808,6 +810,7 @@ public class Player {
             return;
         }
 
+        // 플레이어 보드에서 랜덤한 가족 구성원을 데려옴.
         FamilyMember[][] familyMembers = playerBoard.getFamilyMembers();
         for (int i = 0; i < familyMembers.length; i++) {
             for (int j = 0; j < familyMembers[i].length; j++) {
@@ -935,11 +938,6 @@ public class Player {
         return true;
     }
 
-//    public void payResources(Map<String, Integer> cost) {
-//        for (Map.Entry<String, Integer> entry : cost.entrySet()) {
-//            addResource(entry.getKey(), -entry.getValue());
-//        }
-//    }
 public void payResources(Map<String, Integer> cost) {
     Map<String, Integer> finalCost = getDiscountedCost(cost);
     for (Map.Entry<String, Integer> entry : finalCost.entrySet()) {

@@ -103,7 +103,6 @@ public class GameController {
         mainBoard.initializeBoard(actionCards, roundCycles, majorImprovementCards);
     }
 
-    // TODO
     public void startGame() {
         while (currentRound <= 14) {
             System.out.println("-------------------------------------------------------------------------------");
@@ -146,7 +145,7 @@ public class GameController {
     * 1. 라운드 정보
     * // TODO 2. 어떤 카드가 자원이 누적되었는지(얼마나): accumulativeaction(round)card 클래스의 getAcuumulativeResources()
     * 3. 어떤 플레이어가 아무때나 교환 가능한 카드를 갖고 있는지
-    * 4. 턴 오버 정보: 턴 오더가 바뀔 때
+    * 4. 턴 오버 정보
     * */
     public void prepareRound() {
         System.out.println("Preparing round " + currentRound);
@@ -265,6 +264,13 @@ public class GameController {
 
     public void farmPhase() {
         for (Player player : players) {
+            List<ExchangeableCard> exchangeableCards = new ArrayList<>();
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.ANYTIME));
+            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
+            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
+        }
+
+        for (Player player : players) {
             PlayerBoard board = player.getPlayerBoard();
             for (Tile[] row : board.getTiles()) {
                 for (Tile tile : row) {
@@ -278,18 +284,10 @@ public class GameController {
                 }
             }
         }
-//        notifyPlayers("농장 단계 완료. 가족 먹여살리기 단계로 진행하세요.");
         System.out.println("Farm phase completed.");
     }
 
     private void feedFamilyPhase() {
-        for (Player player : players) {
-            List<ExchangeableCard> exchangeableCards = new ArrayList<>();
-            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.ANYTIME));
-            exchangeableCards.addAll(player.getExchangeableCards(ExchangeTiming.HARVEST));
-            // TODO 프론트엔드에 교환 가능 카드 목록 제공 로직 필요
-        }
-
 
         for (Player player : players) {
             int foodNeeded = calculateFoodNeeded(player);
@@ -495,15 +493,6 @@ public class GameController {
         roomController.handleGameEnd();
     }
 
-    public void addPlayer(Player player) {
-        players.add(player);
-    }
-
-    public void executeCard(String playerID, String cardID) {
-        Player player = getPlayerByID(playerID);
-        CommonCard card = getCardByID(cardID);
-        card.execute(player);
-    }
 
     private Player getPlayerByID(String playerID) {
         for (Player player : players) {
@@ -530,66 +519,6 @@ public class GameController {
         return players;
     }
 
-    // 추가된 디버깅 코드
-    public void purchaseMajorImprovementCard(Player player, int cardId) {
-        System.out.println("Executing purchaseMajorImprovementCard for player: " + player.getName());
-        List<CommonCard> majorImprovementCards = mainBoard.getMajorImprovementCards();
-        MajorImprovementCard cardToPurchase = null;
-
-        for (CommonCard card : majorImprovementCards) {
-            if (card.getId() == cardId && card instanceof MajorImprovementCard) {
-                cardToPurchase = (MajorImprovementCard) card;
-                break;
-            }
-        }
-
-        if (cardToPurchase != null && player.checkResources(cardToPurchase.getPurchaseCost())) {
-            player.payResources(cardToPurchase.getPurchaseCost());
-            player.addMajorImprovementCard(cardToPurchase);
-            mainBoard.removeMajorImprovementCard(cardToPurchase);
-            if (cardToPurchase.hasImmediateBakingAction()) {
-                cardToPurchase.triggerBreadBaking(player);
-            }
-            System.out.println(cardToPurchase.getName() + " 카드가 성공적으로 구매되었습니다.");
-        } else {
-            System.out.println("자원이 부족하거나 카드가 존재하지 않아 구매할 수 없습니다.");
-        }
-    }
-
-    public void executeExchange(String playerId, int cardId, String fromResource, String toResource, int amount) {
-        Player player = getPlayerByID(playerId);
-        List<CommonCard> majorImprovementCards = player.getMajorImprovementCards();
-        ExchangeableCard cardToUse = null;
-
-        for (CommonCard card : majorImprovementCards) {
-            if (card.getId() == cardId && card instanceof ExchangeableCard) {
-                cardToUse = (ExchangeableCard) card;
-                break;
-            }
-        }
-
-        if (cardToUse != null && cardToUse.canExchange(ExchangeTiming.ANYTIME)) {
-            cardToUse.executeExchange(player, fromResource, toResource, amount);
-        } else {
-            notifyPlayers("교환 기능을 사용할 수 없습니다.");
-        }
-    }
-
-
-//    private void printFamilyMembersOnBoard() {
-//        System.out.println("Family members on board:");
-//        for (Player player : players) {
-//            FamilyMember[][] familyMembers = player.getPlayerBoard().getFamilyMembers();
-//            for (int i = 0; i < familyMembers.length; i++) {
-//                for (int j = 0; j < familyMembers[i].length; j++) {
-//                    if (familyMembers[i][j] != null && familyMembers[i][j].isUsed()) {
-//                        FamilyMember member = familyMembers[i][j];
-//                        System.out.println("  Player " + player.getId() + " - Family Member at (" + i + ", " + j + ") - Adult: " + member.isAdult());
-//                    }
-//                }
-//            }
-//        }
-//    }
 private void printFamilyMembersOnBoard() {
     System.out.println("Family members on board:");
     for (Player player : players) {

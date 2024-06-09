@@ -73,19 +73,5 @@ public class PlastererDecorationTest {
         player1.printPlayerResources("Farm Expansion 이후");
         assertEquals(3, player1.getResource("food"), "Player 1 should have gained 3 food for building a house.");
 
-//        // 플레이어 2가 Farm Expansion 카드로 외양간 짓기
-//        player2.placeFamilyMember(farmExpansionCard);
-//        player2.printPlayerResources("Farm Expansion 이후");
-//        assertEquals(0, player2.getResource("food"), "Player 2 should not gain food for building a barn.");
-//
-//        // 플레이어 1이 Renovate Farms 카드로 집 고치기
-//        player1.placeFamilyMember(renovateFarmsCard);
-//        player1.printPlayerResources("Renovate Farms 이후");
-//        assertEquals(6, player1.getResource("food"), "Player 1 should have gained 3 food for renovating the house.");
-//
-//        // 플레이어 2가 Renovate Farms 카드로 울타리 치기
-//        player2.placeFamilyMember(renovateFarmsCard);
-//        player2.printPlayerResources("Renovate Farms 이후");
-//        assertEquals(0, player2.getResource("food"), "Player 2 should not gain food for building a fence.");
     }
 }

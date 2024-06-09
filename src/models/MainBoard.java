@@ -351,11 +351,11 @@ public class MainBoard {
         }
     }
 
-    public List<ActionRoundCard> getBuildOrRenovateCards() {
-        return actionCards.stream()
-                .filter(ActionRoundCard::executesBuildOrRenovate)
-                .collect(Collectors.toList());
-    }
+//    public List<ActionRoundCard> getBuildOrRenovateCards() {
+//        return actionCards.stream()
+////                .filter(ActionRoundCard::executesBuildOrRenovate)
+//                .collect(Collectors.toList());
+//    }
 
     public void updateCardsWithDecorated(List<ActionRoundCard> originalCards, List<ActionRoundCard> decoratedCards) {
         for (int i = 0; i < actionCards.size(); i++) {

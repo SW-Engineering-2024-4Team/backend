@@ -23,6 +23,11 @@ public class ClayOven extends MajorImprovementCard implements BakingCard {
         );
     }
 
+    /**
+     * 카드의 구매 비용을 생성합니다.
+     *
+     * @return 구매 비용을 나타내는 맵
+     */
     private static Map<String, Integer> createPurchaseCost() {
         Map<String, Integer> cost = new HashMap<>();
         cost.put("clay", 3);
@@ -30,6 +35,11 @@ public class ClayOven extends MajorImprovementCard implements BakingCard {
         return cost;
     }
 
+    /**
+     * 빵굽기 교환 비율을 생성합니다.
+     *
+     * @return 빵굽기 교환 비율을 나타내는 맵
+     */
     private static Map<String, Integer> createBreadBakingExchangeRate() {
         Map<String, Integer> rate = new HashMap<>();
         rate.put("grain", 1);
@@ -37,6 +47,11 @@ public class ClayOven extends MajorImprovementCard implements BakingCard {
         return rate;
     }
 
+    /**
+     * 플레이어가 빵을 굽는 기능을 트리거합니다.
+     *
+     * @param player 빵굽기 기능을 사용할 플레이어
+     */
     @Override
     public void triggerBreadBaking(Player player) {
         int grain = player.getResource("grain");
