@@ -17,12 +17,13 @@ public class GameController {
     @Autowired
     private GameService gameService;
 
-    @MessageMapping("/gamePlay")
-    @SendTo("/topic/game")
-    public void playGame(String gameID) {
-        gameService.playGame(gameID);
-    }
+//    @MessageMapping("/gamePlay")
+//    @SendTo("/topic/game")
+//    public void playGame(String gameID) {
+//        gameService.playGame(gameID);
+//    }
 
+    // 1. 플레이어 턴에서 플레이어의 카드 선택을 받음
     @MessageMapping("/receivePlayerTurn")
     public void receivePlayerTurn(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -31,6 +32,7 @@ public class GameController {
         gameService.receivePlayerTurn(playerId, cardId);
     }
 
+    // 플레이어 턴에서 발동중인 카드에서 교환 가능한 카드들의 목록을 요청할 떄
     @MessageMapping("/viewExchangeableCards")
     public void viewExchangeableCards(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -39,6 +41,7 @@ public class GameController {
 
 
 
+    // 카드 목록에서 골랐을 때 해당 카드로 교환 기능을 수행하는 카드
 @MessageMapping("/exchangeResources")
 public void exchangeResources(Map<String, Object> payload) {
     String playerId = (String) payload.get("playerId");
@@ -48,21 +51,22 @@ public void exchangeResources(Map<String, Object> payload) {
 }
 
 
-    @MessageMapping("/placeAnimal")
-    public void placeAnimal(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        String animalType = (String) payload.get("animalType");
-        int x = (int) payload.get("x");
-        int y = (int) payload.get("y");
+//    @MessageMapping("/placeAnimal")
+//    public void placeAnimal(Map<String, Object> payload) {
+//        String playerId = (String) payload.get("playerId");
+//        String animalType = (String) payload.get("animalType");
+//        int x = (int) payload.get("x");
+//        int y = (int) payload.get("y");
+//
+//        gameService.receiveAnimalPlacement(playerId, animalType, x, y);
+//    }
 
-        gameService.receiveAnimalPlacement(playerId, animalType, x, y);
-    }
+//    @MessageMapping("/playerReadyForNextPhase")
+//    public void playerReadyForNextPhase(Map<String, String> payload) {
+//        String playerId = payload.get("playerId");
+//        gameService.playerReadyForNextPhase(playerId);
+//    }
 
-    @MessageMapping("/playerReadyForNextPhase")
-    public void playerReadyForNextPhase(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        gameService.playerReadyForNextPhase(playerId);
-    }
 
     @MessageMapping("/chooseOccupationCard")
     @SendTo("/topic/occupationCardOptions")
@@ -85,6 +89,9 @@ public void exchangeResources(Map<String, Object> payload) {
         return gameService.getAvailableMajorImprovementCards();
     }
 
+    // 액션카드, 라운드카드의 기능 중 카드를 고르는 옵션이 있는 경우
+    // 예: 교습, 주요설비, ...
+    // 고른 카드를 일로 보내면 됨
     @MessageMapping("/selectedCard")
     public void selectedCard(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -93,6 +100,9 @@ public void exchangeResources(Map<String, Object> payload) {
     }
 
 
+    // 추가요청1. 좌표 요청
+    // 집 짓기, 밭 일구기, 외양간 짓기시 좌표를 한 개 받는 부분
+    // app.js기준으로 가능한 위치를 먼저 보내줌 그 중에서 선택해야 함
     @MessageMapping("/receiveSelectedPosition")
     public void receiveSelectedPosition(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -117,6 +127,9 @@ public void exchangeResources(Map<String, Object> payload) {
 
 
 
+    // 추가요청2. 펜스 좌표 요청
+    // 프론트가 백한테 울타리를 지을 좌표를 보내는 곳
+    // 좌표 하나만 보낼꺼면 위에 selectedposition으로 대체가능, 다중 좌표시 일로
     @MessageMapping("/receiveSelectedFencePositions")
     public void receiveSelectedFencePositions(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -128,6 +141,7 @@ public void exchangeResources(Map<String, Object> payload) {
         gameService.receiveSelectedFencePositions(playerId, fencePositions);
     }
 
+    // 추가요청3. 플레이어 옵션 선택
     @MessageMapping("/playerChoice")
     public void receivePlayerChoice(Map<String, Object> payload) {
         String playerId = (String) payload.get("playerId");
@@ -143,6 +157,8 @@ public void exchangeResources(Map<String, Object> payload) {
         String chosenResource = (String) payload.get("chosenResource");
         gameService.receiveChosenResource(playerId, chosenResource);
     }
+
+
 
     @MessageMapping("/getExchangeableCards")
     public void getExchangeableCards(Map<String, String> payload) {

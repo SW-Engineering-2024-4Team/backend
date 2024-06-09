@@ -50,20 +50,11 @@ public class Player {
     }
 
     private void initializeResources() {
-//        resources.put("wood", 0);
-//        resources.put("clay", 0);
-//        resources.put("stone", 0);
-//        resources.put("grain", 0);
-//        resources.put("food", 0);
-//        resources.put("beggingCard", 0);
-//        resources.put("sheep", 0);
-
-//        // TODO
-        resources.put("wood", 50);
-        resources.put("clay", 50);
-        resources.put("stone", 50);
-        resources.put("grain", 50);
-        resources.put("food", 50);
+        resources.put("wood", 0);
+        resources.put("clay", 0);
+        resources.put("stone", 0);
+        resources.put("grain", 0);
+        resources.put("food", 0);
         resources.put("beggingCard", 0);
         resources.put("sheep", 0);
     }

@@ -150,9 +150,9 @@ public class GameService {
                         "id", player.getId(),
                         "name", player.getName(),
                         "resources", player.getResources(),
-                        "occupationCards", player.getOccupationCards().stream().map(card -> card.toMap()).collect(Collectors.toList()),
-                        "minorImprovementCards", player.getMinorImprovementCards().stream().map(card -> card.toMap()).collect(Collectors.toList()),
-                        "activeCards", player.getActiveCards().stream().map(card -> card.toMap()).collect(Collectors.toList()),
+                        "occupationCards", player.getOccupationCards().stream().map(CommonCard::toMap).collect(Collectors.toList()),
+                        "minorImprovementCards", player.getMinorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList()),
+                        "activeCards", player.getActiveCards().stream().map(CommonCard::toMap).collect(Collectors.toList()),
                         "playerBoard", Map.of(
                                 "tiles", player.getPlayerBoard().getTiles(),
                                 "fences", player.getPlayerBoard().getFences(),
@@ -170,6 +170,7 @@ public class GameService {
                 "players", playersState
         );
     }
+
 
     public void sendPlayerBoardInfo(Player player) {
         PlayerBoard playerBoard = player.getPlayerBoard();
@@ -456,11 +457,11 @@ public class GameService {
         Player player = getPlayerByID(playerID);
 
         if (player != null) {
-            sendPlayerResourcesToFrontEnd(player);
-            sendPlayerBoardInfo(player);
-            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
-            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
-            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
+//            sendPlayerResourcesToFrontEnd(player);
+//            sendPlayerBoardInfo(player);
+//            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
+//            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
+//            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
             sendExchangeableCardsInfoToFrontEnd(playerID, ExchangeTiming.ANYTIME);
 //            player.printActiveCardsLists();
             // 플레이어에게 턴 정보를 프론트엔드로 전송
@@ -485,12 +486,12 @@ public class GameService {
                     e.printStackTrace();
                 }
             }
-            sendPlayerResourcesToFrontEnd(player);
-            sendPlayerBoardInfo(player);
-            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
-            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
-            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
-            player.printActiveCardsLists();
+//            sendPlayerResourcesToFrontEnd(player);
+//            sendPlayerBoardInfo(player);
+//            sendCardListToFrontEnd(player.getActiveCards(), player.getId());
+//            sendCardListToFrontEnd(player.getOccupationCards(), player.getId());
+//            sendCardListToFrontEnd(player.getMinorImprovementCards(), player.getId());
+//            player.printActiveCardsLists();
 
         }
     }
