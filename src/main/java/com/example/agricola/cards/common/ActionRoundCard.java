@@ -43,6 +43,7 @@ public interface ActionRoundCard extends CommonCard {
                 player.addResource(resource, amount);
             }
         }
+        System.out.println("카드 액션 처리 통신 확인완");
         player.getGameService().sendPlayerResourcesToFrontEnd(player);
     }
 

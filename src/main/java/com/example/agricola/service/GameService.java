@@ -433,7 +433,6 @@ public class GameService {
                 }
             }
             player.printActiveCardsLists();
-
         }
     }
 
@@ -460,7 +459,6 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     private void updatePlayerPositions(String playerID, int cardID) {
         int cardIndex = cardID - 1;
-
 
         playerPositions.set(cardIndex, Integer.parseInt(playerID));
 
@@ -854,7 +852,7 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return List.of();
     }
 
-    public List<Map<String, Object>> getAvailableMajorImprovementCards() {
+    public List<Map<String, Object>> getAvailableMajorImprovementCards(String playerId) {
         return mainBoard.getAvailableMajorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList());
     }
 

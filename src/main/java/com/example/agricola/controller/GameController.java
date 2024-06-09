@@ -4,6 +4,7 @@ import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.message.GameActionBoardMessage;
 import com.example.agricola.service.GameService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import javax.swing.plaf.synth.SynthTextAreaUI;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,10 +57,19 @@ public class GameController {
     }
 
 
+
     @MessageMapping("/room/{roomId}/viewExchangeableCards")
-    public void viewExchangeableCards(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        gameService.sendExchangeableCardsInfoToFrontEnd(playerId, ExchangeTiming.ANYTIME);
+    public void viewExchangeableCards(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            gameService.sendExchangeableCardsInfoToFrontEnd(playerId, ExchangeTiming.ANYTIME);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
 
@@ -72,122 +83,260 @@ public class GameController {
 //
 //        gameService.handleExchangeRequest(playerId, cardName, fromResource, toResource, amount);
 //    }
-@MessageMapping("/room/{roomId}/exchangeResources")
-public void exchangeResources(Map<String, Object> payload) {
-    String playerId = (String) payload.get("playerId");
-    int cardId = (int) payload.get("cardId");
+    @MessageMapping("/room/{roomId}/exchangeResources")
+    public void exchangeResources(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
 
-    gameService.handleExchangeRequest(playerId, cardId);
-}
+            // Extract playerId and cardId from the payload
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            int cardId = jsonNode.get("cardId").asInt();
+
+            // Call the service method to handle the exchange request
+            gameService.handleExchangeRequest(playerId, cardId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
+    }
 
 
     @MessageMapping("/room/{roomId}/placeAnimal")
-    public void placeAnimal(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        String animalType = (String) payload.get("animalType");
-        int x = (int) payload.get("x");
-        int y = (int) payload.get("y");
+    public void placeAnimal(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
 
-        gameService.receiveAnimalPlacement(playerId, animalType, x, y);
+            // Extract playerId, animalType, x, and y from the payload
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            String animalType = jsonNode.get("animalType").asText();
+            int x = jsonNode.get("x").asInt();
+            int y = jsonNode.get("y").asInt();
+
+            // Call the service method to handle the animal placement
+            gameService.receiveAnimalPlacement(playerId, animalType, x, y);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
     @MessageMapping("/room/{roomId}/playerReadyForNextPhase")
-    public void playerReadyForNextPhase(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        gameService.playerReadyForNextPhase(playerId);
+    public void playerReadyForNextPhase(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId from the payload
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+
+            // Call the service method to handle player readiness for the next phase
+            gameService.playerReadyForNextPhase(playerId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
     @MessageMapping("/room/{roomId}/chooseOccupationCard")
     @SendTo("/topic/occupationCardOptions")
-    public List<Map<String, Object>> chooseOccupationCard(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        return gameService.getOccupationCards(playerId);
+    public List<Map<String, Object>> chooseOccupationCard(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+
+            // Call the service method to get occupation cards for the player
+            return gameService.getOccupationCards(playerId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+            return Collections.emptyList();
+        }
     }
 
     @MessageMapping("/room/{roomId}/chooseMinorImprovementCard")
     @SendTo("/topic/minorImprovementCardOptions")
-    public List<Map<String, Object>> chooseMinorImprovementCard(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        return gameService.getMinorImprovementCards(playerId);
+    public List<Map<String, Object>> chooseMinorImprovementCard(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+
+            // Call the service method to get minor improvement cards for the player
+            return gameService.getMinorImprovementCards(playerId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+            return Collections.emptyList();
+        }
     }
 
     @MessageMapping("/room/{roomId}/purchaseMajorImprovementCard")
     @SendTo("/topic/majorImprovementCardOptions")
-    public List<Map<String, Object>> purchaseMajorImprovementCard(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        return gameService.getAvailableMajorImprovementCards();
+    public List<Map<String, Object>> purchaseMajorImprovementCard(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+
+            // Call the service method to get available major improvement cards
+            return gameService.getAvailableMajorImprovementCards(playerId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+            return Collections.emptyList();
+        }
     }
 
     @MessageMapping("/room/{roomId}/selectedCard")
-    public void selectedCard(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        int cardId = (int) payload.get("cardId");
-        gameService.receiveSelectedCard(playerId, cardId);
+    public void selectedCard(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId and cardId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            int cardId = jsonNode.get("cardId").asInt();
+
+            // Call the service method to receive the selected card
+            gameService.receiveSelectedCard(playerId, cardId);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
 
     @MessageMapping("/room/{roomId}/receiveSelectedPosition")
-    public void receiveSelectedPosition(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        Integer x = null;
-        Integer y = null;
-
+    public void receiveSelectedPosition(String message) {
         try {
-            x = (Integer) payload.get("x");
-            y = (Integer) payload.get("y");
-        } catch (ClassCastException e) {
-            System.err.println("Received coordinates are not in the correct format from player: " + playerId);
-            return;
-        }
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
 
-        if (x == null || y == null) {
-            System.err.println("Received null coordinates from player: " + playerId);
-            return; // 또는 에러 핸들링 로직 추가
-        }
+            // Extract playerId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
 
-        gameService.receiveSelectedPosition(playerId, x, y);
+            // Extract x and y coordinates from the message
+            Integer x = jsonNode.get("x").asInt();
+            Integer y = jsonNode.get("y").asInt();
+
+            // Check if coordinates are null
+            if (x == null || y == null) {
+                System.err.println("Received null coordinates from player: " + playerId);
+                return; // 또는 에러 핸들링 로직 추가
+            }
+
+            // Call the service method to receive the selected position
+            gameService.receiveSelectedPosition(playerId, x, y);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
 
 
     @MessageMapping("/room/{roomId}/receiveSelectedFencePositions")
-    public void receiveSelectedFencePositions(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        List<Map<String, Integer>> positions = (List<Map<String, Integer>>) payload.get("positions");
-        List<int[]> fencePositions = positions.stream()
-                .map(pos -> new int[]{pos.get("x"), pos.get("y")})
-                .collect(Collectors.toList());
+    public void receiveSelectedFencePositions(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
 
-        gameService.receiveSelectedFencePositions(playerId, fencePositions);
+            // Extract playerId from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+
+            // Extract positions from the message
+            List<Map<String, Integer>> positions = objectMapper.convertValue(jsonNode.get("positions"), new TypeReference<List<Map<String, Integer>>>() {});
+
+            // Convert positions to fencePositions
+            List<int[]> fencePositions = positions.stream()
+                    .map(pos -> new int[]{pos.get("x"), pos.get("y")})
+                    .collect(Collectors.toList());
+
+            // Call the service method to receive the selected fence positions
+            gameService.receiveSelectedFencePositions(playerId, fencePositions);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
     //옵션 받기
     @MessageMapping("/room/{roomId}/playerChoice")
-    public void receivePlayerChoice(Map<String, Object> payload) {
-        System.out.println(payload);
-        String playerId = (String) payload.get("playerId");
-        String choiceType = (String) payload.get("choiceType");
-        Object choice = payload.get("choice"); // choice를 Object로 받아서 동적으로 처리
-        gameService.receivePlayerChoice(playerId, choiceType, choice);
+    public void receivePlayerChoice(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId, choiceType, and choice from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            String choiceType = jsonNode.get("choiceType").asText();
+            JsonNode choiceNode = jsonNode.get("choice");
+            Object choice = objectMapper.treeToValue(choiceNode, Object.class);
+
+            // Call the service method to receive the player's choice
+            gameService.receivePlayerChoice(playerId, choiceType, choice);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
 
     @MessageMapping("/room/{roomId}/chooseResource")
-    public void receiveChosenResource(Map<String, Object> payload) {
-        String playerId = (String) payload.get("playerId");
-        String chosenResource = (String) payload.get("chosenResource");
-        gameService.receiveChosenResource(playerId, chosenResource);
+    public void receiveChosenResource(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId and chosenResource from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            String chosenResource = jsonNode.get("chosenResource").asText();
+
+            // Call the service method to receive the chosen resource
+            gameService.receiveChosenResource(playerId, chosenResource);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
 
     @MessageMapping("/room/{roomId}/getExchangeableCards")
-    public void getExchangeableCards(Map<String, String> payload) {
-        String playerId = payload.get("playerId");
-        ExchangeTiming timing = ExchangeTiming.valueOf(payload.get("timing"));
-        gameService.sendExchangeableCardsInfoToFrontEnd(playerId, timing);
+    public void getExchangeableCards(String message) {
+        try {
+            // Parse the JSON message
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            // Extract playerId and timing from the message
+            String playerId = jsonNode.get("playerId").asText(); // asText() 메서드로 String으로 변환
+            ExchangeTiming timing = ExchangeTiming.valueOf(jsonNode.get("timing").asText());
+
+            // Call the service method to send exchangeable cards information to the frontend
+            gameService.sendExchangeableCardsInfoToFrontEnd(playerId, timing);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            // JSON 파싱에 실패한 경우 처리
+        }
     }
-
-
-
-
 
 }
