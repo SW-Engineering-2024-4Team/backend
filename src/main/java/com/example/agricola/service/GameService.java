@@ -462,6 +462,10 @@ public class GameService {
                         player.getActiveCards();
                     }
                 }
+                // 플레이어가 놓으면 다른 플레이어들도 정보가 반영될수있도록 추가 6.10 김윤재.
+                Map<String, Object> playerPositionInfo = new HashMap<>();
+                playerPositionInfo.put("playerPositions", playerPositions);
+                notifyPlayers(playerPositionInfo);
             }
         }
         resetFamilyMembers();
@@ -527,8 +531,8 @@ public class GameService {
                                     "name", card.getName()
 //                                    "description", card.getDescription()
                             ))
-                            .collect(Collectors.toList()),
-                    "message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
+                            .collect(Collectors.toList())//,
+                    //"message", " {\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
             );
             notifyPlayer(player, playerTurnInfo);
 
