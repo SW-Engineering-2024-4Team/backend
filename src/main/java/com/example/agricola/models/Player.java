@@ -220,6 +220,15 @@ public class Player {
         return false;
     }
 
+    /**
+     * /topic/room/1 로 보냄
+     * 플레이어가 보유중인 모든 가족 정보를 보냄
+     * 가족구성원 위치, 어른여부, 사용중 여부
+     * <"x", int>
+     * <"y", int>
+     * <"isAdult", boolean>
+     * <"isUsed", boolean>
+     */
     public List<Map<String, Object>> getFamilyStatus() {
         List<Map<String, Object>> familyStatus = new ArrayList<>();
 
@@ -506,7 +515,15 @@ public void payResources(Map<String, Integer> cost) {
 //    newAnimals.removeAll(animalsToRemove);
 //    return placedCount;
 //}
-public int placeNewAnimals() {
+
+    /**
+     * Gameservice의 breedAnimalsPhase에서호출
+     * 배치한 모든 동물들의 x, y좌표와 동물타입을 보냄
+     * List<Map<String, Object>>를 보낸다
+     * Map<String, Object>는 <"x", int>, <"y", int>, <"animalType", String>
+     * @return
+     */
+    public int placeNewAnimals() {
     int placedCount = 0;
     List<Animal> animalsToRemove = new ArrayList<>();
     List<Animal> newAnimalsCopy = new ArrayList<>(newAnimals); // Create a copy to iterate over

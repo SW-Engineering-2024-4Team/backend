@@ -11,6 +11,7 @@ import com.example.agricola.cards.common.CommonCard;
 import com.example.agricola.cards.common.ExchangeableCard;
 import com.example.agricola.enums.ExchangeTiming;
 import com.example.agricola.enums.RoomType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -26,19 +27,51 @@ public class GameService {
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    /**
+     *
+     * @param map <String, Intger>
+     * @return JsonObject
+     */
+    public static String convertToJson(Map<String, Object> map) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Map to JSON
+            return objectMapper.writeValueAsString(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public static String convertToJson(String message) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // Map to JSON
+            return objectMapper.writeValueAsString(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private void notifyPlayers(Map<String, Object> message) {
         System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        String json = convertToJson(message);
+        System.out.println("JSON: " + json);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", convertToJson(message));
     }
 
     private void notifyPlayers(String message) {
         System.out.println("Sending message to players: " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        String json = convertToJson(message);
+        System.out.println("JSON: " + json);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", convertToJson(message));
     }
 
     public void notifyPlayer(Player player, Map<String, Object> message) {
         System.out.println("Sending message to player " + player.getId() + ": " + message); // 디버깅 메시지 추가
-        simpMessagingTemplate.convertAndSend("/topic/room/1", message);
+        String json = convertToJson(message);
+        System.out.println("JSON: " + json);
+        simpMessagingTemplate.convertAndSend("/topic/room/1", convertToJson(message));
     }
 
 
@@ -181,15 +214,29 @@ public class GameService {
         );
     }
 
+    /**
+     * 플레이어 턴을 설정하는 메서드
+     * @param nextTurnOrder
+     */
     public void setNextTurnOrder(List<Player> nextTurnOrder) {
         System.out.println("nextturnorder 호출됨");
         this.nextTurnOrder = nextTurnOrder;
     }
 
+    /**
+     * 플레이어 턴 정보를 받는 메서드
+     * @return
+     */
     public List<Player> getTurnOrder() {
         return turnOrder;
     }
 
+    /**
+     * 게임을 시작하는 메서드 총 14라운드를 이안에서 진행하게된다.
+     * GameService.prepareRound(), GameService.playRound(), GameService.endRound()순으로 호출한다.
+     * PlayRound()와 endRound()사이 수확단계면 harvestPhase()호출한다.
+     * @param gameID
+     */
     public void playGame(String gameID) {
         System.out.println("playGame method called with gameID: " + gameID); // 디버깅 메시지 추가
 
@@ -215,7 +262,24 @@ public class GameService {
         endGame();
     }
 
-
+    /**
+     * 라운드를 준비하는 메서드
+     * roundInfo에 Map<"currentRound":String, 라운드숫자:int>이 들어간다.
+     * roundInfo에 Map<"openCards":String, 카드공개정보 리스트:List<Map<String, Object>>>이 들어간다.
+     * 카드정보 리스트:List안의 원소들은 Map<String, Object>이고 맵안에는  <"id", int> 와 <"name", String>이다.
+     * roundInfo에 Map<"accumulatedResources":String, 카드축적자원 리스트:List<Map<String, Object>>>이 들어간다.
+     * 카드축적자원 리스트:List안의 원소들은 Map<String, int>이고 맵안에는  <"자원이름", int>이다.
+     * 자원이름은 wood, clay, stone, grain, food, beggingcard, sheep이다.
+     * roundInfo에 Map<"turnOrder", 플레이어턴리스트:List<String>이 들어간다.
+     * --------------------------------------------------
+     * 정리하자면
+     * Map<String, Object>를 보내는데 맵의 원소들을 <Key, Value>로 나타내면
+     * <"curruentRound":string, 라운드숫자:int>
+     * <"openCards":String, 카드공개정보 리스트:List<Map<String, Object>>>, List안의 원소들은 Map<String, Object>이고 맵안에는  <"id", int> 와 <"name", String>
+     * <"accumulatedResources":String, 카드축적자원 리스트:List<Map<String, Object>>>, List안의 원소들은 Map<String, int>이고 맵안에는  <"자원이름", int>
+     * 자원이름은 wood, clay, stone, grain, food, beggingcard, sheep이다.
+     * <"turnOrder", 플레이어턴리스트:List<String>
+     */
     private void prepareRound() {
         mainBoard.revealRoundCard(currentRound);
         mainBoard.accumulateResources();
@@ -258,7 +322,16 @@ public class GameService {
             nextTurnOrder.clear();
         }
     }
-
+    /**
+     * /topic/room/1 로 보냄.
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"exhangeableCards", Map<String, Object>>
+     * Map<String, Object>는 <"id", int>, <"name", String", <"exchangeRate", 교환목록:LinkedHashMap<String, int>, <"maxExchangeAmount", 최대교환가능양:int>
+     * 교환목록:LinkedHashMap은 순서가정해져있다. 원소가2개있는데 <"wood", 1>, <"food", 2> 이면 나무1개로 음식2개 앞에게 내는거 뒤에게 받는거.
+     * 최대교환가능량은 교환이 n번까지 가능하다는것이다. 전예시에서 "wood"를 최대 1xn개 까지 낼 수 있다는 뜻.
+     * getExchangeableCardsInfo랑 연관
+     */
     public void sendExchangeableCardsInfoToFrontEnd(String playerId, ExchangeTiming timing) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -312,6 +385,13 @@ public class GameService {
 //        );
 //    }
 
+    /**
+     * <"playerId", int>
+     * <"exhangeableCards", Map<String, Object>>
+     * Map<String, Object>는 <"id", int>, <"name", String", <"exchangeRate", 교환목록:LinkedHashMap<String, int>, <"maxExchangeAmount", 최대교환가능양:int>
+     * 교환목록:LinkedHashMap은 순서가정해져있다. 원소가2개있는데 <"wood", 1>, <"food", 2> 이면 나무1개로 음식2개 앞에게 내는거 뒤에게 받는거.
+     * 최대교환가능량은 교환이 n번까지 가능하다는것이다. 전예시에서 "wood"를 최대 1xn개 까지 낼 수 있다는 뜻.
+     */
     private Map<String, Object> getExchangeableCardsInfo(Player player, ExchangeTiming timing) {
         List<ExchangeableCard> exchangeableCards = player.getExchangeableCards(timing);
         return Map.of(
@@ -357,8 +437,10 @@ public class GameService {
     }
 
 
-
-
+    /**
+     * playerTurn호출
+     * 작성완료
+     */
 
     private void playRound() {
 
@@ -385,6 +467,11 @@ public class GameService {
         resetFamilyMembers();
     }
 
+    /**
+     * sendPlayerResourcesToFrontEnd 작성해야함.
+     * @param playerID
+     * @param cardId
+     */
     // 교환 요청을 처리하는 메서드
     public void handleExchangeRequest(String playerID, int cardId) {
         Player player = getPlayerByID(playerID);
@@ -403,6 +490,27 @@ public class GameService {
     }
 
 
+    /**
+     * /topic/room/1 로 보냄.
+     * ---------------------------------
+     * 플레이어의 아무때나 교환가능한 카드 정보를 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"exhangeableCards", Map<String, Object>>
+     * Map<String, Object>는 <"id", int>, <"name", String", <"exchangeRate", 교환목록:LinkedHashMap<String, int>, <"maxExchangeAmount", 최대교환가능양:int>
+     * 교환목록:LinkedHashMap은 순서가정해져있다. 원소가2개있는데 <"wood", 1>, <"food", 2> 이면 나무1개로 음식2개 앞에게 내는거 뒤에게 받는거.
+     * 최대교환가능량은 교환이 n번까지 가능하다는것이다. 전예시에서 "wood"를 최대 1xn개 까지 낼 수 있다는 뜻.
+     * getExchangeableCardsInfo랑 연관
+     * ----------------------------------
+     * 플레이어의 현재 턴의 정보를 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"availableCards", Map<String, Object>>
+     * "availableCards"의 Map<String, Object>는
+     * <"id", int>, <"name", String>, <"message", "{\"playerID\": \"플레이어 ID\", \"cardId\": \"선택한 카드 아이디\""
+     * message는 그냥 백에서 프론트로 전송잘된거 확인차 보내는거 같기도하고.. 잘모르겠습니다.. 일단제외하고 에러뜨면말씀해주세요
+     * ----------------------------------
+     */
 
     private void playerTurn(String playerID, List<ActionRoundCard> availableCards) {
         Player player = getPlayerByID(playerID);
@@ -448,7 +556,13 @@ public class GameService {
 //        }
 //    }
 // 프론트엔드에서 플레이어의 턴 정보를 받아오는 메서드
-public void receivePlayerTurn(String playerID, int cardID) {
+
+    /**
+     * 해야함
+     * @param playerID
+     * @param cardID
+     */
+    public void receivePlayerTurn(String playerID, int cardID) {
     Player player = getPlayerByID(playerID);
     ActionRoundCard selectedCard = (ActionRoundCard) mainBoard.getCardById(cardID);
     player.placeFamilyMember(selectedCard);
@@ -458,6 +572,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
     }
 }
 
+    /**
+     * 현재 플레이어가 놓은 위치를 반환해줌.
+     * Map<String, Object>
+     * <"playerPositions", 카드위플레이어정보:List<Integer>>
+     * List<Integer> 은 다음과같다 [1, 2, 4, 1, null ...] 1번플레이어 가 첫번째카드, 2번이 두번째카드, ...
+     */
     private void updatePlayerPositions(String playerID, int cardID) {
         int cardIndex = cardID - 1;
 
@@ -472,7 +592,10 @@ public void receivePlayerTurn(String playerID, int cardID) {
     }
 
 
-
+    /**
+     * 라운드 종료시 종료됐다는 메세지를 보냄.
+     * <"message", "라운드가 종료되었습니다. 가족 구성원이 집으로 돌아갑니다.">
+     */
     private void resetFamilyMembers() {
         for (Player player : turnOrder) {
             player.resetFamilyMembers();
@@ -482,12 +605,40 @@ public void receivePlayerTurn(String playerID, int cardID) {
         notifyPlayers(Map.of("message", "라운드가 종료되었습니다. 가족 구성원이 집으로 돌아갑니다."));
     }
 
+    /**
+     *
+     */
     private void harvestPhase() {
         farmPhase();
         feedFamilyPhase();
         breedAnimalsPhase();
     }
 
+    /**
+     * /topic/room/1 로 보냄.
+     * ------------------------------------------
+     * 농장단계의 시작을 알리는 메세지
+     * Map<String. Object>
+     * <"message", "농잗 단계가 시작되었습니다.">
+     * ------------------------------------------
+     * 플레이어의 수확단계에서 사용 가능한 카드 정보룰 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"exhangeableCards", Map<String, Object>>
+     * Map<String, Object>는 <"id", int>, <"name", String", <"exchangeRate", 교환목록:LinkedHashMap<String, int>, <"maxExchangeAmount", 최대교환가능양:int>
+     * 교환목록:LinkedHashMap은 순서가정해져있다. 원소가2개있는데 <"wood", 1>, <"food", 2> 이면 나무1개로 음식2개 앞에게 내는거 뒤에게 받는거.
+     * 최대교환가능량은 교환이 n번까지 가능하다는것이다. 전예시에서 "wood"를 최대 1xn개 까지 낼 수 있다는 뜻.
+     * getExchangeableCardsInfo랑 연관
+     * ------------------------------------------
+     * 플레이어의 아무때나 교환 가능한 카드 정보를 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"exhangeableCards", Map<String, Object>>
+     * Map<String, Object>는 <"id", int>, <"name", String", <"exchangeRate", 교환목록:LinkedHashMap<String, int>, <"maxExchangeAmount", 최대교환가능양:int>
+     * 교환목록:LinkedHashMap은 순서가정해져있다. 원소가2개있는데 <"wood", 1>, <"food", 2> 이면 나무1개로 음식2개 앞에게 내는거 뒤에게 받는거.
+     * 최대교환가능량은 교환이 n번까지 가능하다는것이다. 전예시에서 "wood"를 최대 1xn개 까지 낼 수 있다는 뜻.
+     * getExchangeableCardsInfo랑 연관
+     */
     private void farmPhase() {
 
         notifyPlayers(Map.of("message", "농장 단계가 시작되었습니다."));
@@ -518,6 +669,17 @@ public void receivePlayerTurn(String playerID, int cardID) {
         }
     }
 
+    /**
+     * topic/room/1 으로 보냄
+     * -----------------------------------------
+     * 가족 먹여살리기 단계 시작을 알리는 메세지를 보냄
+     * <"message", "가족 먹여살리기 단계가 시작되었습니다.">
+     * -----------------------------------------
+     * 가족구성원들의 상태를 보냄
+     * <"playerId", int>
+     * <"familyStatus",
+     * 도희님이 했음
+     */
     private void feedFamilyPhase() {
         notifyPlayers(Map.of("message", "가족 먹여살리기 단계가 시작되었습니다."));
         for (Player player : players) {
@@ -560,6 +722,20 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return foodNeeded;
     }
 
+    /**
+     * <"가족 번신 단계가 시작되었습니다":String>
+     * ------------------------------------------
+     * Player가 placeNewAnimals를호출
+     * placeNewAnimals가 Gameservice의 sendAnimalPlacementInfo를 호출
+     * 사용자의 동물 위치정보를 프론트에게 보냄
+     * <String, Object>
+     * <"playerId", int>
+     * <"placedAnimals", List<Map<String,Object>>
+     * List에는 플레이어가 가지고 있는 모든 동물정보를 Map으로 가지고 있다.
+     * "placedAnimals"의 Map<String, Object>는 <"x", int>, <"y", int>, <"animalType", String>
+     * <"remainingCapacity", int>
+     *
+     */
     private void breedAnimalsPhase() {
         notifyPlayers("가축 번식 단계가 시작되었습니다.");
 
@@ -602,6 +778,9 @@ public void receivePlayerTurn(String playerID, int cardID) {
 //        waitForAllPlayers(); // 모든 플레이어가 다음 단계로 넘어갈 준비가 될 때까지 대기
     }
 
+    /**
+     * 동물을 놓을 좌표를 받는 메서드 프론트에게 보내는거나 리턴은 없음.
+     */
     public void receiveAnimalPlacement(String playerId, String animalType, int x, int y) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -627,6 +806,13 @@ public void receivePlayerTurn(String playerID, int cardID) {
         calculateAndRecordScores();
     }
 
+    /**
+     * 점수정보를 프론트로 보내는 함수
+     * /topic/room/1 로 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"score", int> int아니면 말해주세요
+     */
     private void calculateAndRecordScores() {
         for (Player player : players) {
             int score = calculateScoreForPlayer(player);
@@ -816,6 +1002,10 @@ public void receivePlayerTurn(String playerID, int cardID) {
         System.out.println("MainBoard set to: " + mainBoard);
     }
 
+    /**
+     * 뭔지 모르겠음 알아봐야함.
+     * @param playerId
+     */
     public void playerReadyForNextPhase(String playerId) {
         synchronized (nextPhaseLock) {
             readyPlayers.add(playerId);
@@ -825,6 +1015,9 @@ public void receivePlayerTurn(String playerID, int cardID) {
         }
     }
 
+    /**
+     * 뭔지 모르겠음 사용은 안됨.
+     */
     private void waitForAllPlayers() {
         synchronized (nextPhaseLock) {
             while (readyPlayers.size() < players.size()) {
@@ -838,6 +1031,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
         }
     }
 
+    /**
+     * 플레이어가(가족구성원) 차지하고 있는 카드 정보를 보냄
+     * List<Map<String, Object>>를 보낸다
+     * Map<String, Object>는 <"id", int>, <"name", String> <"description", String>을 담고있다.
+     * 차지하고 있는게 없으면 빈 리스트 보냄.
+     */
     public List<Map<String, Object>> getOccupationCards(String playerId) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -846,6 +1045,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return List.of();
     }
 
+    /**
+     * 플레이어가 차지하고 있는 보조설비 카드 정보를 보냄
+     * List<Map<String, Object>>를 보낸다.
+     * Map<String, Object>는 <"id", int>, <"name", String> <"description", String>을 담고있다.
+     * 차지하고 있는게 없으면 빈 리스트 보냄.
+     */
     public List<Map<String, Object>> getMinorImprovementCards(String playerId) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -854,17 +1059,32 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return List.of();
     }
 
+    /**
+     * 플레이어가 차지하고 있는 주설비 카드 정보를 보냄
+     * List<Map<String, Object>>를 보낸다.
+     * Map<String, Object>는 <"id", int>, <"name", String> <"description", String>을 담고있다.
+     * 차지하고 있는게 없으면 빈 리스트 보냄.
+     */
     public List<Map<String, Object>> getAvailableMajorImprovementCards() {
         return mainBoard.getAvailableMajorImprovementCards().stream().map(CommonCard::toMap).collect(Collectors.toList());
     }
 
+    /**
+     * 플레이어가 가지고있는 또는 차지하고 있는 카드 정보를 보냄
+     * List<Map<String, Object>>를 보낸다.
+     * Map<String, Object>는 <"id", int>, <"name", String> <"description", String>을 담고있다.
+     * 차지하고 있는게 없으면 빈 리스트 보냄.
+     */
     public void sendCardListToFrontEnd(List<CommonCard> cards, String playerId) {
         List<Map<String, Object>> cardList = cards.stream().map(CommonCard::toMap).collect(Collectors.toList());
         simpMessagingTemplate.convertAndSend("/topic/room/1" + playerId, cardList);
         System.out.println("Sending card list to frontend for player " + playerId + ": " + cardList);
     }
 
-
+    /**
+     * 프론트부터 카드정보를 받는 메서드
+     * 프론트로 보내는거 딱히 없음.
+     */
     public void receiveSelectedCard(String playerId, int cardId) {
         Player player = getPlayerByID(playerId);
         if (player != null) {
@@ -887,6 +1107,14 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     private Map<String, int[]> selectedPositions = new HashMap<>();
 
+    /**
+     * /topic/room/1 으로 보냄
+     * 플레이어의 집을짓거나, 밭을 일구거나, 외양간을 짓거나, 곡식을 심을 수 있는 가능한 위치 정보를 보냄.
+     * <"playerId", int>
+     * <"actionType", String> 4개중 어떤 행동에 대한것인지
+     * <"validPositions", List<Map<String, int>>> int아니면 말해주세요 가능한 모든 위치정보 보냄.
+     * Map<String, int>는 <"x", int>, <"y", int>
+     */
     public void sendValidPositionsToFrontEnd(String playerId, Set<int[]> validPositions, String actionType) {
         Map<String, Object> message = Map.of(
                 "playerId", playerId,
@@ -920,6 +1148,14 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     private Map<String, List<int[]>> selectedFencePositions = new HashMap<>();
 
+    /**
+     * /topic/room/1 으로 보냄
+     * BuildFenceDecorator의 메서드 buildFence(Player player)가 호출
+     * 펜스정보를 달라고 프론트에게 요청을 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"actionType", "buildFence">
+     */
     public void sendFenceRequestToFrontEnd(String playerId) {
         Map<String, Object> message = Map.of(
                 "playerId", playerId,
@@ -941,11 +1177,21 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return selectedFencePositions.get(playerId);
     }
 
+    /**
+     * 백코드 에러있습니다 v2 "y"를 y로 수정해야할거 같습니다.
+     * /topic/room/1 으로 보냄
+     * 플레이어의 새로운 가족구성원 위치를 보내줌
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"actionType", "addNewborn">
+     * <"position", Map<String, int>>
+     * -><"x", int>, <"y", int>
+     */
     public void sendFamilyMemberPosition(String playerId, int x, int y) {
         Map<String, Object> message = Map.of(
                 "playerId", playerId,
                 "actionType", "addNewborn",
-                "position", Map.of("x", x, "y", "y")
+                "position", Map.of("x", x, "y", y)
         );
         simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
@@ -959,6 +1205,16 @@ public void receivePlayerTurn(String playerID, int cardID) {
         simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
+    /**
+     * /topic/room/1 으로 보냄
+     * <String, Object>
+     * <"playerId", int>
+     * <"actionType", "becomeFirstPlayer"> 그냥 becomeFirstPlayer라는 정보를 보내줍니다.
+     * <"currentTurnOrder", List<Map<String, Object>>> 현재 플레이어 턴정보를 리스트로 넘김
+     *  현재턴정보를넘기고 Map<String, Object>는 <"id", int>, <"name", String>
+     * <"newTurnOrder", List<Map<String, Object>>> 새로운 플레이어 턴정보를 리스트론 넘김
+     *  현재 턴정보 넘길때랑 똑같음.
+     */
     public void sendTurnOrderInfo(String playerId, List<Player> currentTurnOrder, List<Player> newTurnOrder) {
         Map<String, Object> message = Map.of(
                 "playerId", playerId,
@@ -973,7 +1229,16 @@ public void receivePlayerTurn(String playerID, int cardID) {
         simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
-
+    /**
+     * /topic/room/1 으로 보냄
+     * 사용자의 동물 위치정보를 프론트에게 보냄
+     * <String, Object>
+     * <"playerId", int>
+     * <"placedAnimals", List<Map<String,Object>>
+     * List에는 플레이어가 가지고 있는 모든 동물정보를 Map으로 가지고 있다.
+     * "placedAnimals"의 Map<String, Object>는 <"x", int>, <"y", int>, <"animalType", String>
+     * <"remainingCapacity", int>
+     */
     public void sendAnimalPlacementInfo(String playerId, List<Map<String, Object>> placedAnimals, int remainingCapacity) {
         Map<String, Object> message = Map.of(
                 "playerId", playerId,
@@ -983,6 +1248,16 @@ public void receivePlayerTurn(String playerID, int cardID) {
         simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
+    /**
+     * /topic/room/1 으로 보냄.
+     * 플레이어에게 선택정보 요청을 보냄
+     * Map<String, Object>
+     * <"playerId", int>
+     * <"choiceType", String>
+     * <"options", Map<String, Object>>
+     *  Map<String, Object>-> <"option1", String>, <"option2", String>, <"option3", String>
+     *  "option3"가 없는경우가 있습니다 -> 주요설비구매, 주요설비 사용 / 집 고치기 후 울타리 치기, 집 고치기만
+     */
     public void sendChoiceRequestToFrontEnd(String playerId, String choiceType, Map<String, Object> options) {
         Map<String, Object> message = new HashMap<>();
         message.put("playerId", playerId);
@@ -994,6 +1269,12 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     private Map<String, CountDownLatch> playerLatches = new ConcurrentHashMap<>();
 
+    /**
+     * 사용자로부터 선택 정보를 받는 메서드
+     * @param playerId
+     * @param choiceType
+     * @param choice
+     */
     public void receivePlayerChoice(String playerId, String choiceType, Object choice) {
         System.out.println("Received choice from player: " + playerId + " choiceType: " + choiceType + " choice: " + choice);
         Player player = getPlayerByID(playerId);
@@ -1069,6 +1350,10 @@ public void receivePlayerTurn(String playerID, int cardID) {
         return player.chooseOptionForOr();
     }
 
+    /**
+     * 안해도됨
+     *
+     */
     public void sendDecoratedCardInfo(Player player, List<ActionRoundCard> actionCards, List<ActionRoundCard> roundCards) {
         // ActionRoundCard 리스트를 CommonCard 리스트로 변환
         List<CommonCard> commonActionCards = actionCards.stream()
@@ -1094,6 +1379,13 @@ public void receivePlayerTurn(String playerID, int cardID) {
 
     private Map<String, String> resourceChoices = new ConcurrentHashMap<>();
 
+    /**
+     * /topic/room/1 로 보냄
+     * 프론트에게 자원 선택에 대한 정보를 보냄
+     * <"resource1", String> 첫번째 자원
+     * <"resource2", String> 두번째 자원
+     * <"amount", int> 양
+     */
     public void sendResourceChoiceRequestToFrontEnd(String playerId, String resource1, String resource2, int amount) {
         Map<String, Object> options = Map.of(
                 "resource1", resource1,
@@ -1139,7 +1431,11 @@ public void receivePlayerTurn(String playerID, int cardID) {
         simpMessagingTemplate.convertAndSend("/topic/room/1", message);
     }
 
-
+    /**
+     * 이거 해야함.
+     *
+     * @param player
+     */
     public void sendPlayerResourcesToFrontEnd(Player player) {
         Map<String, Object> message = new HashMap<>();
         message.put("playerId", player.getId());

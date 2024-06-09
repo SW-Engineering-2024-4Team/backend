@@ -932,7 +932,12 @@ public void addAnimalToBoard(Animal animal, int x, int y) {
                 System.out.println("해당 위치에 동물을 추가할 수 없습니다.");
             }
 
-            // 유효한 동물 배치 위치를 반환하는 메서드
+    /**
+     *
+     * 동물을 놓을수 있는 위치를 반환함
+     * @return validPositions Set<int[]>를 보냄 ex) Set {[1, 2], [3, 4] }
+     */
+    // 유효한 동물 배치 위치를 반환하는 메서드
             public Set<int[]> getValidAnimalPositions(String animalType) {
                 Set<int[]> validPositions = new HashSet<>();
                 for (int i = 0; i < tiles.length; i++) {
